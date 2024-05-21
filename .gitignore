@@ -1,0 +1,8 @@
+node_modules
+*.log
+.next
+app
+dist
+.idea
+.DS_Store
+.vscode

@@ -1,0 +1,16 @@
+appId: com.example.video-subtitle-master
+productName: Video Subtitle Master
+copyright: Copyright © 2024 buxuku
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - from: .
+    filter:
+      - package.json
+      - app
+publish: null
+asarUnpack:
+  - "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg"
+  - "node_modules/ffmpeg-static/index.js"
+  - "node_modules/ffmpeg-static/package.json"
