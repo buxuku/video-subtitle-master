@@ -10,6 +10,13 @@ files:
       - package.json
       - app
 publish: null
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  artifactName: "${productName}_${version}_${arch}.${ext}"
 asarUnpack:
   - "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg"
   - "node_modules/ffmpeg-static/index.js"

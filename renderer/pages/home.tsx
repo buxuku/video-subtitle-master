@@ -47,6 +47,7 @@ export default function Component() {
   const [downModelLoading, setDownModelLoading] = React.useState(false);
   const beginWatch = useRef(false);
   const filesRef = useRef(files);
+  const [taskLoading, setTaskLoading] = React.useState(false);
   const form = useForm({
     defaultValues: defaultUserConfig,
   });
@@ -59,6 +60,14 @@ export default function Component() {
   }, [formData, beginWatch]);
   useEffect(() => {
     filesRef.current = files;
+    // 不需要翻译，所有文件生成字幕之后就算任务结束
+    if(formData.translateProvider === '-1' && files.every(item => item.extractSubtitle)){
+        setTaskLoading(false);
+    }
+    // 需要翻译，所有文件完成字幕翻译之后就算任务结束
+    if(formData.translateProvider !== '-1' && files.every(item => item.translateSubtitle)){
+        setTaskLoading(false);
+    }
   }, [files]);
   useEffect(() => {
     window?.ipc?.send("getSystemInfo", null);
@@ -114,6 +123,7 @@ export default function Component() {
       });
       return;
     }
+    setTaskLoading(true);
     window?.ipc?.send("handleTask", { files, formData });
   };
   const handleSetKeyAndSecret = (value) => {
@@ -125,7 +135,7 @@ export default function Component() {
   };
   const handleInstallModel = () => {
     setDownModelLoading(true);
-    window?.ipc?.send("downModel", formData.model);
+    window?.ipc?.send("downModel", { model: formData.model });
   };
   const isInstalledModel = systemInfo?.modelsInstalled?.includes(
     formData.model?.toLowerCase(),
@@ -151,7 +161,9 @@ export default function Component() {
             <span className="text-sm text-gray-600 ml-4">
               批量为视频生成字幕，并可翻译成其它语言
               <Github
-                onClick={() => openUrl("https://github.com/buxuku/video-subtitle-master")}
+                onClick={() =>
+                  openUrl("https://github.com/buxuku/video-subtitle-master")
+                }
                 className="inline-block ml-4 cursor-pointer"
               />
             </span>
@@ -484,6 +496,8 @@ export default function Component() {
                       <TableCell className="">
                         {file?.translateSubtitle ? (
                           <CircleCheck className="size-4" />
+                        ) : formData.translateProvider === "-1" ? (
+                          "跳过"
                         ) : (
                           <Loader className="animate-spin" />
                         )}
@@ -499,7 +513,9 @@ export default function Component() {
               size="sm"
               type="submit"
               onClick={handleTask}
+              disabled={taskLoading}
             >
+                {taskLoading && <Loader className="animate-spin" />}
               开始操作
             </Button>
           </div>

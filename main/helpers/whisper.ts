@@ -2,6 +2,7 @@ import { exec } from "child_process";
 import { app } from "electron";
 import path from "path";
 import fs from "fs";
+import replaceModelSource from "./model-source";
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -36,8 +37,14 @@ export const checkWhisperInstalled = () => {
   const whisperPath = getPath("whisperPath");
   return fs.existsSync(whisperPath);
 };
-export const install = (event) => {
-  const repoUrl = "https://github.com/ggerganov/whisper.cpp";
+
+const whisperRepos = {
+  github: "https://github.com/ggerganov/whisper.cpp",
+  gitee: "https://gitee.com/mirrors/whisper.cpp.git",
+};
+
+export const install = (event, source) => {
+  const repoUrl = whisperRepos[source] || whisperRepos.github;
   const whisperPath = getPath("whisperPath");
   if (checkWhisperInstalled()) {
     event.sender.send("installWhisperComplete", true);
@@ -65,29 +72,35 @@ export const install = (event) => {
   });
 };
 
-export const downModel = (event, whisperModel) => {
-  const { modelsPath, whisperPath } = getPath();
+export const downModel = async (event, whisperModel, source = "hf-mirror.com") => {
+  const { modelsPath } = getPath();
   const modelName = whisperModel?.toLowerCase();
   const modelPath = path.join(modelsPath, `ggml-${modelName}.bin`);
   if (fs.existsSync(modelPath)) return;
   if (!checkWhisperInstalled()) {
     event.sender.send("message", "whisper.cpp 未下载，请先下载 whisper.cpp");
   }
-  exec(
-    `bash "${modelsPath}/download-ggml-model.sh" ${modelName}`,
-    (err, stdout) => {
-      if (err) {
-        event.sender.send("message", err);
-      } else {
-        event.sender.send("message", `模型 ${modelName} 下载完成`);
-      }
-      event.sender.send("downModelComplete", !err);
-      event.sender.send("getSystemInfoComplete", {
-        whisperInstalled: checkWhisperInstalled(),
-        modelsInstalled: getModelsInstalled(),
-      });
-    },
-  );
+  try {
+    await replaceModelSource(`${modelsPath}/download-ggml-model.sh`, source);
+    console.log("完成模型下载地址替换", modelName);
+    exec(
+      `bash "${modelsPath}/download-ggml-model.sh" ${modelName}`,
+      (err, stdout) => {
+        if (err) {
+          event.sender.send("message", err);
+        } else {
+          event.sender.send("message", `模型 ${modelName} 下载完成`);
+        }
+        event.sender.send("downModelComplete", !err);
+        event.sender.send("getSystemInfoComplete", {
+          whisperInstalled: checkWhisperInstalled(),
+          modelsInstalled: getModelsInstalled(),
+        });
+      },
+    );
+  } catch (error) {
+    event.sender.send("message", error);
+  }
 };
 
 export const makeWhisper = (event) => {

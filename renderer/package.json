@@ -1,6 +1,6 @@
 {
   "name": "renderer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "next.config.js",
   "dependencies": {

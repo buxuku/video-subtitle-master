@@ -108,7 +108,7 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
               console.log(err);
             }
           });
-          if (translateProvider !== -1) {
+          if (translateProvider !== '-1') {
             await translate(
               event,
               directory,
@@ -139,16 +139,16 @@ ipcMain.on("getSystemInfo", (event, key) => {
   event.sender.send("getSystemInfoComplete", res);
 });
 
-ipcMain.on("installWhisper", (event) => {
-  install(event);
+ipcMain.on("installWhisper", (event, source) => {
+  install(event, source);
 });
 
 ipcMain.on("makeWhisper", (event) => {
   makeWhisper(event);
 });
 
-ipcMain.on("downModel", (event, whisperModel) => {
-  downModel(event, whisperModel);
+ipcMain.on("downModel", (event, {model, source}) => {
+  downModel(event, model, source);
 });
 
 ipcMain.on('openUrl', (event, url) => {
