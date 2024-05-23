@@ -30,18 +30,24 @@ const Guide: FC<IProps> = ({ systemInfo }) => {
   const [model, setModel] = useState<string>("tiny");
   const [downModelLoading, setDownModelLoading] = useState(false);
   useEffect(() => {
-    window?.ipc?.on("installWhisperComplete", () => {
-      window?.ipc?.send("makeWhisper", null);
+    window?.ipc?.on("installWhisperComplete", (res) => {
+      if (res) {
+        window?.ipc?.send("makeWhisper", null);
+      } else {
+        setInstallComplete(false);
+        setLoading(false);
+      }
     });
-    window?.ipc?.on("makeWhisperComplete", () => {
+    window?.ipc?.on("makeWhisperComplete", (res) => {
+      if (res) {
+        setInstallComplete(true);
+      }
       setLoading(false);
-      setInstallComplete(true);
     });
     window?.ipc?.on("downModelComplete", () => {
       setDownModelLoading(false);
     });
   }, []);
-  console.log(installComplete, "installComplete");
   const handleInstallWhisper = (source: "github" | "gitee") => {
     setLoading(true);
     try {
