@@ -2,6 +2,8 @@ import { exec } from "child_process";
 import { app } from "electron";
 import path from "path";
 import fs from "fs";
+import git from "isomorphic-git";
+import http from "isomorphic-git/http/node";
 import replaceModelSource from "./model-source";
 
 export const getPath = (key?: string) => {
@@ -50,29 +52,27 @@ export const install = (event, source) => {
     event.sender.send("installWhisperComplete", true);
     return;
   }
-  exec("git --version", (err, stdout, stderr) => {
-    if (err) {
-      // TODO: 如果 git 没有安装，下载并解压 zip 文件
-      // https.get(zipUrl, (response) => {
-      //     response.pipe(unzipper.Extract({ path: targetPath }));
-      // });
-    } else {
-      // 如果 git 已经安装，克隆仓库
-      exec(`git clone ${repoUrl} "${whisperPath}"`, (err, stdout, stderr) => {
-        if (err) {
-          console.error(`克隆仓库时出错: ${err}`);
-          event.sender.send("message", err);
-          event.sender.send("installWhisperComplete", false);
-        } else {
-          console.log(`仓库已经被克隆到: ${whisperPath}`);
-          event.sender.send("installWhisperComplete", true);
-        }
+  git
+    .clone({ fs, http, dir: whisperPath, url: repoUrl })
+    .then(() => {
+      console.log(`仓库已经被克隆到: ${whisperPath}`);
+      event.sender.send("installWhisperComplete", true);
+    })
+    .catch((err) => {
+      console.error(`克隆仓库时出错: ${err}`);
+      exec(`rm -rf "${whisperPath}"`, (err, stdout) => {
+        console.log(err);
       });
-    }
-  });
+      event.sender.send("message", err);
+      event.sender.send("installWhisperComplete", false);
+    });
 };
 
-export const downModel = async (event, whisperModel, source = "hf-mirror.com") => {
+export const downModel = async (
+  event,
+  whisperModel,
+  source = "hf-mirror.com",
+) => {
   const { modelsPath } = getPath();
   const modelName = whisperModel?.toLowerCase();
   const modelPath = path.join(modelsPath, `ggml-${modelName}.bin`);
