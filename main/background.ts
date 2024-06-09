@@ -1,6 +1,6 @@
 import path from "path";
 import { app, dialog, ipcMain, shell } from "electron";
-import {  exec } from "child_process";
+import { exec } from "child_process";
 import serve from "electron-serve";
 import { createWindow } from "./helpers";
 import {
@@ -12,7 +12,7 @@ import {
 } from "./helpers/whisper";
 import { extractAudio } from "./helpers/ffmpeg";
 import translate from "./helpers/translate";
-import { renderTemplate } from "./helpers/utils";
+import { getExtraResourcesPath, isWin32, renderTemplate } from "./helpers/utils";
 import fs from "fs";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -20,7 +20,7 @@ const isProd = process.env.NODE_ENV === "production";
 if (isProd) {
   serve({ directory: "app" });
 } else {
-  app.setPath("userData", `${app.getPath("userData")} (development)`);
+  app.setPath("userData", `${app.getPath("userData")}-dev`);
 }
 
 (async () => {
@@ -96,8 +96,12 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
       const whisperModel = model?.toLowerCase();
       await extractAudio(filePath, audioFile);
       event.sender.send("extractAudio-completed", file);
+      let mainPath = `${whisperPath}main`;
+      if(isWin32()){
+        mainPath =  path.join(getExtraResourcesPath(), 'whisper-bin-x64', 'main.exe');
+      }
       exec(
-        `"${whisperPath}main" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}"`,
+        `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}"`,
         async (error, stdout, stderr) => {
           if (error) {
             event.sender.send("message", error);
@@ -108,7 +112,7 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
               console.log(err);
             }
           });
-          if (translateProvider !== '-1') {
+          if (translateProvider !== "-1") {
             await translate(
               event,
               directory,
@@ -147,10 +151,10 @@ ipcMain.on("makeWhisper", (event) => {
   makeWhisper(event);
 });
 
-ipcMain.on("downModel", (event, {model, source}) => {
+ipcMain.on("downModel", (event, { model, source }) => {
   downModel(event, model, source);
 });
 
-ipcMain.on('openUrl', (event, url) => {
-    shell.openExternal(url);
+ipcMain.on("openUrl", (event, url) => {
+  shell.openExternal(url);
 });

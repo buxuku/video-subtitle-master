@@ -17,6 +17,13 @@ mac:
         - arm64
         - x64
   artifactName: "${productName}_${version}_${arch}.${ext}"
+win: {
+  target: nsis,
+  requestedExecutionLevel: asInvoker
+}
+extraResources:
+  - from: ./extraResources/
+    to: ./extraResources/
 asarUnpack:
   - "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg"
   - "node_modules/ffmpeg-static/index.js"
