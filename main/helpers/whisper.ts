@@ -5,6 +5,7 @@ import fs from "fs";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import replaceModelSource from "./model-source";
+import { isDarwin, isWin32 } from "./utils";
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -81,23 +82,32 @@ export const downModel = async (
     event.sender.send("message", "whisper.cpp 未下载，请先下载 whisper.cpp");
   }
   try {
-    await replaceModelSource(`${modelsPath}/download-ggml-model.sh`, source);
+    let downShellPath;
+    let shell: string;
+    if(isDarwin()){
+      downShellPath = path.join(modelsPath, 'download-ggml-model.sh');
+      shell = 'bash';
+    } else if(isWin32()){
+      downShellPath = path.join(modelsPath, 'download-ggml-model.cmd');
+      shell = 'cmd.exe /c'
+    } else {
+      throw Error("platform does not support! ");
+    }
+    await replaceModelSource(`${downShellPath}`, source);
     console.log("完成模型下载地址替换", modelName);
-    exec(
-      `bash "${modelsPath}/download-ggml-model.sh" ${modelName}`,
-      (err, stdout) => {
-        if (err) {
-          event.sender.send("message", err);
-        } else {
-          event.sender.send("message", `模型 ${modelName} 下载完成`);
-        }
-        event.sender.send("downModelComplete", !err);
-        event.sender.send("getSystemInfoComplete", {
-          whisperInstalled: checkWhisperInstalled(),
-          modelsInstalled: getModelsInstalled(),
-        });
-      },
-    );
+    console.log("正在安装 whisper.cpp 模型");
+    exec(`${shell} "${downShellPath}" ${modelName}`, (err, stdout) => {
+      if (err) {
+        event.sender.send("message", err);
+      } else {
+        event.sender.send("message", `模型 ${modelName} 下载完成`);
+      }
+      event.sender.send("downModelComplete", !err);
+      event.sender.send("getSystemInfoComplete", {
+        whisperInstalled: checkWhisperInstalled(),
+        modelsInstalled: getModelsInstalled(),
+      });
+    });
   } catch (error) {
     event.sender.send("message", error);
   }
@@ -105,7 +115,10 @@ export const downModel = async (
 
 export const makeWhisper = (event) => {
   const { whisperPath, mainPath } = getPath();
-  if (fs.existsSync(mainPath)) return;
+  if (fs.existsSync(mainPath) || isWin32()) {
+    event.sender.send("makeWhisperComplete", true);
+    return;
+  };
   if (!checkWhisperInstalled()) {
     event.sender.send("message", "whisper.cpp 未下载，请先下载 whisper.cpp");
   }

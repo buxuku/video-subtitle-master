@@ -4,7 +4,7 @@
 ![preview](./resources/preview.png)
 
 > [!NOTE]
-> 当前 release 包在 mac 环境下测试通过， window 环境暂未测试
+> 当前 release 包在 mac 环境下测试通过， window 仅在虚拟机测试通过，如果大家在运行过程中遇到问题，欢迎提 Issue 反馈。
 
 ## 💥特性
 

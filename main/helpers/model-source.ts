@@ -5,7 +5,6 @@ export  default async function replaceModelSource(filePath, target) {
     const data = await fs.readFile(filePath, 'utf8');
     let result = target === 'hf-mirror.com' ? data.replace(/huggingface\.co/g, 'hf-mirror.com') : data.replace(/hf-mirror\.com/g, 'hf-mirror.com');
     // 写入文件
-    console.log(result, 'result');
     await fs.writeFile(filePath, result, 'utf8');
 }
 
