@@ -29,7 +29,7 @@
 
 ## 🔦使用 (普通用户)
 
-前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面下载安装包，安装后即可直接使用
+前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面根据自己的操作系统下载安装包，安装后即可直接使用
 
 ## 🔦使用 (开发用户)
 
