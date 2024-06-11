@@ -2,12 +2,13 @@
   "private": true,
   "name": "video-subtitle-master",
   "description": "视频转字幕，字幕翻译软件",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "author": "buxuku <buxuku@gmail.com>",
   "main": "app/background.js",
   "scripts": {
     "dev": "nextron",
-    "build": "nextron build",
+    "build": "nextron build --no-pack",
+    "build:local": "nextron build",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
