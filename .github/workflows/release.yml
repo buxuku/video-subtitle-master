@@ -1,6 +1,8 @@
 name: Build/release
 
-on: push
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   release:
@@ -8,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, windows-latest]
 
     steps:
       - name: Check out Git repository
