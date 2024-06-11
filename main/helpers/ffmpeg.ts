@@ -20,7 +20,7 @@ export const extractAudio = (videoPath, audioPath) => {
                     console.log('转换任务开始~', str);
                 })
                 .on('progress', function (progress) {
-                    console.log('进行中，完成' + progress.percent + '%');
+                    console.log('进行中，完成' + (progress.percent || 0) + '%');
                 })
                 .on('end', function (str) {
                     console.log('转换任务完成!');
