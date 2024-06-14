@@ -37,6 +37,7 @@ import { supportedLanguage, defaultUserConfig, openUrl } from "lib/utils";
 import store from "lib/store";
 import SavePathNotice from "@/components/SavePathNotice";
 import { ISystemInfo, IFiles } from "../types";
+import TaskStatus from "@/components/TaskStatus";
 
 export default function Component() {
   const [files, setFiles] = React.useState([]);
@@ -61,12 +62,18 @@ export default function Component() {
   useEffect(() => {
     filesRef.current = files;
     // 不需要翻译，所有文件生成字幕之后就算任务结束
-    if(formData.translateProvider === '-1' && files.every(item => item.extractSubtitle)){
-        setTaskLoading(false);
+    if (
+      formData.translateProvider === "-1" &&
+      files.every((item) => item.extractSubtitle)
+    ) {
+      setTaskLoading(false);
     }
     // 需要翻译，所有文件完成字幕翻译之后就算任务结束
-    if(formData.translateProvider !== '-1' && files.every(item => item.translateSubtitle)){
-        setTaskLoading(false);
+    if (
+      formData.translateProvider !== "-1" &&
+      files.every((item) => item.translateSubtitle)
+    ) {
+      setTaskLoading(false);
     }
   }, [files]);
   useEffect(() => {
@@ -85,24 +92,15 @@ export default function Component() {
         })),
       );
     });
-    window?.ipc?.on("extractAudio-completed", (res: IFiles) => {
-      const finalFiles = filesRef.current.map((file) =>
-        file.uuid === res?.uuid ? { ...file, extractAudio: true } : file,
-      );
-      setFiles(finalFiles);
-    });
-    window?.ipc?.on("extractSubtitle-completed", (res: IFiles) => {
-      const finalFiles = filesRef.current.map((file) =>
-        file.uuid === res?.uuid ? { ...file, extractSubtitle: true } : file,
-      );
-      setFiles(finalFiles);
-    });
-    window?.ipc?.on("translate-completed", (res: IFiles) => {
-      const finalFiles = filesRef.current.map((file) =>
-        file.uuid === res?.uuid ? { ...file, translateSubtitle: true } : file,
-      );
-      setFiles(finalFiles);
-    });
+    window?.ipc?.on(
+      "taskStatusChange",
+      (res: IFiles, key: string, status: string) => {
+        const finalFiles = filesRef.current.map((file) =>
+          file.uuid === res?.uuid ? { ...file, [key]: status } : file,
+        );
+        setFiles(finalFiles);
+      },
+    );
     window?.ipc?.on("getSystemInfoComplete", (res) => {
       console.log("systemInfo", res);
       setSystemInfo(res);
@@ -120,6 +118,20 @@ export default function Component() {
     if (!files?.length) {
       toast("消息通知", {
         description: "没有需要转换的视频",
+      });
+      return;
+    }
+    if (
+      files.every(
+        (item) =>
+          item.extractAudio &&
+          item.extractSubtitle &&
+          formData.translateProvider !== "-1" &&
+          item.translateSubtitle,
+      )
+    ) {
+      toast("消息通知", {
+        description: "所有文件都已经生成字幕，无需再次生成",
       });
       return;
     }
@@ -145,30 +157,276 @@ export default function Component() {
   };
 
   return (
-    <div className="grid h-screen w-full">
-      <div className="flex flex-col">
-        <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
-          <h1 className="text-xl font-semibold">
-            <Button
-              aria-label="Home"
-              size="icon"
-              variant="outline"
-              className="mr-2"
-            >
-              <FileVideo2 className="size-5" />
-            </Button>
-            video-subtitle-master
-            <span className="text-sm text-gray-600 ml-4">
-              批量为视频生成字幕，并可翻译成其它语言
-              <Github
-                onClick={() =>
-                  openUrl("https://github.com/buxuku/video-subtitle-master")
-                }
-                className="inline-block ml-4 cursor-pointer"
-              />
-            </span>
-          </h1>
-          <div className="ml-auto align-middle items-center">
+    <div className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="relative hidden flex-col items-start gap-8 md:flex">
+        <Form {...form}>
+          <form className="grid w-full items-start gap-6">
+            <fieldset className="grid gap-3 rounded-lg border p-4">
+              <legend className="-ml-1 px-1 text-sm font-medium">
+                源字幕设置
+              </legend>
+              <div className="grid gap-3">
+                <FormField
+                  control={form.control}
+                  name="model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>模型选择</FormLabel>
+                      <FormControl>
+                        <Models
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          modelsInstalled={systemInfo.modelsInstalled}
+                        />
+                      </FormControl>
+                      {!isInstalledModel && (
+                        <FormDescription>
+                          该模型未下载，
+                          {downModelLoading ? (
+                            "正在下载中..."
+                          ) : (
+                            <a
+                              className="cursor-pointer text-blue-500"
+                              onClick={handleInstallModel}
+                            >
+                              立即下载
+                            </a>
+                          )}
+                        </FormDescription>
+                      )}
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid gap-3">
+                <FormField
+                  control={form.control}
+                  name="sourceLanguage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>视频原始语言</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="请选择" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={"auto"}>自动识别</SelectItem>
+                            {supportedLanguage.map((item) => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid gap-4 mt-2">
+                {/*<span>是否单独保存源字幕文件：</span>*/}
+                <FormField
+                  control={form.control}
+                  name="saveSourceSrt"
+                  render={({ field }) => (
+                    <FormItem className="flex justify-between items-center">
+                      <FormLabel>是否单独保存源字幕文件</FormLabel>
+                      <FormControl>
+                        <Switch
+                          onCheckedChange={field.onChange}
+                          checked={field.value}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {formData.saveSourceSrt && (
+                  <div className="grid gap-4">
+                    <FormField
+                      control={form.control}
+                      name="sourceSrtSaveFileName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center">
+                            源字幕保存文件名设置
+                            <SavePathNotice />
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder="请输入" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+            </fieldset>
+            <fieldset className="grid gap-6 rounded-lg border p-4">
+              <legend className="-ml-1 px-1 text-sm font-medium">
+                翻译设置
+              </legend>
+              <div className="grid gap-3">
+                <FormField
+                  control={form.control}
+                  name="translateProvider"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>翻译服务</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            handleSetKeyAndSecret(value);
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="请选择" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={"-1"}>不翻译</SelectItem>
+                            <SelectItem value="baidu">百度</SelectItem>
+                            <SelectItem value="volc">火山</SelectItem>
+                            <SelectItem value="deeplx">deepLx</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              {formData.translateProvider !== "-1" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-3">
+                    <FormField
+                      control={form.control}
+                      key={`${
+                        formData.translateProvider as "baidu" | "volc"
+                      }.apiKey`}
+                      name={`${
+                        formData.translateProvider as "baidu" | "volc"
+                      }.apiKey`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API KEY</FormLabel>
+                          <FormControl>
+                            <Input placeholder="请输入" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <FormField
+                      control={form.control}
+                      key={`${
+                        formData.translateProvider as "baidu" | "volc"
+                      }.apiSecret`}
+                      name={`${
+                        formData.translateProvider as "baidu" | "volc"
+                      }.apiSecret`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API SECRET</FormLabel>
+                          <FormControl>
+                            <Input placeholder="请输入" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="grid gap-3">
+                <div className="grid gap-3">
+                  <FormField
+                    control={form.control}
+                    name="targetLanguage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>翻译目标语言</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="请选择" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {supportedLanguage.map((item) => (
+                                <SelectItem key={item.value} value={item.value}>
+                                  {item.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-3">
+                <FormField
+                  control={form.control}
+                  name="translateContent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>翻译输出字幕设置</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="请选择" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="onlyTranslate">
+                              仅输出翻译字幕
+                            </SelectItem>
+                            <SelectItem value="sourceAndTranslate">
+                              输出双语（源字幕加翻译字幕）
+                            </SelectItem>
+                            <SelectItem value="translateAndSource">
+                              输出双语（翻译字幕加源字幕）
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid gap-3">
+                <FormField
+                  control={form.control}
+                  name="targetSrtSaveFileName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center">
+                        翻译字幕保存文件名设置
+                        <SavePathNotice />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="请输入" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </fieldset>
+          </form>
+        </Form>
+      </div>
+      <div className="relative flex h-full min-h-[50vh] border flex-col rounded-xl p-4 lg:col-span-2">
+        <ScrollArea className="max-h-[650px]">
+          <div className="align-middle items-center float-right">
             <Button
               className="text-sm"
               size="sm"
@@ -187,342 +445,54 @@ export default function Component() {
               导入视频
             </Button>
           </div>
-        </header>
-        <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
-          <div className="relative hidden flex-col items-start gap-8 md:flex">
-            <Form {...form}>
-              <form className="grid w-full items-start gap-6">
-                <fieldset className="grid gap-3 rounded-lg border p-4">
-                  <legend className="-ml-1 px-1 text-sm font-medium">
-                    源字幕设置
-                  </legend>
-                  <div className="grid gap-3">
-                    <FormField
-                      control={form.control}
-                      name="model"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>模型选择</FormLabel>
-                          <FormControl>
-                            <Models
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              modelsInstalled={systemInfo.modelsInstalled}
-                            />
-                          </FormControl>
-                          {!isInstalledModel && (
-                            <FormDescription>
-                              该模型未下载，
-                              {downModelLoading ? (
-                                "正在下载中..."
-                              ) : (
-                                <a
-                                  className="cursor-pointer text-blue-500"
-                                  onClick={handleInstallModel}
-                                >
-                                  立即下载
-                                </a>
-                              )}
-                            </FormDescription>
-                          )}
-                        </FormItem>
-                      )}
+          <Table>
+            <TableCaption>已经导入的视频列表</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[500px]">视频文件名</TableHead>
+                <TableHead>提取音频</TableHead>
+                <TableHead>生成字幕</TableHead>
+                <TableHead className="">翻译字幕</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="max-h-[80vh]">
+              {files.map((file) => (
+                <TableRow key={file?.uuid}>
+                  <TableCell className="font-medium">
+                    {file?.filePath}
+                  </TableCell>
+                  <TableCell>
+                    <TaskStatus file={file} checkKey="extractAudio" />
+                  </TableCell>
+                  <TableCell>
+                    <TaskStatus file={file} checkKey="extractSubtitle" />
+                  </TableCell>
+                  <TableCell className="">
+                    <TaskStatus
+                      file={file}
+                      checkKey="translateSubtitle"
+                      skip={formData.translateProvider === "-1"}
                     />
-                  </div>
-                  <div className="grid gap-3">
-                    <FormField
-                      control={form.control}
-                      name="sourceLanguage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>视频原始语言</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="请选择" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={"auto"}>自动识别</SelectItem>
-                                {supportedLanguage.map((item) => (
-                                  <SelectItem
-                                    key={item.value}
-                                    value={item.value}
-                                  >
-                                    {item.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid gap-4 mt-2">
-                    {/*<span>是否单独保存源字幕文件：</span>*/}
-                    <FormField
-                      control={form.control}
-                      name="saveSourceSrt"
-                      render={({ field }) => (
-                        <FormItem className="flex justify-between items-center">
-                          <FormLabel>是否单独保存源字幕文件</FormLabel>
-                          <FormControl>
-                            <Switch
-                              onCheckedChange={field.onChange}
-                              checked={field.value}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    {formData.saveSourceSrt && (
-                      <div className="grid gap-4">
-                        <FormField
-                          control={form.control}
-                          name="sourceSrtSaveFileName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="flex items-center">
-                                源字幕保存文件名设置
-                                <SavePathNotice />
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="请输入" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </fieldset>
-                <fieldset className="grid gap-6 rounded-lg border p-4">
-                  <legend className="-ml-1 px-1 text-sm font-medium">
-                    翻译设置
-                  </legend>
-                  <div className="grid gap-3">
-                    <FormField
-                      control={form.control}
-                      name="translateProvider"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>翻译服务</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                handleSetKeyAndSecret(value);
-                              }}
-                              value={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="请选择" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={"-1"}>不翻译</SelectItem>
-                                <SelectItem value="baidu">百度</SelectItem>
-                                <SelectItem value="volc">火山</SelectItem>
-                                <SelectItem value="deeplx">deepLx</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  {formData.translateProvider !== "-1" && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-3">
-                        <FormField
-                          control={form.control}
-                          key={`${
-                            formData.translateProvider as "baidu" | "volc"
-                          }.apiKey`}
-                          name={`${
-                            formData.translateProvider as "baidu" | "volc"
-                          }.apiKey`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>API KEY</FormLabel>
-                              <FormControl>
-                                <Input placeholder="请输入" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div className="grid gap-3">
-                        <FormField
-                          control={form.control}
-                          key={`${
-                            formData.translateProvider as "baidu" | "volc"
-                          }.apiSecret`}
-                          name={`${
-                            formData.translateProvider as "baidu" | "volc"
-                          }.apiSecret`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>API SECRET</FormLabel>
-                              <FormControl>
-                                <Input placeholder="请输入" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div className="grid gap-3">
-                    <div className="grid gap-3">
-                      <FormField
-                        control={form.control}
-                        name="targetLanguage"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>翻译目标语言</FormLabel>
-                            <FormControl>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="请选择" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {supportedLanguage.map((item) => (
-                                    <SelectItem
-                                      key={item.value}
-                                      value={item.value}
-                                    >
-                                      {item.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-3">
-                    <FormField
-                      control={form.control}
-                      name="translateContent"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>翻译输出字幕设置</FormLabel>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="请选择" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="onlyTranslate">
-                                  仅输出翻译字幕
-                                </SelectItem>
-                                <SelectItem value="sourceAndTranslate">
-                                  输出双语（源字幕加翻译字幕）
-                                </SelectItem>
-                                <SelectItem value="translateAndSource">
-                                  输出双语（翻译字幕加源字幕）
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid gap-3">
-                    <FormField
-                      control={form.control}
-                      name="targetSrtSaveFileName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center">
-                            翻译字幕保存文件名设置
-                            <SavePathNotice />
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="请输入" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </fieldset>
-              </form>
-            </Form>
-          </div>
-          <div className="relative flex h-full min-h-[50vh] border flex-col rounded-xl p-4 lg:col-span-2">
-            <ScrollArea className="max-h-[650px]">
-              <Table>
-                <TableCaption>已经导入的视频列表</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[500px]">视频文件名</TableHead>
-                    <TableHead>提取音频</TableHead>
-                    <TableHead>生成字幕</TableHead>
-                    <TableHead className="">翻译字幕</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="max-h-[80vh]">
-                  {files.map((file) => (
-                    <TableRow key={file?.uuid}>
-                      <TableCell className="font-medium">
-                        {file?.filePath}
-                      </TableCell>
-                      <TableCell>
-                        {file?.extractAudio ? (
-                          <CircleCheck className="size-4" />
-                        ) : (
-                          <Loader className="animate-spin" />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {file?.extractSubtitle ? (
-                          <CircleCheck className="size-4" />
-                        ) : (
-                          <Loader className="animate-spin" />
-                        )}
-                      </TableCell>
-                      <TableCell className="">
-                        {file?.translateSubtitle ? (
-                          <CircleCheck className="size-4" />
-                        ) : formData.translateProvider === "-1" ? (
-                          "跳过"
-                        ) : (
-                          <Loader className="animate-spin" />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-            <div className="flex-1" />
-            <Button
-              className="ml-auto gap-1.5"
-              size="sm"
-              type="submit"
-              onClick={handleTask}
-              disabled={taskLoading}
-            >
-                {taskLoading && <Loader className="animate-spin" />}
-              开始操作
-            </Button>
-          </div>
-        </main>
-        <Toaster />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+        <div className="flex-1" />
+        <Button
+          className="ml-auto gap-1.5"
+          size="sm"
+          type="submit"
+          onClick={handleTask}
+          disabled={taskLoading}
+        >
+          {taskLoading && <Loader className="animate-spin" />}
+          开始操作
+        </Button>
       </div>
       <Guide systemInfo={systemInfo} />
+      <Toaster />
     </div>
   );
 }
