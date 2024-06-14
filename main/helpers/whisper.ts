@@ -84,12 +84,12 @@ export const downModel = async (
   try {
     let downShellPath;
     let shell: string;
-    if(isDarwin()){
-      downShellPath = path.join(modelsPath, 'download-ggml-model.sh');
-      shell = 'bash';
-    } else if(isWin32()){
-      downShellPath = path.join(modelsPath, 'download-ggml-model.cmd');
-      shell = 'cmd.exe /c'
+    if (isDarwin()) {
+      downShellPath = path.join(modelsPath, "download-ggml-model.sh");
+      shell = "bash";
+    } else if (isWin32()) {
+      downShellPath = path.join(modelsPath, "download-ggml-model.cmd");
+      shell = "cmd.exe /c";
     } else {
       throw Error("platform does not support! ");
     }
@@ -118,7 +118,7 @@ export const makeWhisper = (event) => {
   if (fs.existsSync(mainPath) || isWin32()) {
     event.sender.send("makeWhisperComplete", true);
     return;
-  };
+  }
   if (!checkWhisperInstalled()) {
     event.sender.send("message", "whisper.cpp 未下载，请先下载 whisper.cpp");
   }
@@ -134,4 +134,51 @@ export const makeWhisper = (event) => {
     event.sender.send("message", "编译完成");
     event.sender.send("makeWhisperComplete", !err);
   });
+};
+
+export const deleteModel = async (model) => {
+  const modelsPath = getPath("modelsPath");
+  const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
+  return new Promise((resolve, reject) => {
+    if (fs.existsSync(modelPath)) {
+      fs.unlinkSync(modelPath);
+    }
+    resolve("ok");
+  });
+};
+
+export const downloadModelSync = async (model, source) => {
+  const modelsPath = getPath("modelsPath");
+  const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
+  if (fs.existsSync(modelPath)) return;
+  if (!checkWhisperInstalled()) {
+    throw Error("whisper.cpp 未下载，请先下载 whisper.cpp");
+  }
+  try {
+    let downShellPath;
+    let shell: string;
+    if (isDarwin()) {
+      downShellPath = path.join(modelsPath, "download-ggml-model.sh");
+      shell = "bash";
+    } else if (isWin32()) {
+      downShellPath = path.join(modelsPath, "download-ggml-model.cmd");
+      shell = "cmd.exe /c";
+    } else {
+      throw Error("platform does not support! ");
+    }
+    await replaceModelSource(`${downShellPath}`, source);
+    console.log("完成模型下载地址替换", model);
+    console.log("正在安装 whisper.cpp 模型");
+    return new Promise((resolve, reject) => {
+        exec(`${shell} "${downShellPath}" ${model}`, (err, stdout) => {
+            if (err) {
+               reject(err);
+            } else {
+                resolve('ok')
+            }
+        });
+    })
+  } catch (error) {
+      console.log(error)
+  }
 };

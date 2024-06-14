@@ -9,10 +9,17 @@ import {
   makeWhisper,
   checkWhisperInstalled,
   getModelsInstalled,
+  deleteModel,
+  downloadModelSync,
+  getPath,
 } from "./helpers/whisper";
 import { extractAudio } from "./helpers/ffmpeg";
 import translate from "./helpers/translate";
-import { getExtraResourcesPath, isWin32, renderTemplate } from "./helpers/utils";
+import {
+  getExtraResourcesPath,
+  isWin32,
+  renderTemplate,
+} from "./helpers/utils";
 import fs from "fs";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -91,28 +98,49 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
       };
       const srtFile = path.join(
         directory,
-        `${renderTemplate(sourceSrtSaveFileName, templateData)}`,
+        `${renderTemplate(
+          saveSourceSrt ? sourceSrtSaveFileName : "${fileName}-temp",
+          templateData,
+        )}`,
       );
       const whisperModel = model?.toLowerCase();
+      event.sender.send("taskStatusChange", file, "extractAudio", "loading");
       await extractAudio(filePath, audioFile);
-      event.sender.send("extractAudio-completed", file);
+      event.sender.send("taskStatusChange", file, "extractAudio", "done");
       let mainPath = `${whisperPath}main`;
-      if(isWin32()){
-        mainPath =  path.join(getExtraResourcesPath(), 'whisper-bin-x64', 'main.exe');
+      if (isWin32()) {
+        mainPath = path.join(
+          getExtraResourcesPath(),
+          "whisper-bin-x64",
+          "main.exe",
+        );
       }
+      event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
       exec(
-        `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}"`,
+        `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`,
         async (error, stdout, stderr) => {
           if (error) {
             event.sender.send("message", error);
           }
-          event.sender.send("extractSubtitle-completed", file);
+          event.sender.send(
+            "taskStatusChange",
+            file,
+            "extractSubtitle",
+            "done",
+          );
           fs.unlink(audioFile, (err) => {
             if (err) {
               console.log(err);
             }
           });
           if (translateProvider !== "-1") {
+            event.sender.send(
+              "taskStatusChange",
+              file,
+              "translateSubtitle",
+              "loading",
+            );
+
             await translate(
               event,
               directory,
@@ -120,7 +148,12 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
               `${srtFile}.srt`,
               formData,
             );
-            event.sender.send("translate-completed", file);
+            event.sender.send(
+              "taskStatusChange",
+              file,
+              "translateSubtitle",
+              "done",
+            );
           }
           if (!saveSourceSrt) {
             fs.unlink(`${srtFile}.srt`, (err) => {
@@ -157,4 +190,23 @@ ipcMain.on("downModel", (event, { model, source }) => {
 
 ipcMain.on("openUrl", (event, url) => {
   shell.openExternal(url);
+});
+
+ipcMain.handle("deleteModel", async (event, modelName) => {
+  await deleteModel(modelName);
+  return true;
+});
+
+ipcMain.handle("getSystemInfo", async (event, key) => {
+  const res = {
+    whisperInstalled: checkWhisperInstalled(),
+    modelsInstalled: getModelsInstalled(),
+    modelsPath: getPath("modelsPath"),
+  };
+  return res;
+});
+
+ipcMain.handle("downloadModel", async (event, { model, source }) => {
+  await downloadModelSync(model?.toLowerCase(), source);
+  return true;
 });

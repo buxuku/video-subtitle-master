@@ -2,7 +2,7 @@
   "private": true,
   "name": "video-subtitle-master",
   "description": "视频转字幕，字幕翻译软件",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "author": "buxuku <buxuku@gmail.com>",
   "main": "app/background.js",
   "scripts": {
@@ -14,6 +14,7 @@
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@hookform/resolvers": "^3.4.0",
+    "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
     "@radix-ui/react-hover-card": "^1.0.7",

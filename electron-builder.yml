@@ -17,16 +17,15 @@ mac:
         - arm64
         - x64
   artifactName: "${productName}_Mac_${version}_${arch}.${ext}"
-win: {
-  target: nsis,
-  requestedExecutionLevel: asInvoker,
-  artifactName: "${productName}_Windows_${version}_${arch}.${ext}",
-}
+win:
+  target: nsis
+  requestedExecutionLevel: asInvoker
+  artifactName: "${productName}_Windows_${version}_${arch}.${ext}"
 nsis:
-  oneClick: false,
-  perMachine: false,
-  allowToChangeInstallationDirectory: true,
-  deleteAppDataOnUninstall: false,
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
 extraResources:
   - from: ./extraResources/
     to: ./extraResources/
