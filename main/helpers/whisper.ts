@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { app } from "electron";
 import path from "path";
 import fs from "fs";
@@ -6,6 +6,7 @@ import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import replaceModelSource from "./model-source";
 import { isDarwin, isWin32 } from "./utils";
+import { log } from "console";
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -170,15 +171,40 @@ export const downloadModelSync = async (model, source) => {
     console.log("完成模型下载地址替换", model);
     console.log("正在安装 whisper.cpp 模型");
     return new Promise((resolve, reject) => {
-        exec(`${shell} "${downShellPath}" ${model}`, (err, stdout) => {
-            if (err) {
-               reject(err);
-            } else {
-                resolve('ok')
-            }
-        });
+      exec(`${shell} "${downShellPath}" ${model}`, (err, stdout) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve('ok')
+        }
+      });
     })
   } catch (error) {
-      console.log(error)
+    console.log(error)
   }
 };
+
+
+export async function checkOpanAiWhisper() {
+  return new Promise((resolve, reject) => {
+    let env = process.env;
+    env.PYTHONIOENCODING = 'UTF-8';
+    const childProcess = spawn('whisper', ['-h'], { env: env });
+    childProcess.on('error', (error: { code: string }) => {
+      if (error.code === 'ENOENT') {
+        resolve(false);
+      } else {
+        reject(error);
+      }
+    });
+    childProcess.on('exit', (code) => {
+      console.log('code: ', code);
+      if (code === 0) {
+        console.log('openai whisper ready')
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  });
+}
