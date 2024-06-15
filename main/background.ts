@@ -12,6 +12,7 @@ import {
   deleteModel,
   downloadModelSync,
   getPath,
+  checkOpanAiWhisper
 } from "./helpers/whisper";
 import { extractAudio } from "./helpers/ffmpeg";
 import translate from "./helpers/translate";
@@ -115,12 +116,17 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
           "main.exe",
         );
       }
+      let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`
+      const hasOpenAiWhiaper = await checkOpanAiWhisper();
+      if (hasOpenAiWhiaper) {
+        runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${directory} --language ${sourceLanguage}`
+      }
       event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
-      exec(
-        `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`,
+      exec(runShell,
         async (error, stdout, stderr) => {
           if (error) {
             event.sender.send("message", error);
+            return;
           }
           event.sender.send(
             "taskStatusChange",
