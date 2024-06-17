@@ -12,7 +12,7 @@ import {
   deleteModel,
   downloadModelSync,
   getPath,
-  checkOpanAiWhisper
+  checkOpenAiWhisper,
 } from "./helpers/whisper";
 import { extractAudio } from "./helpers/ffmpeg";
 import translate from "./helpers/translate";
@@ -116,58 +116,51 @@ ipcMain.on("handleTask", async (event, { files, formData }) => {
           "main.exe",
         );
       }
-      let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`
-      const hasOpenAiWhiaper = await checkOpanAiWhisper();
+      let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`;
+      const hasOpenAiWhiaper = await checkOpenAiWhisper();
       if (hasOpenAiWhiaper) {
-        runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${directory} --language ${sourceLanguage}`
+        runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${directory} --language ${sourceLanguage}`;
       }
       event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
-      exec(runShell,
-        async (error, stdout, stderr) => {
-          if (error) {
-            event.sender.send("message", error);
-            return;
+      exec(runShell, async (error, stdout, stderr) => {
+        if (error) {
+          event.sender.send("message", error);
+          return;
+        }
+        event.sender.send("taskStatusChange", file, "extractSubtitle", "done");
+        fs.unlink(audioFile, (err) => {
+          if (err) {
+            console.log(err);
           }
+        });
+        if (translateProvider !== "-1") {
           event.sender.send(
             "taskStatusChange",
             file,
-            "extractSubtitle",
+            "translateSubtitle",
+            "loading",
+          );
+
+          await translate(
+            event,
+            directory,
+            fileName,
+            `${srtFile}.srt`,
+            formData,
+          );
+          event.sender.send(
+            "taskStatusChange",
+            file,
+            "translateSubtitle",
             "done",
           );
-          fs.unlink(audioFile, (err) => {
-            if (err) {
-              console.log(err);
-            }
+        }
+        if (!saveSourceSrt) {
+          fs.unlink(`${srtFile}.srt`, (err) => {
+            console.log(err);
           });
-          if (translateProvider !== "-1") {
-            event.sender.send(
-              "taskStatusChange",
-              file,
-              "translateSubtitle",
-              "loading",
-            );
-
-            await translate(
-              event,
-              directory,
-              fileName,
-              `${srtFile}.srt`,
-              formData,
-            );
-            event.sender.send(
-              "taskStatusChange",
-              file,
-              "translateSubtitle",
-              "done",
-            );
-          }
-          if (!saveSourceSrt) {
-            fs.unlink(`${srtFile}.srt`, (err) => {
-              console.log(err);
-            });
-          }
-        },
-      );
+        }
+      });
     }
   } catch (error) {
     event.sender.send("message", error);
@@ -203,16 +196,36 @@ ipcMain.handle("deleteModel", async (event, modelName) => {
   return true;
 });
 
+let downloadingModels = new Set<string>();
+
 ipcMain.handle("getSystemInfo", async (event, key) => {
   const res = {
     whisperInstalled: checkWhisperInstalled(),
     modelsInstalled: getModelsInstalled(),
     modelsPath: getPath("modelsPath"),
+    downloadingModels: Array.from(downloadingModels),
   };
   return res;
 });
 
 ipcMain.handle("downloadModel", async (event, { model, source }) => {
-  await downloadModelSync(model?.toLowerCase(), source);
+  downloadingModels.add(model);
+  const onProcess = (data) => {
+    const match = data?.match(/(\d+)%/);
+    if (match) {
+      event.sender.send("downloadProgress", model, +match[1]);
+    }
+    if(data?.includes("Done") || data?.includes("main")) {
+        event.sender.send("downloadProgress", model, 100);
+    }
+  };
+  try {
+    await downloadModelSync(model?.toLowerCase(), source, onProcess);
+    downloadingModels.delete(model);
+  } catch (error) {
+    event.sender.send("message", "下载失败，请切换下载源重试");
+    downloadingModels.delete(model);
+    return false;
+  }
   return true;
 });
