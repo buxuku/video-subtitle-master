@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,9 +10,20 @@ import {
 import { BotIcon, FileVideo2, Github, MonitorPlay } from "lucide-react";
 import { openUrl } from "lib/utils";
 import { useRouter } from "next/router";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 const Layout = ({ children }) => {
   const { asPath } = useRouter();
+  useEffect(() => {
+    window?.ipc?.on("message", (res: string) => {
+      toast("消息通知", {
+        description: res,
+      });
+      console.log(res);
+    });
+  }, []);
+
   return (
     <div className="grid h-screen w-full pl-[56px]">
       <aside className="inset-y fixed  left-0 z-20 flex h-full flex-col border-r">
@@ -105,6 +116,7 @@ const Layout = ({ children }) => {
           </h1>
         </header>
         <main className="">{children}</main>
+        <Toaster />
       </div>
     </div>
   );

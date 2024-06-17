@@ -5,8 +5,7 @@ import fs from "fs";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import replaceModelSource from "./model-source";
-import { isDarwin, isWin32 } from "./utils";
-import { log } from "console";
+import { isDarwin, isWin32, runCommand } from "./utils";
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -38,7 +37,7 @@ export const getModelsInstalled = () => {
 };
 
 export const checkWhisperInstalled = () => {
-  const whisperPath = getPath("whisperPath");
+  const whisperPath = getPath("modelsPath");
   return fs.existsSync(whisperPath);
 };
 
@@ -55,10 +54,21 @@ export const install = (event, source) => {
     return;
   }
   git
-    .clone({ fs, http, dir: whisperPath, url: repoUrl })
-    .then(() => {
-      console.log(`仓库已经被克隆到: ${whisperPath}`);
-      event.sender.send("installWhisperComplete", true);
+    .clone({
+      fs,
+      http,
+      dir: whisperPath,
+      url: repoUrl,
+      singleBranch: true,
+      depth: 1,
+    })
+    .then((res) => {
+      if (checkWhisperInstalled()) {
+        console.log(`仓库已经被克隆到: ${whisperPath}`);
+        event.sender.send("installWhisperComplete", true);
+      } else {
+        install(event, source);
+      }
     })
     .catch((err) => {
       console.error(`克隆仓库时出错: ${err}`);
@@ -148,7 +158,7 @@ export const deleteModel = async (model) => {
   });
 };
 
-export const downloadModelSync = async (model, source) => {
+export const downloadModelSync = async (model, source, onProcess) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
   if (fs.existsSync(modelPath)) return;
@@ -170,37 +180,35 @@ export const downloadModelSync = async (model, source) => {
     await replaceModelSource(`${downShellPath}`, source);
     console.log("完成模型下载地址替换", model);
     console.log("正在安装 whisper.cpp 模型");
-    return new Promise((resolve, reject) => {
-      exec(`${shell} "${downShellPath}" ${model}`, (err, stdout) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve('ok')
-        }
-      });
-    })
+    try {
+      await runCommand(`${shell}`, [`${downShellPath}`, `${model}`], (data) =>
+        onProcess(data),
+      );
+    } catch (error) {
+      await deleteModel(model);
+      throw error;
+    }
   } catch (error) {
-    console.log(error)
+    throw error;
   }
 };
 
-
-export async function checkOpanAiWhisper() {
+export async function checkOpenAiWhisper() {
   return new Promise((resolve, reject) => {
     let env = process.env;
-    env.PYTHONIOENCODING = 'UTF-8';
-    const childProcess = spawn('whisper', ['-h'], { env: env });
-    childProcess.on('error', (error: { code: string }) => {
-      if (error.code === 'ENOENT') {
+    env.PYTHONIOENCODING = "UTF-8";
+    const childProcess = spawn("whisper", ["-h"], { env: env });
+    childProcess.on("error", (error: { code: string }) => {
+      if (error.code === "ENOENT") {
         resolve(false);
       } else {
         reject(error);
       }
     });
-    childProcess.on('exit', (code) => {
-      console.log('code: ', code);
+    childProcess.on("exit", (code) => {
+      console.log("code: ", code);
       if (code === 0) {
-        console.log('openai whisper ready')
+        console.log("openai whisper ready");
         resolve(true);
       } else {
         resolve(false);

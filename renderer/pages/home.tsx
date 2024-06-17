@@ -21,7 +21,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader, FileVideo2, Import, CircleCheck, Github } from "lucide-react";
 import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
+
 import Models from "@/components/Models";
 import Guide from "@/components/Guide";
 import { useForm } from "react-hook-form";
@@ -49,6 +49,7 @@ export default function Component() {
   const beginWatch = useRef(false);
   const filesRef = useRef(files);
   const [taskLoading, setTaskLoading] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
   const form = useForm({
     defaultValues: defaultUserConfig,
   });
@@ -76,14 +77,12 @@ export default function Component() {
       setTaskLoading(false);
     }
   }, [files]);
+  const updateSystemInfo = async () => {
+    const systemInfoRes = await window?.ipc?.invoke("getSystemInfo", null);
+    setSystemInfo(systemInfoRes);
+  };
   useEffect(() => {
-    window?.ipc?.send("getSystemInfo", null);
-    window?.ipc?.on("message", (res: string) => {
-      toast("消息通知", {
-        description: res,
-      });
-      console.log(res);
-    });
+    updateSystemInfo();
     window?.ipc?.on("file-selected", (res: string[]) => {
       setFiles(
         res.map((file) => ({
@@ -101,10 +100,9 @@ export default function Component() {
         setFiles(finalFiles);
       },
     );
-    window?.ipc?.on("getSystemInfoComplete", (res) => {
-      console.log("systemInfo", res);
-      setSystemInfo(res);
-    });
+    window?.ipc?.on('downloadProgress', (model, progress) => {
+       setProgress(+(progress || 0));
+    })
     const storeUserConfig: Object =
       store.getItem("userConfig") || defaultUserConfig;
     console.log(storeUserConfig, "storeUserConfig");
@@ -145,9 +143,13 @@ export default function Component() {
     form.setValue(`${value as "baidu" | "volc"}.apiKey`, apiKey);
     form.setValue(`${value as "baidu" | "volc"}.apiSecret`, apiSecret);
   };
-  const handleInstallModel = () => {
+  const handleInstallModel = async () => {
     setDownModelLoading(true);
-    window?.ipc?.send("downModel", { model: formData.model });
+    await window?.ipc?.invoke("downloadModel", {
+      model: formData.model,
+    });
+    setDownModelLoading(false);
+    updateSystemInfo();
   };
   const isInstalledModel = systemInfo?.modelsInstalled?.includes(
     formData.model?.toLowerCase(),
@@ -183,7 +185,7 @@ export default function Component() {
                         <FormDescription>
                           该模型未下载，
                           {downModelLoading ? (
-                            "正在下载中..."
+                            `正在下载中 ${progress}%...`
                           ) : (
                             <a
                               className="cursor-pointer text-blue-500"
@@ -492,7 +494,6 @@ export default function Component() {
         </Button>
       </div>
       <Guide systemInfo={systemInfo} />
-      <Toaster />
     </div>
   );
 }

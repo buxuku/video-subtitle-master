@@ -31,6 +31,7 @@ const ModelsControl = () => {
   const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
     whisperInstalled: true,
     modelsInstalled: [],
+    downloadingModels: [],
   });
   const [downSource, setDownSource] = useState("hf-mirror");
   useEffect(() => {
@@ -38,7 +39,6 @@ const ModelsControl = () => {
   }, []);
   const updateSystemInfo = async () => {
     const systemInfoRes = await window?.ipc?.invoke("getSystemInfo", null);
-      console.log(systemInfoRes, 'systemInfoRes')
     setSystemInfo(systemInfoRes);
   };
   const isInstalledModel = (name) =>
@@ -83,7 +83,8 @@ const ModelsControl = () => {
                 <TableCell className="font-medium">{model?.name}</TableCell>
                 <TableCell>{model?.desc}</TableCell>
                 <TableCell>
-                  {isInstalledModel(model.name) ? (
+                  {isInstalledModel(model.name) &&
+                  !systemInfo?.downloadingModels.includes(model.name) ? (
                     <DeleteModel
                       modelName={model.name}
                       callBack={updateSystemInfo}
