@@ -5,7 +5,6 @@ import serve from "electron-serve";
 import { createWindow } from "./helpers";
 import {
   install,
-  downModel,
   makeWhisper,
   checkWhisperInstalled,
   getModelsInstalled,
@@ -183,9 +182,6 @@ ipcMain.on("makeWhisper", (event) => {
   makeWhisper(event);
 });
 
-ipcMain.on("downModel", (event, { model, source }) => {
-  downModel(event, model, source);
-});
 
 ipcMain.on("openUrl", (event, url) => {
   shell.openExternal(url);

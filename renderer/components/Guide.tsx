@@ -12,15 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ISystemInfo } from "../types";
+import { gitCloneSteps } from "lib/utils";
+import DownModel from "@/components/DownModel";
+import DownModelDropdown from "@/components/DownModelDropdown";
 
 interface IProps {
   systemInfo: ISystemInfo;
+  updateSystemInfo: () => Promise<void>;
 }
 
-const Guide: FC<IProps> = ({ systemInfo }) => {
+const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
   const { whisperInstalled, modelsInstalled } = systemInfo;
   const [showGuide, setShowGuide] = useState(false);
   useEffect(() => {
+    console.log(whisperInstalled, showGuide, "whisperInstalled, showGuide");
     if (!whisperInstalled && !showGuide) {
       setShowGuide(true);
     }
@@ -28,7 +33,9 @@ const Guide: FC<IProps> = ({ systemInfo }) => {
   const [loading, setLoading] = useState(false);
   const [installComplete, setInstallComplete] = useState(false);
   const [model, setModel] = useState<string>("tiny");
-  const [downModelLoading, setDownModelLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [step, setStep] = useState("");
+  const [beginMakeWhisper, setBeginMakeWhisper] = useState(false);
   useEffect(() => {
     window?.ipc?.on("installWhisperComplete", (res) => {
       if (res) {
@@ -38,14 +45,23 @@ const Guide: FC<IProps> = ({ systemInfo }) => {
         setLoading(false);
       }
     });
+    window?.ipc?.on(
+      "installWhisperProgress",
+      (step: string, progressRes: number) => {
+        setStep(step);
+        setProgress(progressRes);
+      },
+    );
     window?.ipc?.on("makeWhisperComplete", (res) => {
       if (res) {
         setInstallComplete(true);
+        setBeginMakeWhisper(false);
+        updateSystemInfo();
       }
       setLoading(false);
     });
-    window?.ipc?.on("downModelComplete", () => {
-      setDownModelLoading(false);
+    window?.ipc?.on("beginMakeWhisper", () => {
+      setBeginMakeWhisper(true);
     });
   }, []);
   const handleInstallWhisper = (source: "github" | "gitee") => {
@@ -56,12 +72,20 @@ const Guide: FC<IProps> = ({ systemInfo }) => {
       setLoading(false);
     }
   };
-  const handleDownModel = (source: "huggingface" | "hf-mirror") => {
-    setDownModelLoading(true);
-    window?.ipc?.send("downModel", { model, source });
+  const renderInstallText = () => {
+    if (installComplete) {
+      return "已经完成安装";
+    }
+    if (beginMakeWhisper) {
+      return "正在编译 whisper";
+    }
+    if (loading) {
+      return `${gitCloneSteps[step] || ""}${(progress * 100).toFixed(0)}%`;
+    }
+    return "安装 whisper";
   };
   return (
-    <Dialog open={showGuide}>
+    <Dialog open={showGuide} onOpenChange={setShowGuide}>
       <DialogContent className="w-[500px]">
         <div className="grid gap-4 py-4">
           <h1 className="text-2xl text-center">准备， 开始！</h1>
@@ -74,8 +98,10 @@ const Guide: FC<IProps> = ({ systemInfo }) => {
                   className=""
                   disabled={loading || installComplete}
                 >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {installComplete ? "已经完成安装" : "安装 whisper"}
+                  {(loading || beginMakeWhisper) && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {renderInstallText()}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-[225px]">
@@ -103,43 +129,13 @@ const Guide: FC<IProps> = ({ systemInfo }) => {
               modelsInstalled={modelsInstalled}
               defaultValue={model}
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={downModelLoading || loading || !installComplete}
-                  className="w-24"
-                >
-                  {downModelLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  下载
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[225px]">
-                <DropdownMenuLabel>请选择下载源</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleDownModel("hf-mirror")}
-                >
-                  国内镜像源(较快)
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleDownModel("huggingface")}
-                >
-                  huggingface官方源(较慢)
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="cursor-pointer hover:bg-gray-100"
-                  onClick={() => setShowGuide(false)}
-                >
-                  稍后下载
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <DownModel modelName={model} callBack={updateSystemInfo}>
+              <DownModelDropdown
+                setShowGuide={setShowGuide}
+                installComplete={installComplete}
+                whisperLoading={loading}
+              />
+            </DownModel>
           </div>
           <p className="text-center mt-4">完成以上两步</p>
           <div className="grid gap-4 w-1/2 m-auto">

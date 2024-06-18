@@ -107,3 +107,10 @@ export const defaultUserConfig = {
 export const openUrl = (url) => {
     window?.ipc?.send('openUrl', url)
 }
+
+export const gitCloneSteps = {
+    'Compressing objects': '打包文件',
+    'Receiving objects': '下载文件',
+    'Resolving deltas': '解压文件',
+    'Updating workdir': '更新文件',
+}
