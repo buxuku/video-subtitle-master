@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { ISystemInfo } from "../types";
 import DeleteModel from "@/components/DeleteModel";
 import DownModel from "@/components/DownModel";
+import DownModelButton from "@/components/DownModelButton";
 
 const ModelsControl = () => {
   const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
@@ -53,8 +54,9 @@ const ModelsControl = () => {
         <CardDescription>
           您可以在这里管理你的模型，下载，删除 <br />
           模型保存位置： {systemInfo?.modelsPath}
-          <span className="float-right -mt-4">
-            <Select onValueChange={handleDownSource}>
+          <span className="float-right -mt-4 flex items-center">
+            <span>切换下载源：</span>
+            <Select onValueChange={handleDownSource} value={downSource}>
               <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="切换下载源" />
               </SelectTrigger>
@@ -96,7 +98,9 @@ const ModelsControl = () => {
                       modelName={model.name}
                       callBack={updateSystemInfo}
                       downSource={downSource}
-                    />
+                    >
+                      <DownModelButton />
+                    </DownModel>
                   )}
                 </TableCell>
               </TableRow>

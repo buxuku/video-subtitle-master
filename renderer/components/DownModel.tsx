@@ -1,8 +1,13 @@
-import React, { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import React, { useEffect, FC, PropsWithChildren } from "react";
 
-const DownModel = ({ modelName, callBack, downSource }) => {
+interface IProps extends PropsWithChildren {
+  modelName: string;
+  callBack?: () => void;
+  downSource?: string;
+}
+
+const DownModel: FC<IProps> = (props) => {
+  const { modelName, callBack, downSource = "hf-mirror", children } = props;
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   useEffect(() => {
@@ -10,31 +15,34 @@ const DownModel = ({ modelName, callBack, downSource }) => {
       if (model === modelName) {
         setProgress(progress);
         setLoading(progress < 100);
-        if(progress >= 100) {
-            console.log(progress, 'progress')
-            callBack && callBack();
+        if (progress >= 100) {
+          callBack && callBack();
         }
       }
     });
   }, []);
-  const handleDownModel = async () => {
+  const handleDownModel = async (source = downSource) => {
     setLoading(true);
     await window?.ipc?.invoke("downloadModel", {
       model: modelName,
-      source: downSource,
+      source,
     });
     setLoading(false);
   };
   return (
-    <Button onClick={handleDownModel} disabled={loading}>
-      {loading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {progress} %
-        </>
-      ) : (
-        "下载"
-      )}
-    </Button>
+    <span className="inline-block">
+      {React.isValidElement<{
+        loading?: boolean;
+        progress?: number;
+        handleDownModel?: (source?: string) => void;
+      }>(children)
+        ? React.cloneElement(children, {
+            loading,
+            progress,
+            handleDownModel,
+          })
+        : children}
+    </span>
   );
 };
 

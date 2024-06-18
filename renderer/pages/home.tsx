@@ -33,11 +33,13 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { supportedLanguage, defaultUserConfig, openUrl } from "lib/utils";
+import { supportedLanguage, defaultUserConfig } from "lib/utils";
 import store from "lib/store";
 import SavePathNotice from "@/components/SavePathNotice";
 import { ISystemInfo, IFiles } from "../types";
 import TaskStatus from "@/components/TaskStatus";
+import DownModel from "@/components/DownModel";
+import DownModelLink from "@/components/DownModelLink";
 
 export default function Component() {
   const [files, setFiles] = React.useState([]);
@@ -45,11 +47,9 @@ export default function Component() {
     whisperInstalled: true,
     modelsInstalled: [],
   });
-  const [downModelLoading, setDownModelLoading] = React.useState(false);
   const beginWatch = useRef(false);
   const filesRef = useRef(files);
   const [taskLoading, setTaskLoading] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
   const form = useForm({
     defaultValues: defaultUserConfig,
   });
@@ -100,9 +100,6 @@ export default function Component() {
         setFiles(finalFiles);
       },
     );
-    window?.ipc?.on('downloadProgress', (model, progress) => {
-       setProgress(+(progress || 0));
-    })
     const storeUserConfig: Object =
       store.getItem("userConfig") || defaultUserConfig;
     console.log(storeUserConfig, "storeUserConfig");
@@ -143,14 +140,6 @@ export default function Component() {
     form.setValue(`${value as "baidu" | "volc"}.apiKey`, apiKey);
     form.setValue(`${value as "baidu" | "volc"}.apiSecret`, apiSecret);
   };
-  const handleInstallModel = async () => {
-    setDownModelLoading(true);
-    await window?.ipc?.invoke("downloadModel", {
-      model: formData.model,
-    });
-    setDownModelLoading(false);
-    updateSystemInfo();
-  };
   const isInstalledModel = systemInfo?.modelsInstalled?.includes(
     formData.model?.toLowerCase(),
   );
@@ -183,17 +172,12 @@ export default function Component() {
                       </FormControl>
                       {!isInstalledModel && (
                         <FormDescription>
-                          该模型未下载，
-                          {downModelLoading ? (
-                            `正在下载中 ${progress}%...`
-                          ) : (
-                            <a
-                              className="cursor-pointer text-blue-500"
-                              onClick={handleInstallModel}
-                            >
-                              立即下载
-                            </a>
-                          )}
+                          <DownModel
+                            modelName={formData.model}
+                            callBack={updateSystemInfo}
+                          >
+                            <DownModelLink />
+                          </DownModel>
                         </FormDescription>
                       )}
                     </FormItem>
@@ -493,7 +477,7 @@ export default function Component() {
           开始操作
         </Button>
       </div>
-      <Guide systemInfo={systemInfo} />
+      <Guide systemInfo={systemInfo} updateSystemInfo={updateSystemInfo}/>
     </div>
   );
 }
