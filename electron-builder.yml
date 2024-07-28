@@ -13,9 +13,6 @@ publish: ['github']
 mac:
   target:
     - target: dmg
-      arch:
-        - arm64
-        - x64
   artifactName: "${productName}_Mac_${version}_${arch}.${ext}"
 win:
   target: nsis
