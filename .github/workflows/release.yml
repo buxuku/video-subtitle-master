@@ -11,7 +11,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        # macos-13 is an intel runner, macos-14(macos-latest) is apple silicon
+        os: [macos-latest, windows-latest, macos-13]
 
     steps:
       - name: Check out Git repository
@@ -22,9 +23,35 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build/release Electron app
+      - name: Build/release Electron app - Windows
         uses: samuelmeuli/action-electron-builder@v1.6.0
+        if: matrix.os == 'windows-latest'
         with:
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.TOKEN }}
+          # If the commit is tagged with a version (e.g. "v1.0.0"),
+          # release the app after building
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build/release Electron app - MacOS Intel
+        uses: samuelmeuli/action-electron-builder@v1.6.0
+        if: matrix.os == 'macos-13'
+        with:
+          args: "--x64"
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.TOKEN }}
+
+          # If the commit is tagged with a version (e.g. "v1.0.0"),
+          # release the app after building
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build/release Electron app - MacOS Arm
+        uses: samuelmeuli/action-electron-builder@v1.6.0
+        if: matrix.os == 'macos-latest'
+        with:
+          args: "--arm64"
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.TOKEN }}
