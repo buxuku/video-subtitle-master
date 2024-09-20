@@ -20,6 +20,7 @@
 - 自定义翻译后的字幕文件内容，纯翻译结果，原字幕+翻译结果
 - 项目集成 `whisper.cpp`， 它对 apple silicon 进行了优化，有较快的生成速度
 - 项目集成了 `fluent-ffmpeg`, 无须安装 `ffmpeg`
+- 支持运行本地安装的 `whisper` 命令
 
 ## 翻译服务
 

@@ -71,3 +71,17 @@ function throttle(func, limit) {
     }
   };
 }
+
+// 删除 processFile 函数
+
+export const defaultUserConfig = {
+    sourceLanguage: 'en',
+    targetLanguage: 'zh',
+    targetSrtSaveFileName: '${fileName}.${targetLanguage}',
+    sourceSrtSaveFileName: '${fileName}.${sourceLanguage}',
+    model: 'tiny',
+    translateProvider: 'baidu',
+    saveSourceSrt: false,
+    translateContent: 'onlyTranslate',
+    maxConcurrentTasks: 1,
+}

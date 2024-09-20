@@ -156,26 +156,27 @@ export const downloadModelSync = async (model, source, onProcess) => {
   }
 };
 
-export async function checkOpenAiWhisper() {
-  return new Promise((resolve, reject) => {
-    let env = process.env;
-    env.PYTHONIOENCODING = "UTF-8";
-    const childProcess = spawn("whisper", ["-h"], { env: env });
-    childProcess.on("error", (error: { code: string }) => {
-      if (error.code === "ENOENT") {
-        resolve(false);
-      } else {
-        reject(error);
-      }
+export async function checkOpenAiWhisper(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const command = isWin32() ? "whisper.exe" : "whisper";
+    const env = { ...process.env, PYTHONIOENCODING: "UTF-8" };
+    const childProcess = spawn(command, ["-h"], { env, shell: true });
+    
+    const timeout = setTimeout(() => {
+      childProcess.kill();
+      resolve(false);
+    }, 5000);
+
+    childProcess.on("error", (error) => {
+      clearTimeout(timeout);
+      console.log("spawn error: ", error);
+      resolve(false);
     });
+
     childProcess.on("exit", (code) => {
-      console.log("code: ", code);
-      if (code === 0) {
-        console.log("openai whisper ready");
-        resolve(true);
-      } else {
-        resolve(false);
-      }
+      clearTimeout(timeout);
+      console.log("exit code: ", code);
+      resolve(code === 0);
     });
   });
 }
