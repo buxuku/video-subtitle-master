@@ -149,6 +149,7 @@ const TaskConfigForm = ({
                         <SelectItem value="baidu">百度</SelectItem>
                         <SelectItem value="volc">火山</SelectItem>
                         <SelectItem value="deeplx">deepLx</SelectItem>
+                        <SelectItem value="ollama">ollama</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>

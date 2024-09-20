@@ -1,6 +1,10 @@
 import path from 'path';
 import fs from 'fs';
 import { renderTemplate } from './utils';
+import volcTranslator from '../service/volc';
+import baiduTranslator from '../service/baidu';
+import deeplxTranslator from '../service/deeplx';
+import ollamaTranslator from '../service/ollama';
 
 const contentTemplate = {
   onlyTranslate: '${targetContent}\n\n',
@@ -33,13 +37,16 @@ export default async function translate(
       let translator;
       switch (translateProvider) {
         case 'volc':
-          translator = (await import('../service/volc')).default;
+          translator = volcTranslator;
           break;
         case 'baidu':
-          translator = (await import('../service/baidu')).default;
+          translator = baiduTranslator;
           break;
         case 'deeplx':
-          translator = (await import('../service/deeplx')).default;
+          translator = deeplxTranslator;
+          break;
+        case 'ollama':
+          translator = (text) => ollamaTranslator(text, proof, sourceLanguage, targetLanguage);
           break;
         default:
           translator = (val) => val;

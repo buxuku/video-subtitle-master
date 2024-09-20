@@ -9,9 +9,16 @@ type StoreType = {
 }
 
 const defaultTranslationProviders = [
-  { id: 'baidu', name: '百度', apiKey: '', apiSecret: '' },
-  { id: 'volc', name: '火山', apiKey: '', apiSecret: '' },
-  { id: 'deeplx', name: 'DeepLX', apiKey: '', apiSecret: '' },
+  { id: 'baidu', name: '百度', type: 'api', apiKey: '', apiSecret: '' },
+  { id: 'volc', name: '火山', type: 'api', apiKey: '', apiSecret: '' },
+  { id: 'deeplx', name: 'DeepLX', type: 'api', apiKey: '', apiSecret: '' },
+  { 
+    id: 'ollama', 
+    name: 'Ollama', 
+    type: 'local', 
+    apiUrl: 'http://localhost:11434',
+    modelName: 'llama2',
+    prompt: 'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}'  },
 ];
 
 export const store = new Store<StoreType>({
@@ -27,13 +34,23 @@ export function setupStoreHandlers() {
   });
 
   ipcMain.handle('getTranslationProviders', async () => {
-    let providers = store.get('translationProviders');
-    if (!providers || providers.length === 0) {
-      providers = defaultTranslationProviders;
-      store.set('translationProviders', providers);
-    }
-    console.log(providers, 'translationProviders');
-    return providers;
+    let storedProviders = store.get('translationProviders');
+    
+    // 合并存储的提供商和默认提供商
+    const mergedProviders = defaultTranslationProviders.map(defaultProvider => {
+      const storedProvider = storedProviders.find(p => p.id === defaultProvider.id);
+      if (storedProvider) {
+        // 如果存储的提供商存在，合并默认值和存储的值
+        return { ...defaultProvider, ...storedProvider };
+      }
+      // 如果存储中不存在该提供商，使用默认值
+      return defaultProvider;
+    });
+
+    // 更新存储
+    store.set('translationProviders', mergedProviders);
+    
+    return mergedProviders;
   });
 
   ipcMain.on('setUserConfig', async (event, config) => {
