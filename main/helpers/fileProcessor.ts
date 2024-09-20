@@ -6,7 +6,7 @@ import { extractAudio } from './ffmpeg';
 import translate from './translate';
 import { renderTemplate, isWin32, getExtraResourcesPath } from './utils';
 
-export async function processFile(event, file, formData, hasOpenAiWhisper, translationProviders) {
+export async function processFile(event, file, formData, hasOpenAiWhisper, provider) {
   const {
     model,
     sourceLanguage,
@@ -81,7 +81,6 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, trans
         "translateSubtitle",
         "loading",
       );
-      const provider = translationProviders.find(p => p.id === translateProvider);
       await translate(
         event,
         directory,

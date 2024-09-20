@@ -60,7 +60,10 @@ async function processNextTasks(event) {
   const translationProviders = store.get('translationProviders');
 
   try {
-    await Promise.all(tasks.map(task => processFile(event, task.file, task.formData, hasOpenAiWhisper, translationProviders)));
+    await Promise.all(tasks.map(task => {
+      const provider = translationProviders.find(p => p.id === task.formData.translateProvider);
+      return processFile(event, task.file, task.formData, hasOpenAiWhisper, provider);
+    }));
   } catch (error) {
     event.sender.send("message", error);
   }
