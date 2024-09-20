@@ -27,5 +27,8 @@ export default async function baidu(query, proof) {
       },
     },
   );
+  if (!res?.data?.trans_result) {
+    throw new Error(res?.data?.error_msg || '未知错误');
+  }
   return res?.data?.trans_result?.[0]?.dst || "";
 }

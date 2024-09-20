@@ -25,7 +25,6 @@ const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
   const { whisperInstalled, modelsInstalled } = systemInfo;
   const [showGuide, setShowGuide] = useState(false);
   useEffect(() => {
-    console.log(whisperInstalled, showGuide, "whisperInstalled, showGuide");
     if (!whisperInstalled && !showGuide) {
       setShowGuide(true);
     }

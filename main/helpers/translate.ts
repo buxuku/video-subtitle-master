@@ -1,11 +1,11 @@
-import path from "path";
-import fs from "fs";
-import { renderTemplate } from "./utils";
+import path from 'path';
+import fs from 'fs';
+import { renderTemplate } from './utils';
 
 const contentTemplate = {
-  onlyTranslate: "${targetContent}\n\n",
-  sourceAndTranslate: "${sourceContent}\n${targetContent}\n\n",
-  translateAndSource: "${targetContent}\n${sourceContent}\n\n",
+  onlyTranslate: '${targetContent}\n\n',
+  sourceAndTranslate: '${sourceContent}\n${targetContent}\n\n',
+  translateAndSource: '${targetContent}\n${sourceContent}\n\n',
 };
 
 export default async function translate(
@@ -14,6 +14,7 @@ export default async function translate(
   fileName,
   absolutePath,
   formData,
+  provider
 ) {
   const {
     translateContent,
@@ -23,22 +24,22 @@ export default async function translate(
     targetLanguage,
   } = formData || {};
   const renderContentTemplate = contentTemplate[translateContent];
-  const proof = formData[translateProvider];
+  const proof = provider;
   return new Promise(async (resolve, reject) => {
     try {
-      const result = fs.readFileSync(absolutePath, "utf8");
-      const data = result.split("\n");
+      const result = fs.readFileSync(absolutePath, 'utf8');
+      const data = result.split('\n');
       const items = [];
       let translator;
       switch (translateProvider) {
-        case "volc":
-          translator = (await import("../service/volc")).default;
+        case 'volc':
+          translator = (await import('../service/volc')).default;
           break;
-        case "baidu":
-          translator = (await import("../service/baidu")).default;
+        case 'baidu':
+          translator = (await import('../service/baidu')).default;
           break;
-        case "deeplx":
-          translator = (await import("../service/deeplx")).default;
+        case 'deeplx':
+          translator = (await import('../service/deeplx')).default;
           break;
         default:
           translator = (val) => val;
@@ -46,7 +47,12 @@ export default async function translate(
       for (var i = 0; i < data.length; i += 4) {
         const sourceContent = data[i + 2];
         if (!sourceContent) continue;
-        const targetContent = await translator(sourceContent, proof);
+        let targetContent;
+        try {
+          targetContent = await translator(sourceContent, proof);
+        } catch (translationError) {
+          throw new Error(`翻译失败: ${translationError.message}`);
+        }
         items.push({
           id: data[i],
           startEndTime: data[i + 1],
@@ -60,19 +66,19 @@ export default async function translate(
           fileName,
           sourceLanguage,
           targetLanguage,
-        })}.srt`,
+        })}.srt`
       );
       for (let i = 0; i <= items.length - 1; i++) {
         const item = items[i];
         const content = `${item.id}\n${item.startEndTime}\n${renderTemplate(
           renderContentTemplate,
-          item,
+          item
         )}`;
         fs.appendFileSync(fileSave, content);
       }
       resolve(true);
     } catch (error) {
-      event.sender.send("message", error);
+      event.sender.send('message', error);
       reject(error);
     }
   });

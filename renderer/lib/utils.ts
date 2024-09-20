@@ -83,26 +83,6 @@ export const supportedLanguage = [
   { name: "越南语", value: "vie" },
 ];
 
-export const defaultUserConfig = {
-    sourceLanguage: 'en',
-    targetLanguage: 'zh',
-    targetSrtSaveFileName: '${fileName}.${targetLanguage}',
-    sourceSrtSaveFileName: '${fileName}.${sourceLanguage}',
-    model: 'tiny',
-    apiKey: '',
-    apiSecret: '',
-    translateProvider: 'baidu',
-    saveSourceSrt: false,
-    translateContent: 'onlyTranslate',
-    baidu: {
-        apiKey: '',
-        apiSecret: '',
-    },
-    volc: {
-        apiKey: '',
-        apiSecret: '',
-    }
-}
 
 export const openUrl = (url) => {
     window?.ipc?.send('openUrl', url)
