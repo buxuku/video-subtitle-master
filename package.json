@@ -38,6 +38,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.378.0",
     "next-themes": "^0.3.0",
+    "openai": "^4.0.0",
     "react-hook-form": "^7.51.4",
     "regenerator-runtime": "^0.14.1",
     "sonner": "^1.4.41",
