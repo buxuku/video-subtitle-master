@@ -18,7 +18,8 @@ const defaultTranslationProviders = [
     type: 'local', 
     apiUrl: 'http://localhost:11434',
     modelName: 'llama2',
-    prompt: 'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}'  },
+    prompt: 'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}'
+  },
 ];
 
 export const store = new Store<StoreType>({
@@ -47,10 +48,18 @@ export function setupStoreHandlers() {
       return defaultProvider;
     });
 
+    // 添加用户自定义的提供商（如OpenAI风格的API）
+    const customProviders = storedProviders.filter(provider => 
+      !defaultTranslationProviders.some(defaultProvider => defaultProvider.id === provider.id)
+    );
+
+    const allProviders = [...mergedProviders, ...customProviders];
+
     // 更新存储
-    store.set('translationProviders', mergedProviders);
+    store.set('translationProviders', allProviders);
     
-    return mergedProviders;
+    console.log(allProviders, 'translationProviders');
+    return allProviders;
   });
 
   ipcMain.on('setUserConfig', async (event, config) => {

@@ -5,6 +5,7 @@ import volcTranslator from '../service/volc';
 import baiduTranslator from '../service/baidu';
 import deeplxTranslator from '../service/deeplx';
 import ollamaTranslator from '../service/ollama';
+import openaiTranslator from '../service/openai';
 
 const contentTemplate = {
   onlyTranslate: '${targetContent}\n\n',
@@ -35,22 +36,34 @@ export default async function translate(
       const data = result.split('\n');
       const items = [];
       let translator;
-      switch (translateProvider) {
-        case 'volc':
-          translator = volcTranslator;
+
+      // 根据提供商类型选择翻译器
+      switch (proof.type) {
+        case 'api':
+          switch (proof.id) {
+            case 'volc':
+              translator = volcTranslator;
+              break;
+            case 'baidu':
+              translator = baiduTranslator;
+              break;
+            case 'deeplx':
+              translator = deeplxTranslator;
+              break;
+            default:
+              throw new Error(`未知的API翻译提供商: ${proof.id}`);
+          }
           break;
-        case 'baidu':
-          translator = baiduTranslator;
-          break;
-        case 'deeplx':
-          translator = deeplxTranslator;
-          break;
-        case 'ollama':
+        case 'local':
           translator = (text) => ollamaTranslator(text, proof, sourceLanguage, targetLanguage);
           break;
+        case 'openai':
+          translator = (text) => openaiTranslator(text, proof, sourceLanguage, targetLanguage);
+          break;
         default:
-          translator = (val) => val;
+          throw new Error(`未知的翻译提供商类型: ${proof.type}`);
       }
+
       for (var i = 0; i < data.length; i += 4) {
         const sourceContent = data[i + 2];
         if (!sourceContent) continue;

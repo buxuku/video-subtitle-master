@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import {
   SelectValue,
   SelectTrigger,
@@ -21,6 +22,13 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 
+// 定义 Provider 类型
+type Provider = {
+  id: string;
+  name: string;
+  type: 'api' | 'local' | 'openai';
+};
+
 const TaskConfigForm = ({
   form,
   formData,
@@ -28,6 +36,17 @@ const TaskConfigForm = ({
   updateSystemInfo,
   isInstalledModel,
 }) => {
+  const [providers, setProviders] = useState<Provider[]>([]);
+
+  useEffect(() => {
+    loadProviders();
+  }, []);
+
+  const loadProviders = async () => {
+    const storedProviders = await window.ipc.invoke('getTranslationProviders');
+    setProviders(storedProviders);
+  };
+  if(!providers.length) return null;
   return (
     <Form {...form}>
       <form className="grid w-full items-start gap-6">
@@ -146,10 +165,11 @@ const TaskConfigForm = ({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value={'-1'}>不翻译</SelectItem>
-                        <SelectItem value="baidu">百度</SelectItem>
-                        <SelectItem value="volc">火山</SelectItem>
-                        <SelectItem value="deeplx">deepLx</SelectItem>
-                        <SelectItem value="ollama">ollama</SelectItem>
+                        {providers.map((provider) => (
+                          <SelectItem key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
