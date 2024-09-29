@@ -7,6 +7,7 @@ const TaskListControl = ({ setFiles }) => {
   };
 
   const handleClearList = () => {
+    window.ipc.send('clearTasks', []);
     setFiles([]);
   };
   return (
