@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -13,20 +13,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { models } from "lib/utils";
-import { Button } from "@/components/ui/button";
-import { ISystemInfo } from "../types";
-import DeleteModel from "@/components/DeleteModel";
-import DownModel from "@/components/DownModel";
-import DownModelButton from "@/components/DownModelButton";
+} from '@/components/ui/select';
+import { models } from 'lib/utils';
+import { Button } from '@/components/ui/button';
+import { ISystemInfo } from '../types';
+import DeleteModel from '@/components/DeleteModel';
+import DownModel from '@/components/DownModel';
+import DownModelButton from '@/components/DownModelButton';
+import { Upload } from 'lucide-react'; // 导入上传图标
 
 const ModelsControl = () => {
   const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
@@ -34,12 +35,12 @@ const ModelsControl = () => {
     modelsInstalled: [],
     downloadingModels: [],
   });
-  const [downSource, setDownSource] = useState("hf-mirror");
+  const [downSource, setDownSource] = useState('hf-mirror');
   useEffect(() => {
     updateSystemInfo();
   }, []);
   const updateSystemInfo = async () => {
-    const systemInfoRes = await window?.ipc?.invoke("getSystemInfo", null);
+    const systemInfoRes = await window?.ipc?.invoke('getSystemInfo', null);
     setSystemInfo(systemInfoRes);
   };
   const isInstalledModel = (name) =>
@@ -47,14 +48,28 @@ const ModelsControl = () => {
   const handleDownSource = (value: string) => {
     setDownSource(value);
   };
+  const handleImportModel = async () => {
+    try {
+      const result = await window?.ipc?.invoke('importModel');
+      if (result) {
+        updateSystemInfo();
+      }
+    } catch (error) {
+      console.error('导入模型失败:', error);
+      // 这里可以添加一个错误提示
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>模型管理</CardTitle>
         <CardDescription>
-          您可以在这里管理你的模型，下载，删除 <br />
-          模型保存位置： {systemInfo?.modelsPath}
-          <span className="float-right -mt-4 flex items-center">
+          您可以在这里管理你的模型，下载，删除，或导入 <br />
+          模型保存位置：
+          <br />
+          {systemInfo?.modelsPath}
+          <span className="float-right mt-4 flex items-center">
             <span>切换下载源：</span>
             <Select onValueChange={handleDownSource} value={downSource}>
               <SelectTrigger className="w-[250px]">
@@ -67,6 +82,9 @@ const ModelsControl = () => {
                 </SelectItem>
               </SelectContent>
             </Select>
+            <Button onClick={handleImportModel} className="ml-4">
+              <Upload className="mr-2 h-4 w-4" /> 导入模型
+            </Button>
           </span>
         </CardDescription>
       </CardHeader>
