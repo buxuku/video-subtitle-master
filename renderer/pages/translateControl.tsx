@@ -88,9 +88,9 @@ const TranslateControl: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">翻译服务管理</h1>
+      <h1 className="text-lg font-bold mb-4">翻译服务管理</h1>
       
-      <h2 className="text-xl font-bold mb-2">API 服务提供商</h2>
+      <h2 className="text-base font-bold mb-2">API 服务提供商</h2>
       <Table className="mb-8">
         <TableHeader>
           <TableRow>
@@ -142,7 +142,7 @@ const TranslateControl: React.FC = () => {
         </TableBody>
       </Table>
 
-      <h2 className="text-xl font-bold mb-2">本地模型配置</h2>
+      <h2 className="text-base font-bold mb-2">本地模型配置</h2>
       <Table>
         <TableHeader>
           <TableRow>
@@ -180,7 +180,7 @@ const TranslateControl: React.FC = () => {
         </TableBody>
       </Table>
 
-      <h2 className="text-xl font-bold mb-2 mt-8">OpenAI风格API服务配置</h2>
+      <h2 className="text-base font-bold mb-2 mt-8">OpenAI风格API服务配置</h2>
       <Table className="mb-4">
         <TableHeader>
           <TableRow>

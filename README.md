@@ -8,34 +8,46 @@
 
 ## 💥特性
 
-它保留了之前 [VideoSubtitleGenerator](https://github.com/buxuku/VideoSubtitleGenerator) 这个命令行工具的全部特性
+它保留了之前 [VideoSubtitleGenerator](https://github.com/buxuku/VideoSubtitleGenerator) 这个命令行工具的全部特性，并新增了以下功能:
 
+- 图形用户界面，操作更加便捷
 - 源语言字幕文件和目标语言字幕文件放在视频同目录下，方便播放时任意挂载字幕文件
-- 批量处理目录下面的所有视频文件
-- 可以只生成字幕，不翻译，方便批量为视频生成字幕
-- 支持火山引擎翻译
-- 支持百度翻译
-- 支持 deeplx 翻译 （批量翻译容易存在被限流的情况）
-- 支持本地模型 ollama 翻译
-- 支持 OpenAI 风格 API 翻译 如 [deepseek](https://platform.deepseek.com/) 等
+- 批量处理视频/音频/字幕文件
+- 支持视频/音频生成字幕
+- 支持对生成的字幕，或者导入的字幕进行翻译
+- 支持多种翻译服务:
+  - 火山引擎翻译
+  - 百度翻译
+  - DeepLX 翻译 （批量翻译容易存在被限流的情况）
+  - 本地模型 Ollama 翻译
+  - 支持 OpenAI 风格 API 翻译，如 DeepSpeed 等
 - 自定义字幕文件名，方便兼容不同的播放器挂载字幕识别
-- 自定义翻译后的字幕文件内容，纯翻译结果，原字幕+翻译结果
-- 项目集成 `whisper.cpp`， 它对 apple silicon 进行了优化，有较快的生成速度
-- 项目集成了 `fluent-ffmpeg`, 无须安装 `ffmpeg`
+- 自定义翻译后的字幕文件内容，支持纯翻译结果或原字幕+翻译结果
+- 项目集成 `whisper.cpp`，对 Apple Silicon 进行了优化，有较快的生成速度
+- 项目集成了 `fluent-ffmpeg`，无须单独安装 `ffmpeg`
 - 支持运行本地安装的 `whisper` 命令
+- 支持选择模型下载源（国内镜像源或官方源）
+- 支持自定义并发任务数量
+
 
 ## 翻译服务
 
-本项目的翻译能力是基于 **百度/火山/deeplx** 的翻译API来实现的，这些 API 的使用需要申请对的 KEY 和 SECRET， 因此，如果你需要使用到翻译服务，需要先申请一个 API 。
+本项目支持多种翻译服务，包括百度翻译、火山引擎翻译、DeepLX、Ollama 本地模型以及 OpenAI 风格的 API。使用这些服务需要相应的 API 密钥或配置。
 
-具体的申请方法，可以参考 https://bobtranslate.com/service/ ，感谢 [Bob](https://bobtranslate.com/) 这款优秀的软件。
+对于百度翻译、火山引擎等服务的 API 申请方法，可以参考 https://bobtranslate.com/service/ ，感谢 [Bob](https://bobtranslate.com/) 这款优秀的软件提供的信息。
 
 ## 🔦使用 (普通用户)
 
-前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面根据自己的操作系统下载安装包，安装后即可直接使用
+1. 前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面根据自己的操作系统下载安装包
+2. 安装并运行程序
+3. 在程序中配置所需的翻译服务
+4. 选择要处理的视频文件或字幕文件
+5. 设置相关参数（如源语言、目标语言、模型等）
+6. 开始处理任务
 
 ## 🔦使用 (开发用户)
 
+1️⃣ 克隆本项目到本地
 1️⃣ 克隆本项目在本地
 
 ```shell
@@ -49,4 +61,16 @@ cd video-subtitle-master
 yarn install 
 ```
 
-3️⃣ 依赖包安装好之后，执行 `yarn start` 或者 `npm start` 
+3️⃣ 依赖包安装好之后，执行 `yarn start` 或者 `npm start` 启动项目
+
+```shell
+yarn start
+```
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request 来帮助改进这个项目！
+
+## 许可证
+
+本项目采用 MIT 许可证。详情请见 [LICENSE](LICENSE) 文件。

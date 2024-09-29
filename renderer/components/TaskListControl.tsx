@@ -7,6 +7,7 @@ const TaskListControl = ({ setFiles }) => {
   };
 
   const handleClearList = () => {
+    window.ipc.send('clearTasks', []);
     setFiles([]);
   };
   return (
@@ -26,7 +27,7 @@ const TaskListControl = ({ setFiles }) => {
         onClick={handleImportVideo}
       >
         <Import className="size-5 mr-2" />
-        导入视频
+        导入视频/音频/字幕
       </Button>
     </div>
   );

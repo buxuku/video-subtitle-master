@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -21,7 +21,18 @@ export default function Component() {
   const isInstalledModel = systemInfo?.modelsInstalled?.includes(
     formData.model?.toLowerCase()
   );
+  useEffect(() => {
+    const loadTasks = async () => {
+      const tasks = await window.ipc.invoke('getTasks');
+      setFiles(tasks);
+    };
+    loadTasks();
+  }, []);
 
+  useEffect(() => {
+    window.ipc.send('setTasks', files);
+  }, [files]);
+  
   return (
     <div className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
       <div className="relative hidden flex-col items-start gap-8 md:flex">

@@ -115,9 +115,9 @@ const Layout = ({ children }) => {
       </aside>
       <div className="flex flex-col">
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
-          <h1 className="text-xl font-semibold">
-            批量为视频生成字幕，并翻译成其它语言
-          </h1>
+          <h4 className="text-base font-semibold">
+            视频/音频批量生成字幕，字幕翻译
+          </h4>
         </header>
         <main className="">{children}</main>
         <Toaster />

@@ -58,7 +58,6 @@ export function setupStoreHandlers() {
     // 更新存储
     store.set('translationProviders', allProviders);
     
-    console.log(allProviders, 'translationProviders');
     return allProviders;
   });
 

@@ -6,6 +6,7 @@ import { setupIpcHandlers } from './helpers/ipcHandler';
 import { setupTaskProcessor } from './helpers/taskProcessor';
 import { setupSystemInfoManager } from './helpers/systemInfoManager';
 import { setupStoreHandlers } from './helpers/storeManager';
+import { setupTaskManager } from "./helpers/taskManager";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -37,6 +38,7 @@ if (isProd) {
   setupIpcHandlers(mainWindow);
   setupTaskProcessor(mainWindow);
   setupSystemInfoManager(mainWindow);
+  setupTaskManager();
 })();
 
 app.on("window-all-closed", () => {
