@@ -102,3 +102,8 @@ export const isSubtitleFile = (filePath) => {
     filePath?.endsWith('.vtt')
   );
 };
+
+export const getModelDownloadUrl = (modelName: string, source: 'hf-mirror' | 'huggingface') => {
+  const domain = source === 'hf-mirror' ? 'hf-mirror.com' : 'huggingface.co';
+  return `https://${domain}/ggerganov/whisper.cpp/resolve/main/ggml-${modelName.toLowerCase()}.bin?download=true`;
+};

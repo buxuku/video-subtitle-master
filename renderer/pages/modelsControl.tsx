@@ -21,13 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { models } from 'lib/utils';
+import { models, getModelDownloadUrl } from 'lib/utils';
 import { Button } from '@/components/ui/button';
 import { ISystemInfo } from '../types';
 import DeleteModel from '@/components/DeleteModel';
 import DownModel from '@/components/DownModel';
 import DownModelButton from '@/components/DownModelButton';
 import { Upload } from 'lucide-react'; // 导入上传图标
+import { Copy } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from 'sonner';
 
 const ModelsControl = () => {
   const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
@@ -58,6 +61,18 @@ const ModelsControl = () => {
       console.error('导入模型失败:', error);
       // 这里可以添加一个错误提示
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success('链接已复制到剪贴板', {
+        duration: 2000,
+      });
+    }).catch((err) => {
+      toast.error('无法复制链接，请手动复制', {
+        duration: 2000,
+      });
+    });
   };
 
   return (
@@ -101,7 +116,31 @@ const ModelsControl = () => {
             {models.map((model) => (
               <TableRow key={model?.name}>
                 <TableCell className="font-medium">{model?.name}</TableCell>
-                <TableCell>{model?.desc}</TableCell>
+                <TableCell>
+                  {model?.desc}
+                  <br />
+                  手动下载地址:<br />
+                  {['hf-mirror', 'huggingface'].map((source) => (
+                    <div key={source} className="flex items-center mb-1">
+                      <span className="mr-2 text-sm">
+                        {getModelDownloadUrl(model.name, source as 'hf-mirror' | 'huggingface')}
+                      </span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Copy 
+                              className="h-4 w-4 cursor-pointer" 
+                              onClick={() => copyToClipboard(getModelDownloadUrl(model.name, source as 'hf-mirror' | 'huggingface'))}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>复制链接</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  ))}
+                </TableCell>
                 <TableCell>
                   {isInstalledModel(model.name) &&
                   !systemInfo?.downloadingModels.includes(model.name) ? (
