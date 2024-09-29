@@ -67,6 +67,24 @@ yarn install
 yarn start
 ```
 
+## 手动下载和导入模型
+
+因为模型文件比较大，如果通过该软件下载模型会存在难以下载的情况，可以手动下载模型并导入到应用中。以下是两个可用于下载模型的链接：
+
+1. 国内镜像源（下载速度较快）：
+   https://hf-mirror.com/ggerganov/whisper.cpp/tree/main
+
+2. Hugging Face 官方源：
+   https://huggingface.co/ggerganov/whisper.cpp/tree/main
+
+下载完成后，您可以通过应用的"模型管理"页面中的"导入模型"功能将下载的模型文件导入到应用中。
+
+导入步骤：
+1. 在"模型管理"页面中，点击"导入模型"按钮。
+2. 在弹出的文件选择器中，选择您下载的模型文件。
+3. 确认导入后，模型将被添加到您的已安装模型列表中。
+
+
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request 来帮助改进这个项目！
