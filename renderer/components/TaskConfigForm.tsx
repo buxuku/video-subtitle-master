@@ -86,7 +86,7 @@ const TaskConfigForm = ({
               name="sourceLanguage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>视频原始语言</FormLabel>
+                  <FormLabel>视频/字幕原始语言</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>

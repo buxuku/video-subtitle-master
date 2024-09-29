@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { isSubtitleFile } from 'lib/utils';
 
 const TaskControls = ({ files, formData }) => {
   const [taskStatus, setTaskStatus] = useState('idle');
@@ -22,13 +23,16 @@ const TaskControls = ({ files, formData }) => {
       if (formData.translateProvider === '-1') {
         return basicProcessingDone;
       }
+      if (isSubtitleFile(item?.filePath)) {
+        return item.translateSubtitle;
+      }
 
       return basicProcessingDone && item.translateSubtitle;
     });
 
     if (isAllFilesProcessed) {
       toast('消息通知', {
-        description: '所有文件都已经生成字幕，无需再次生成',
+        description: '所有文件都处理完成',
       });
       return;
     }

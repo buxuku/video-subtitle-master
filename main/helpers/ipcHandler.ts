@@ -8,7 +8,22 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.on("openDialog", async (event) => {
     const result = await dialog.showOpenDialog({
       properties: ["openFile", "multiSelections"],
-      filters: [{ name: "Movies", extensions: ["mkv", "avi", "mp4"] }],
+      filters: [
+        { 
+          name: "音频、视频和字幕文件", 
+          extensions: [
+            // 视频格式
+            "mp4", "avi", "mov", "mkv", "flv", "wmv", "webm",
+            // 音频格式
+            "mp3", "wav", "ogg", "aac", "wma", "flac", "m4a",
+            "aiff", "ape", "opus", "ac3", "amr", "au", "mid",
+            // 其他常见格式
+            "3gp", "asf", "rm", "rmvb", "vob", "ts", "mts", "m2ts",
+            // 字幕格式
+            "srt", "vtt", "ass", "ssa"
+          ]
+        },
+      ],
     });
     
     try {

@@ -9,8 +9,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import TaskStatus from './TaskStatus';
+import { isSubtitleFile } from 'lib/utils';
 
-const TaskList = ({files, formData}) => {
+const TaskList = ({ files, formData }) => {
   return (
     <Table>
       <TableCaption>已经导入的视频列表</TableCaption>
@@ -27,10 +28,18 @@ const TaskList = ({files, formData}) => {
           <TableRow key={file?.uuid}>
             <TableCell className="font-medium">{file?.filePath}</TableCell>
             <TableCell>
-              <TaskStatus file={file} checkKey="extractAudio" />
+              <TaskStatus
+                file={file}
+                checkKey="extractAudio"
+                skip={isSubtitleFile(file?.filePath)}
+              />
             </TableCell>
             <TableCell>
-              <TaskStatus file={file} checkKey="extractSubtitle" />
+              <TaskStatus
+                file={file}
+                checkKey="extractSubtitle"
+                skip={isSubtitleFile(file?.filePath)}
+              />
             </TableCell>
             <TableCell className="">
               <TaskStatus
