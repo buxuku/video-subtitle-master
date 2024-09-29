@@ -84,6 +84,15 @@ yarn start
 2. 在弹出的文件选择器中，选择您下载的模型文件。
 3. 确认导入后，模型将被添加到您的已安装模型列表中。
 
+## 常见问题
+
+##### 1.提示应用程序已损坏，无法打开。
+在终端中执行以下命令：
+
+```shell
+sudo xattr -dr com.apple.quarantine /Applications/Video\ Subtitle\ Master.app
+```
+然后再次运行应用程序。
 
 ## 贡献
 
