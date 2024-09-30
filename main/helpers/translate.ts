@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { renderTemplate } from './utils';
+import { getSrtFileName, renderTemplate } from './utils';
 import volcTranslator from '../service/volc';
 import baiduTranslator from '../service/baidu';
 import deeplxTranslator from '../service/deeplx';
@@ -23,11 +23,12 @@ export default async function translate(
 ) {
   const {
     translateContent,
-    translateProvider,
-    targetSrtSaveFileName,
+    targetSrtSaveOption,
+    customTargetSrtFileName,
     sourceLanguage,
     targetLanguage,
   } = formData || {};
+
   const renderContentTemplate = contentTemplate[translateContent];
   const proof = provider;
   return new Promise(async (resolve, reject) => {
@@ -80,14 +81,18 @@ export default async function translate(
           sourceContent,
         });
       }
-      const fileSave = path.join(
-        folder,
-        `${renderTemplate(targetSrtSaveFileName, {
-          fileName,
-          sourceLanguage,
-          targetLanguage,
-        })}.srt`
+
+      const templateData = { fileName, sourceLanguage, targetLanguage };
+      const targetSrtFileName = getSrtFileName(
+        targetSrtSaveOption,
+        fileName,
+        targetLanguage,
+        customTargetSrtFileName,
+        templateData
       );
+
+      const fileSave = path.join(folder, `${targetSrtFileName}.srt`);
+
       for (let i = 0; i <= items.length - 1; i++) {
         const item = items[i];
         const content = `${item.id}\n${item.startEndTime}\n${renderTemplate(

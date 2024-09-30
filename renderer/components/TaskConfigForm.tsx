@@ -7,7 +7,6 @@ import {
   Select,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { supportedLanguage } from 'lib/utils';
 import DownModel from './DownModel';
 import DownModelLink from './DownModelLink';
@@ -106,41 +105,44 @@ const TaskConfigForm = ({
               )}
             />
           </div>
-          <div className="grid gap-4 mt-2">
-            {/*<span>是否单独保存源字幕文件：</span>*/}
+          <div className="grid gap-3">
             <FormField
               control={form.control}
-              name="saveSourceSrt"
+              name="sourceSrtSaveOption"
               render={({ field }) => (
-                <FormItem className="flex justify-between items-center">
-                  <FormLabel>是否单独保存源字幕文件</FormLabel>
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    源字幕保存设置
+                    <SavePathNotice />
+                  </FormLabel>
                   <FormControl>
-                    <Switch
-                      onCheckedChange={field.onChange}
-                      checked={field.value}
-                    />
+                    <Select onValueChange={field.onChange} value={field.value || 'fileNameWithLang'}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="noSave">不保存</SelectItem>
+                        <SelectItem value="fileName">文件名.srt</SelectItem>
+                        <SelectItem value="fileNameWithLang">文件名.源语言.srt</SelectItem>
+                        <SelectItem value="custom">自定义设置</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                 </FormItem>
               )}
             />
-            {formData.saveSourceSrt && (
-              <div className="grid gap-4">
-                <FormField
-                  control={form.control}
-                  name="sourceSrtSaveFileName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center">
-                        源字幕保存文件名设置
-                        <SavePathNotice />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="请输入" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+            {formData.sourceSrtSaveOption === 'custom' && (
+              <FormField
+                control={form.control}
+                name="customSourceSrtFileName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="请输入自定义源字幕文件名" {...field} value={field.value || '${fileName}.${sourceLanguage}'} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             )}
           </div>
         </fieldset>
@@ -239,23 +241,41 @@ const TaskConfigForm = ({
           <div className="grid gap-3">
             <FormField
               control={form.control}
-              name="targetSrtSaveFileName"
+              name="targetSrtSaveOption"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    翻译字幕保存文件名设置
+                    翻译字幕保存设置
                     <SavePathNotice />
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="请输入"
-                      {...field}
-                      value={field.value || ''}
-                    />
+                    <Select onValueChange={field.onChange} value={field.value || 'fileNameWithLang'}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fileName">文件名.srt</SelectItem>
+                        <SelectItem value="fileNameWithLang">文件名.目标语言.srt</SelectItem>
+                        <SelectItem value="custom">自定义设置</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                 </FormItem>
               )}
             />
+            {formData.targetSrtSaveOption === 'custom' && (
+              <FormField
+                control={form.control}
+                name="customTargetSrtFileName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="请输入自定义翻译字幕文件名" {...field} value={field.value || '${fileName}.${targetLanguage}'} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
         </fieldset>
         <fieldset className="grid gap-3 rounded-lg border p-4">

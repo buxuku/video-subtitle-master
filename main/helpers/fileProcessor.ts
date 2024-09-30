@@ -4,7 +4,7 @@ import fs from 'fs';
 import { exec } from 'child_process';
 import { extractAudio } from './ffmpeg';
 import translate from './translate';
-import { renderTemplate, isWin32, getExtraResourcesPath } from './utils';
+import { getSrtFileName, isWin32, getExtraResourcesPath } from './utils';
 
 async function extractAudioFromVideo(event, file, filePath, audioFile) {
   event.sender.send("taskStatusChange", file, "extractAudio", "loading");
@@ -51,7 +51,7 @@ async function translateSubtitle(event, file, directory, fileName, srtFile, form
 }
 
 export async function processFile(event, file, formData, hasOpenAiWhisper, provider) {
-  const { sourceLanguage, targetLanguage, sourceSrtSaveFileName, translateProvider, saveSourceSrt } = formData || {};
+  const { sourceLanguage, targetLanguage, sourceSrtSaveOption, customSourceSrtFileName, translateProvider } = formData || {};
 
   try {
     const { filePath } = file;
@@ -65,13 +65,22 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
     if (!isSubtitleFile) {
       const audioFile = path.join(directory, `${fileName}_temp.wav`);
       const templateData = { fileName, sourceLanguage, targetLanguage };
-      srtFile = path.join(
-        directory,
-        `${renderTemplate(saveSourceSrt ? sourceSrtSaveFileName : "${fileName}-temp", templateData)}`,
+      
+      const sourceSrtFileName = getSrtFileName(
+        sourceSrtSaveOption,
+        fileName,
+        sourceLanguage,
+        customSourceSrtFileName,
+        templateData
       );
+      
+      srtFile = path.join(directory, `${sourceSrtFileName}`);
 
       await extractAudioFromVideo(event, file, filePath, audioFile);
-      srtFile = await generateSubtitle(event, file, audioFile, srtFile, formData, hasOpenAiWhisper);
+      srtFile = await generateSubtitle(event, file, audioFile, `${srtFile}`, formData, hasOpenAiWhisper);
+      fs.unlink(audioFile, (err) => {
+        if (err) console.log(err);
+      });
     } else {
       // 如果是字幕文件，可能需要进行格式转换
       event.sender.send("taskStatusChange", file, "prepareSubtitle", "loading");
@@ -84,7 +93,7 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
     }
 
     // 清理临时文件
-    if (!isSubtitleFile && !saveSourceSrt) {
+    if (!isSubtitleFile && sourceSrtSaveOption === 'noSave') {
       fs.unlink(srtFile, (err) => {
         if (err) console.log(err);
       });

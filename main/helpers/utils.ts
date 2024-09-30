@@ -85,3 +85,24 @@ export const defaultUserConfig = {
     translateContent: 'onlyTranslate',
     maxConcurrentTasks: 1,
 }
+
+export function getSrtFileName(
+  option: string,
+  fileName: string,
+  language: string,
+  customFileName: string,
+  templateData: { [key: string]: string }
+): string {
+  switch (option) {
+    case 'noSave':
+      return `${fileName}-temp`;
+    case 'fileName':
+      return fileName;
+    case 'fileNameWithLang':
+      return `${fileName}.${language}`;
+    case 'custom':
+      return renderTemplate(customFileName, templateData);
+    default:
+      return `${fileName}-temp`;
+  }
+}
