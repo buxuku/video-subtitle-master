@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Models from "@/components/Models";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, Globe } from "lucide-react"; // 导入 Globe 图标
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,8 @@ import { ISystemInfo } from "../types";
 import { gitCloneSteps } from "lib/utils";
 import DownModel from "@/components/DownModel";
 import DownModelDropdown from "@/components/DownModelDropdown";
+import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router"; // 导入 useRouter
 
 interface IProps {
   systemInfo: ISystemInfo;
@@ -24,17 +26,21 @@ interface IProps {
 const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
   const { whisperInstalled, modelsInstalled } = systemInfo;
   const [showGuide, setShowGuide] = useState(false);
-  useEffect(() => {
-    if (!whisperInstalled && !showGuide) {
-      setShowGuide(true);
-    }
-  }, [whisperInstalled, showGuide]);
+  const { t } = useTranslation("common");
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [installComplete, setInstallComplete] = useState(false);
   const [model, setModel] = useState<string>("tiny");
   const [progress, setProgress] = useState(0);
   const [step, setStep] = useState("");
   const [beginMakeWhisper, setBeginMakeWhisper] = useState(false);
+
+  useEffect(() => {
+    if (!whisperInstalled && !showGuide) {
+      setShowGuide(true);
+    }
+  }, [whisperInstalled, showGuide]);
+
   useEffect(() => {
     window?.ipc?.on("installWhisperComplete", (res) => {
       if (res) {
@@ -63,6 +69,7 @@ const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
       setBeginMakeWhisper(true);
     });
   }, []);
+
   const handleInstallWhisper = (source: "github" | "gitee") => {
     setLoading(true);
     try {
@@ -71,24 +78,32 @@ const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
       setLoading(false);
     }
   };
+
   const renderInstallText = () => {
     if (installComplete) {
-      return "已经完成安装";
+      return t("installComplete");
     }
     if (beginMakeWhisper) {
-      return "正在编译 whisper";
+      return t("compilingWhisper");
     }
     if (loading) {
       return `${gitCloneSteps[step] || ""}${(progress * 100).toFixed(0)}%`;
     }
-    return "安装 whisper";
+    return t("installWhisper");
   };
+
+  const changeLanguage = (lang: string) => {
+    router.push(router.pathname, router.asPath, { locale: lang });
+    window?.ipc?.invoke('setSettings', { language: lang });
+  };
+
   return (
     <Dialog open={showGuide} onOpenChange={setShowGuide}>
       <DialogContent className="w-[500px]">
         <div className="grid gap-4 py-4">
-          <h1 className="text-2xl text-center">准备， 开始！</h1>
-          <p className="text-center">第一步</p>
+          <h1 className="text-2xl text-center">{t("prepareToStart")}</h1>
+          
+          <p className="text-center">{t("firstStep")}</p>
           <div className="grid gap-4 w-1/2 m-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -104,24 +119,24 @@ const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-[225px]">
-                <DropdownMenuLabel>请选择安装源</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("pleaseSelectSource")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer hover:bg-gray-100"
                   onClick={() => handleInstallWhisper("gitee")}
                 >
-                  国内镜像源(较快)
+                  {t("domesticMirrorSource")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer hover:bg-gray-100"
                   onClick={() => handleInstallWhisper("github")}
                 >
-                  github官方源(较慢)
+                  {t("officialHuggingFaceSource")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <p className="text-center mt-4">第二步：选择一个模型下载</p>
+          <p className="text-center mt-4">{t("secondStep")}</p>
           <div className="grid w-[272px] grid-cols-2 gap-3 m-auto grid-cols-auto-min">
             <Models
               onValueChange={setModel}
@@ -136,15 +151,33 @@ const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
               />
             </DownModel>
           </div>
-          <p className="text-center mt-4">完成以上两步</p>
+          <p className="text-center mt-4">{t("finishAboveTwoSteps")}</p>
           <div className="grid gap-4 w-1/2 m-auto">
             <Button
               variant="outline"
               disabled={loading || !whisperInstalled}
               onClick={() => setShowGuide(false)}
             >
-              尽享开始吧
+              {t("startNow")}
             </Button>
+          </div>
+
+          <div className="absolute bottom-4 left-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Globe className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => changeLanguage("zh")}>
+                  中文
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => changeLanguage("en")}>
+                  English
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </DialogContent>

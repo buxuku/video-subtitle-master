@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -11,6 +13,19 @@ import TaskControls from '@/components/TaskControls';
 import TaskList from '@/components/TaskList';
 import TaskConfigForm from '@/components/TaskConfigForm';
 import TaskListControl from '@/components/TaskListControl';
+
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, [
+        'common',
+        'home'
+      ])),
+    },
+  }
+}
+
 
 export default function Component() {
   const [files, setFiles] = useState([]);

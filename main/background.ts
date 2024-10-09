@@ -5,7 +5,7 @@ import { createWindow } from "./helpers/create-window";
 import { setupIpcHandlers } from './helpers/ipcHandler';
 import { setupTaskProcessor } from './helpers/taskProcessor';
 import { setupSystemInfoManager } from './helpers/systemInfoManager';
-import { setupStoreHandlers } from './helpers/storeManager';
+import { setupStoreHandlers, store } from './helpers/storeManager';
 import { setupTaskManager } from "./helpers/taskManager";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -19,22 +19,27 @@ if (isProd) {
 (async () => {
   await app.whenReady();
 
+  setupStoreHandlers();
+
+  const settings = store.get('settings');
+  const userLanguage = settings?.language || 'zh'; // 默认为中文
+
   const mainWindow = createWindow("main", {
     width: 1400,
-    height: 1040,
+    height: 1020,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
   });
 
   if (isProd) {
-    await mainWindow.loadURL("app://./home");
+    await mainWindow.loadURL(`app://./${userLanguage}/home`);
   } else {
     const port = process.argv[2];
-    await mainWindow.loadURL(`http://localhost:${port}/home`);
+    await mainWindow.loadURL(`http://localhost:${port}/${userLanguage}/home`);
     mainWindow.webContents.openDevTools();
   }
-  setupStoreHandlers();
+
   setupIpcHandlers(mainWindow);
   setupTaskProcessor(mainWindow);
   setupSystemInfoManager(mainWindow);

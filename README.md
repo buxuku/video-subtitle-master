@@ -1,4 +1,7 @@
 # video-subtitle-master
+
+[English](./README_EN.md) | 中文
+
 批量为视频生成字幕，并可将字幕翻译成其它语言。这是在之前的一个开源项目 [VideoSubtitleGenerator](https://github.com/buxuku/VideoSubtitleGenerator) 的基础上，制作成的一个客户端工具，以方便更多朋友们的使用。
 
 ![preview](./resources/preview.png)

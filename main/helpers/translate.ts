@@ -72,7 +72,7 @@ export default async function translate(
         try {
           targetContent = await translator(sourceContent, proof);
         } catch (translationError) {
-          throw new Error(`翻译失败: ${translationError.message}`);
+          throw new Error(`${translationError.message}`);
         }
         items.push({
           id: data[i],

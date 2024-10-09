@@ -1,0 +1,13 @@
+{
+	"translateControl": "Translation Control",
+	"apiServiceProviders": "API Translation Services",
+	"translationServiceProvider": "Translation Service Provider",
+	"localServiceProviders": "Local Translation Services",
+	"providerName": "Provider Name",
+	"modelName": "Model Name",
+	"apiAddress": "API Address",
+	"prompt": "Prompt",
+	"openaiStyleApiServiceConfig": "OpenAI-compatible API Configuration",
+	"operation": "Operation",
+	"add": "Add"
+}

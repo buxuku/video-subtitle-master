@@ -10,8 +10,10 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useTranslation } from 'next-i18next';
 
 const DeleteModel = ({children, modelName, callBack}) => {
+    const { t } = useTranslation('common');
     const [visibility, setVisibility] = React.useState(false);
     const handleDelete = async (e) => {
         e.preventDefault();
@@ -26,14 +28,14 @@ const DeleteModel = ({children, modelName, callBack}) => {
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>确认删除该模型？</AlertDialogTitle>
+                    <AlertDialogTitle>{t('confirmDeleteModel')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        删除之后，如果你需要再次使用该模型，需要重新下载。
+                        {t('deleteModelDesc')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setVisibility(false)}>取消</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>删除</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setVisibility(false)}>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>{t('delete')}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

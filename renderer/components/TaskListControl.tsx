@@ -1,7 +1,9 @@
 import { Import } from 'lucide-react';
 import { Button } from './ui/button';
+import { useTranslation } from 'next-i18next';
 
 const TaskListControl = ({ setFiles }) => {
+  const { t } = useTranslation('home');
   const handleImportVideo = async () => {
     window?.ipc?.send('openDialog', 'openDialog');
   };
@@ -18,7 +20,7 @@ const TaskListControl = ({ setFiles }) => {
         variant="outline"
         onClick={handleClearList}
       >
-        清空列表
+        {t('clearList')}
       </Button>
       <Button
         className="text-sm ml-4"
@@ -27,7 +29,7 @@ const TaskListControl = ({ setFiles }) => {
         onClick={handleImportVideo}
       >
         <Import className="size-5 mr-2" />
-        导入视频/音频/字幕
+        {t('importFiles')}
       </Button>
     </div>
   );

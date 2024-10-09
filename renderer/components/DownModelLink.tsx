@@ -1,3 +1,4 @@
+import { useTranslation } from "next-i18next";
 import React, { FC } from "react";
 
 interface IProps {
@@ -6,17 +7,18 @@ interface IProps {
   handleDownModel?: () => void;
 }
 const DownModelLink: FC<IProps> = ({ loading, progress, handleDownModel }) => {
+  const { t } = useTranslation('common');
   return (
     <span className="inline-block">
-      该模型未下载，
+      {t('modelNotDownloaded')}
       {loading ? (
-        `正在下载中 ${progress}%...`
+        `${t('downloading')} ${progress}%...`
       ) : (
         <a
           className="cursor-pointer text-blue-500"
           onClick={() => handleDownModel()}
         >
-          立即下载
+          {t('downloadNow')}
         </a>
       )}
     </span>

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "next-i18next";
 
 interface IProps {
   loading?: boolean;
@@ -27,6 +28,7 @@ const DownModelDropdown: FC<IProps> = ({
   installComplete,
   whisperLoading,
 }) => {
+  const { t } = useTranslation("common");
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,30 +38,30 @@ const DownModelDropdown: FC<IProps> = ({
           className="w-24"
         >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? `${progress}%` : "下载"}
+          {loading ? `${progress}%` : t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[225px]">
-        <DropdownMenuLabel>请选择下载源</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("pleaseSelectSource")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer hover:bg-gray-100"
           onClick={() => handleDownModel("hf-mirror")}
         >
-          国内镜像源(较快)
+          {t("domesticMirrorSource")}
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer hover:bg-gray-100"
           onClick={() => handleDownModel("huggingface")}
         >
-          huggingface官方源(较慢)
+          {t("officialHuggingFaceSource")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="cursor-pointer hover:bg-gray-100"
           onClick={() => setShowGuide(false)}
         >
-          稍后下载
+          {t("downloadLater")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

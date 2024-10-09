@@ -1,0 +1,13 @@
+{
+	"translateControl": "翻译管理",
+	"apiServiceProviders": "API 翻译服务商",
+	"translationServiceProvider": "翻译服务提供商",
+	"localServiceProviders": "本地翻译服务",
+	"providerName": "服务商名称",
+	"modelName": "模型名称",
+	"apiAddress": "API 地址",
+	"prompt": "提示词",
+	"openaiStyleApiServiceConfig": "OpenAI 兼容 API 配置",
+	"operation": "操作",
+	"add": "添加"
+}

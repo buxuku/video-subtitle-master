@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
 
 // 定义统一的服务提供商类型
 type Provider = {
@@ -25,7 +27,20 @@ type Provider = {
   prompt?: string;
 };
 
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, [
+        'common',
+        'translateControl'
+      ])),
+    },
+  }
+}
+
 const TranslateControl: React.FC = () => {
+  const { t } = useTranslation('translateControl');
+  const { t: tCommon } = useTranslation('common');
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
   const [newOpenAIProvider, setNewOpenAIProvider] = useState<Omit<Provider, 'id' | 'type'>>({
@@ -88,21 +103,21 @@ const TranslateControl: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-lg font-bold mb-4">翻译服务管理</h1>
+      <h1 className="text-lg font-bold mb-4">{t('translateControl')}</h1>
       
-      <h2 className="text-base font-bold mb-2">API 服务提供商</h2>
+      <h2 className="text-base font-bold mb-2">{t('apiServiceProviders')}</h2>
       <Table className="mb-8">
         <TableHeader>
           <TableRow>
-            <TableHead>翻译服务提供商</TableHead>
-            <TableHead>Key</TableHead>
-            <TableHead>Secret</TableHead>
+            <TableHead>{t('translationServiceProvider')}</TableHead>
+            <TableHead>{t('key')}</TableHead>
+            <TableHead>{t('secret')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {apiProviders.map((provider) => (
             <TableRow key={provider.id}>
-              <TableCell>{provider.name}</TableCell>
+              <TableCell>{tCommon(`provider.${provider.id}`)}</TableCell>
               <TableCell>
                 <div className="flex items-center">
                   <Input
@@ -142,14 +157,14 @@ const TranslateControl: React.FC = () => {
         </TableBody>
       </Table>
 
-      <h2 className="text-base font-bold mb-2">本地模型配置</h2>
+      <h2 className="text-base font-bold mb-2">{t('localServiceProviders')}</h2>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>模型名称</TableHead>
-            <TableHead>API 地址</TableHead>
-            <TableHead>模型名</TableHead>
-            <TableHead>Prompt</TableHead>
+            <TableHead>{t('providerName')}</TableHead>
+            <TableHead>{t('apiAddress')}</TableHead>
+            <TableHead>{t('modelName')}</TableHead>
+            <TableHead>{t('prompt')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -180,16 +195,16 @@ const TranslateControl: React.FC = () => {
         </TableBody>
       </Table>
 
-      <h2 className="text-base font-bold mb-2 mt-8">OpenAI风格API服务配置</h2>
+      <h2 className="text-base font-bold mb-2 mt-8">{t('openaiStyleApiServiceConfig')}</h2>
       <Table className="mb-4">
         <TableHeader>
           <TableRow>
-            <TableHead>服务名称</TableHead>
-            <TableHead>API地址</TableHead>
-            <TableHead>API密钥</TableHead>
-            <TableHead>模型名称</TableHead>
-            <TableHead>Prompt</TableHead>
-            <TableHead>操作</TableHead>
+            <TableHead>{t('providerName')}</TableHead>
+            <TableHead>{t('apiAddress')}</TableHead>
+            <TableHead>API Token</TableHead>
+            <TableHead>{t('modelName')}</TableHead>
+            <TableHead>{t('prompt')}</TableHead>
+            <TableHead>{t('operation')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -248,33 +263,33 @@ const TranslateControl: React.FC = () => {
 
       <div className="flex gap-2 mb-4">
         <Input
-          placeholder="服务名称"
+          placeholder={t('providerName')}
           value={newOpenAIProvider.name}
           onChange={(e) => setNewOpenAIProvider(prev => ({ ...prev, name: e.target.value }))}
         />
         <Input
-          placeholder="API地址"
+          placeholder={t('apiAddress')}
           value={newOpenAIProvider.apiUrl}
           onChange={(e) => setNewOpenAIProvider(prev => ({ ...prev, apiUrl: e.target.value }))}
         />
         <Input
-          placeholder="API密钥"
+          placeholder="API token"
           type="password"
           value={newOpenAIProvider.apiKey}
           onChange={(e) => setNewOpenAIProvider(prev => ({ ...prev, apiKey: e.target.value }))}
         />
         <Input
-          placeholder="模型名称"
+          placeholder={t('modelName')}
           value={newOpenAIProvider.modelName}
           onChange={(e) => setNewOpenAIProvider(prev => ({ ...prev, modelName: e.target.value }))}
         />
         <Input
-          placeholder="Prompt"
+          placeholder={t('prompt')}
           value={newOpenAIProvider.prompt}
           onChange={(e) => setNewOpenAIProvider(prev => ({ ...prev, prompt: e.target.value }))}
         />
         <Button onClick={addOpenAIProvider}>
-          <Plus size={16} className="mr-2" /> 添加
+          <Plus size={16} className="mr-2" /> {t('add')}
         </Button>
       </div>
     </div>

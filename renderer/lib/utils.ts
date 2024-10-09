@@ -8,47 +8,80 @@ export function cn(...inputs: ClassValue[]) {
 export const models = [
   {
     name: 'Tiny',
-    desc: '输出文字速度快，转写文字质量一般。 (77.7 MB)',
+    desc: {
+      key: 'modelDesc.tiny',
+      size: '77.7 MB'
+    },
   },
   {
     name: 'Base',
-    desc: '输出文字速度快，转写文字质量一般。 (148 MB)',
+    desc: {
+      key: 'modelDesc.base',
+      size: '148 MB'
+    },
   },
   {
     name: 'Small',
-    desc: '输出文字速度适中，转写文字质量较好。 (488 MB)',
+    desc: {
+      key: 'modelDesc.small',
+      size: '488 MB'
+    },
   },
   {
     name: 'Medium',
-    desc: '输出文字速度慢，转写文字质量最佳。 (1.53 GB)',
+    desc: {
+      key: 'modelDesc.medium',
+      size: '1.53 GB'
+    },
   },
   {
     name: 'Large-v1',
-    desc: '输出文字速度慢，转写文字质量最佳。 (3.09 GB)',
+    desc: {
+      key: 'modelDesc.large',
+      size: '3.09 GB'
+    },
   },
   {
     name: 'Large-v2',
-    desc: '输出文字速度慢，转写文字质量最佳。 (3.09 GB)',
+    desc: {
+      key: 'modelDesc.large',
+      size: '3.09 GB'
+    },
   },
   {
     name: 'Large-v3',
-    desc: '输出文字速度慢，转写文字质量最佳。 (3.09 GB)',
+    desc: {
+      key: 'modelDesc.large',
+      size: '3.09 GB'
+    },
   },
   {
     name: 'Tiny.en',
-    desc: '仅支持英文，输出文字速度快，转写文字质量一般。 (77.7 MB)',
+    desc: {
+      key: 'modelDesc.tinyEn',
+      size: '77.7 MB'
+    },
   },
   {
     name: 'Base.en',
-    desc: '仅支持英文，输出文字速度快，转写文字质量一般。 (148 MB)',
+    desc: {
+      key: 'modelDesc.baseEn',
+      size: '148 MB'
+    },
   },
   {
     name: 'Small.en',
-    desc: '仅支持英文，输出文字速度适中，转写文字质量较好。 (488 MB)',
+    desc: {
+      key: 'modelDesc.smallEn',
+      size: '488 MB'
+    },
   },
   {
     name: 'Medium.en',
-    desc: '仅支持英文，输出文字速度慢，转写文字质量最佳。 (1.53 GB)',
+    desc: {
+      key: 'modelDesc.mediumEn',
+      size: '1.53 GB'
+    },
   },
 ];
 

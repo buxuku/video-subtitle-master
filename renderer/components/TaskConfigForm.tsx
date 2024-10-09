@@ -20,6 +20,7 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { useTranslation } from 'next-i18next';
 
 // 定义 Provider 类型
 type Provider = {
@@ -36,6 +37,8 @@ const TaskConfigForm = ({
   isInstalledModel,
 }) => {
   const [providers, setProviders] = useState<Provider[]>([]);
+  const { t } = useTranslation('home');
+  const { t: tCommon } = useTranslation('common');
 
   useEffect(() => {
     loadProviders();
@@ -49,15 +52,15 @@ const TaskConfigForm = ({
   return (
     <Form {...form}>
       <form className="grid w-full items-start gap-6">
-        <fieldset className="grid gap-3 rounded-lg border p-4">
-          <legend className="-ml-1 px-1 text-sm font-medium">源字幕设置</legend>
+        <fieldset className="grid gap-4 rounded-lg border p-4">
+          <legend className="-ml-1 px-1 text-sm font-medium">{t('sourceSubtitleSettings')}</legend>
           <div className="grid gap-3">
             <FormField
               control={form.control}
               name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>模型选择</FormLabel>
+                  <FormLabel>{t('modelSelection')}</FormLabel>
                   <FormControl>
                     <Models
                       onValueChange={field.onChange}
@@ -85,17 +88,17 @@ const TaskConfigForm = ({
               name="sourceLanguage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>视频/字幕原始语言</FormLabel>
+                  <FormLabel>{t('originalLanguage')}</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
+                        <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={'auto'}>自动识别</SelectItem>
+                        <SelectItem value={'auto'}>{t('autoRecognition')}</SelectItem>
                         {supportedLanguage.map((item) => (
                           <SelectItem key={item.value} value={item.value}>
-                            {item.name}
+                            {tCommon(`language.${item.value}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -111,20 +114,20 @@ const TaskConfigForm = ({
               name="sourceSrtSaveOption"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center">
-                    源字幕保存设置
+                  <FormLabel className='flex items-center'>
+                    {t('sourceSubtitleSaveSettings')}
                     <SavePathNotice />
                   </FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value || 'fileNameWithLang'}>
+                    <Select onValueChange={field.onChange} value={field.value || 'noSave'}>
                       <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
+                        <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="noSave">不保存</SelectItem>
-                        <SelectItem value="fileName">文件名.srt</SelectItem>
-                        <SelectItem value="fileNameWithLang">文件名.源语言.srt</SelectItem>
-                        <SelectItem value="custom">自定义设置</SelectItem>
+                        <SelectItem value="noSave">{t('noSave')}</SelectItem>
+                        <SelectItem value="fileName">{t('fileName')}</SelectItem>
+                        <SelectItem value="fileNameWithLang">{t('fileNameWithLang')}</SelectItem>
+                        <SelectItem value="custom">{t('customSettings')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -138,7 +141,7 @@ const TaskConfigForm = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="请输入自定义源字幕文件名" {...field} value={field.value || '${fileName}.${sourceLanguage}'} />
+                      <Input placeholder={t('pleaseInputCustomSourceSrtFileName')} {...field} value={field.value || '${fileName}.${sourceLanguage}'} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -146,15 +149,15 @@ const TaskConfigForm = ({
             )}
           </div>
         </fieldset>
-        <fieldset className="grid gap-6 rounded-lg border p-4">
-          <legend className="-ml-1 px-1 text-sm font-medium">翻译设置</legend>
+        <fieldset className="grid gap-4 rounded-lg border p-4">
+          <legend className="-ml-1 px-1 text-sm font-medium">{t('translationSettings')}</legend>
           <div className="grid gap-3">
             <FormField
               control={form.control}
               name="translateProvider"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>翻译服务</FormLabel>
+                  <FormLabel>{t('translationService')}</FormLabel>
                   <FormControl>
                     <Select
                       onValueChange={(value) => {
@@ -163,13 +166,13 @@ const TaskConfigForm = ({
                       value={field.value}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
+                        <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={'-1'}>不翻译</SelectItem>
+                        <SelectItem value={'-1'}>{t('Untranslate')}</SelectItem>
                         {providers.map((provider) => (
                           <SelectItem key={provider.id} value={provider.id}>
-                            {provider.name}
+                            {tCommon(`provider.${provider.id}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -186,19 +189,19 @@ const TaskConfigForm = ({
                 name="targetLanguage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>翻译目标语言</FormLabel>
+                    <FormLabel>{t('translationTargetLanguage')}</FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="请选择" />
+                          <SelectValue placeholder={t('pleaseSelect')} />
                         </SelectTrigger>
                         <SelectContent>
                           {supportedLanguage.map((item) => (
                             <SelectItem key={item.value} value={item.value}>
-                              {item.name}
+                              {tCommon(`language.${item.value}`)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -215,21 +218,21 @@ const TaskConfigForm = ({
               name="translateContent"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>翻译输出字幕设置</FormLabel>
+                  <FormLabel>{t('translationOutputSubtitleSettings')}</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
+                        <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="onlyTranslate">
-                          仅输出翻译字幕
+                          {t('onlyOutputTranslationSubtitle')}
                         </SelectItem>
                         <SelectItem value="sourceAndTranslate">
-                          输出双语（源字幕加翻译字幕）
+                          {t('sourceAndTranslate')}
                         </SelectItem>
                         <SelectItem value="translateAndSource">
-                          输出双语（翻译字幕加源字幕）
+                          {t('translateAndSource')}
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -245,18 +248,18 @@ const TaskConfigForm = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center">
-                    翻译字幕保存设置
+                    {t('translationSubtitleSaveSettings')}
                     <SavePathNotice />
                   </FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value || 'fileNameWithLang'}>
                       <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
+                        <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fileName">文件名.srt</SelectItem>
-                        <SelectItem value="fileNameWithLang">文件名.目标语言.srt</SelectItem>
-                        <SelectItem value="custom">自定义设置</SelectItem>
+                        <SelectItem value="fileName">{t('fileName')}</SelectItem>
+                        <SelectItem value="fileNameWithLang">{t('fileNameWithLang')}</SelectItem>
+                        <SelectItem value="custom">{t('customSettings')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -270,7 +273,7 @@ const TaskConfigForm = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="请输入自定义翻译字幕文件名" {...field} value={field.value || '${fileName}.${targetLanguage}'} />
+                      <Input placeholder={t('pleaseInputCustomTargetSrtFileName')} {...field} value={field.value || '${fileName}.${targetLanguage}'} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -278,20 +281,20 @@ const TaskConfigForm = ({
             )}
           </div>
         </fieldset>
-        <fieldset className="grid gap-3 rounded-lg border p-4">
+        <fieldset className="grid gap-4 rounded-lg border p-4">
           <legend className="-ml-1 px-1 text-sm font-medium">
-            其它设置
+            {t('otherSettings')}
           </legend>
           <FormField
             control={form.control}
             name="maxConcurrentTasks"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>最大并发任务数</FormLabel>
+                <FormLabel>{t('maxConcurrentTasks')}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="请输入最大并发任务数"
+                    placeholder={t('pleaseInputMaxConcurrentTasks')}
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     min={1}
