@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "next-i18next";
 
 interface IProps {
   loading?: boolean;
@@ -13,6 +14,7 @@ const DownModelButton: FC<IProps> = ({
   progress,
   handleDownModel,
 }) => {
+  const { t } = useTranslation('common');
   return (
     <Button disabled={loading} onClick={() => handleDownModel()}>
       {loading ? (
@@ -20,7 +22,7 @@ const DownModelButton: FC<IProps> = ({
           <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {progress} %
         </>
       ) : (
-        "下载"
+        t('download')
       )}
     </Button>
   );

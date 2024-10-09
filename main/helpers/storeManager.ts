@@ -5,6 +5,9 @@ import { defaultUserConfig } from './utils';
 type StoreType = {
   translationProviders: Record<string, any>[],
   userConfig: Record<string, any>,
+  settings: {
+    language: string;
+  },
   [key: string]: any
 }
 
@@ -25,7 +28,10 @@ const defaultTranslationProviders = [
 export const store = new Store<StoreType>({
   defaults: {
     userConfig: defaultUserConfig,
-    translationProviders: defaultTranslationProviders
+    translationProviders: defaultTranslationProviders,
+    settings: {
+      language: 'zh'
+    }
   }
 });
 
@@ -67,5 +73,13 @@ export function setupStoreHandlers() {
 
   ipcMain.handle('getUserConfig', async () => {
     return store.get('userConfig');
+  });
+
+  ipcMain.handle('setSettings', async (event, settings) => {
+    store.set('settings', settings);
+  });
+
+  ipcMain.handle('getSettings', async () => {
+    return store.get('settings');
   });
 }

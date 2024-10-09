@@ -7,18 +7,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { BotIcon, FileVideo2, Github, MonitorPlay, Languages } from 'lucide-react';
+import { BotIcon, FileVideo2, Github, MonitorPlay, Languages, Settings } from 'lucide-react';
 import { openUrl } from 'lib/utils';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
+import { useTranslation } from 'next-i18next';
+
 
 const Layout = ({ children }) => {
+  const { t } = useTranslation('common');
   const { asPath } = useRouter();
   useEffect(() => {
     window?.ipc?.on('message', (res: string) => {
-      toast('消息通知', {
-        description: res,
+      toast(t('notification'), {
+        description: t(res),
       });
       console.log(res);
     });
@@ -52,7 +55,7 @@ const Layout = ({ children }) => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right" sideOffset={5}>
-                任务
+                {t('tasks')}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -71,7 +74,7 @@ const Layout = ({ children }) => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right" sideOffset={5}>
-                模型管理
+                {t('modelManagement')}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -90,7 +93,26 @@ const Layout = ({ children }) => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right" sideOffset={5}>
-                翻译管理
+                {t('translationManagement')}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/settings">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`rounded-lg ${
+                      asPath.includes('settings') ? 'bg-muted' : ''
+                    }`}
+                    aria-label="Settings"
+                  >
+                    <Settings className="size-5" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={5}>
+                {t('settings')}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -116,7 +138,7 @@ const Layout = ({ children }) => {
       <div className="flex flex-col">
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
           <h4 className="text-base font-semibold">
-            视频/音频批量生成字幕，字幕翻译
+            {t('headerTitle')}
           </h4>
         </header>
         <main className="">{children}</main>

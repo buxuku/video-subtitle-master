@@ -7,7 +7,7 @@ export default async function translate(query, proof) {
   const { apiKey: accessKeyId, apiSecret: secretKey } = proof || {};
   if (!accessKeyId || !secretKey) {
     console.log("请先配置 API KEY 和 API SECRET");
-    throw new Error("请先配置 API KEY 和 API SECRET");
+    throw new Error("missingKeyOrSecret");
   }
   if (!service || !fetchApi) {
     service = new Service({

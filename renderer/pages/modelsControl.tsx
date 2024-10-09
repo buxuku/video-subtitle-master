@@ -31,8 +31,23 @@ import { Upload } from 'lucide-react'; // 导入上传图标
 import { Copy } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useTranslation } from 'next-i18next';
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, [
+        'common',
+        'modelsControl'
+      ])),
+    },
+  }
+}
 
 const ModelsControl = () => {
+  const { t } = useTranslation('modelsControl');
+  const { t: tCommon } = useTranslation('common');
   const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
     whisperInstalled: true,
     modelsInstalled: [],
@@ -65,11 +80,11 @@ const ModelsControl = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      toast.success('链接已复制到剪贴板', {
+      toast.success(t('copySuccess'), {
         duration: 2000,
       });
     }).catch((err) => {
-      toast.error('无法复制链接，请手动复制', {
+      toast.error(t('copyError'), {
         duration: 2000,
       });
     });
@@ -78,27 +93,27 @@ const ModelsControl = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>模型管理</CardTitle>
+        <CardTitle>{t('modelManagement')}</CardTitle>
         <CardDescription>
-          您可以在这里管理你的模型，下载，删除，或导入 <br />
-          模型保存位置：
+          {t('modelManagementDesc')} <br />
+          {t('modelPath')}:
           <br />
           {systemInfo?.modelsPath}
           <span className="float-right mt-4 flex items-center">
-            <span>切换下载源：</span>
+            <span>{t('switchDownloadSource')}:</span>
             <Select onValueChange={handleDownSource} value={downSource}>
               <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="切换下载源" />
+                <SelectValue placeholder={t('switchDownloadSource')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hf-mirror">国内镜像源(较快)</SelectItem>
+                <SelectItem value="hf-mirror">{t('domesticMirror')}</SelectItem>
                 <SelectItem value="huggingface">
-                  huggingface官方源(较慢)
+                  {t('officialSource')}
                 </SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleImportModel} className="ml-4">
-              <Upload className="mr-2 h-4 w-4" /> 导入模型
+              <Upload className="mr-2 h-4 w-4" /> {t('importModel')}
             </Button>
           </span>
         </CardDescription>
@@ -107,9 +122,9 @@ const ModelsControl = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[150px]">模型名</TableHead>
-              <TableHead>描述</TableHead>
-              <TableHead>操作</TableHead>
+              <TableHead className="w-[150px]">{t('modelName')}</TableHead>
+              <TableHead>{t('description')}</TableHead>
+              <TableHead>{t('operation')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="max-h-[80vh]">
@@ -117,9 +132,9 @@ const ModelsControl = () => {
               <TableRow key={model?.name}>
                 <TableCell className="font-medium">{model?.name}</TableCell>
                 <TableCell>
-                  {model?.desc}
+                  {tCommon(model.desc.key)}
                   <br />
-                  手动下载地址:<br />
+                  {t('manualDownloadAddress')}:<br />
                   {['hf-mirror', 'huggingface'].map((source) => (
                     <div key={source} className="flex items-center mb-1">
                       <span className="mr-2 text-sm">
@@ -134,7 +149,7 @@ const ModelsControl = () => {
                             />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>复制链接</p>
+                            <p>{t('copyLink')}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -148,7 +163,7 @@ const ModelsControl = () => {
                       modelName={model.name}
                       callBack={updateSystemInfo}
                     >
-                      <Button variant="destructive">删除</Button>
+                      <Button variant="destructive">{t('delete')}</Button>
                     </DeleteModel>
                   ) : (
                     <DownModel

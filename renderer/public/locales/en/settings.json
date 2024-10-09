@@ -1,0 +1,9 @@
+{
+  "settings": "Settings",
+  "language": "Language",
+  "selectLanguage": "Select language",
+  "chinese": "Chinese",
+  "english": "English",
+  "saveSettings": "Save Settings",
+  "settingsSaved": "Settings saved"
+}

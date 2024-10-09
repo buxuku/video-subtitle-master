@@ -1,0 +1,17 @@
+{
+	"copySuccess": "Link copied to clipboard",
+	"copyError": "Failed to copy link, please copy manually",
+	"modelManagement": "Model Management",
+	"modelManagementDesc": "You can manage your models here, download, delete, or import",
+	"modelPath": "Model Path",
+	"switchDownloadSource": "Switch Download Source",
+	"domesticMirror": "Domestic Mirror (Faster)",
+	"officialSource": "HuggingFace Official Source (Slower)",
+	"importModel": "Import Model",
+	"modelName": "Model Name",
+	"description": "Description",
+	"operation": "Operation",
+	"manualDownloadAddress": "Manual Download Address",
+	"copyLink": "Copy Link",
+	"delete": "Delete"
+}

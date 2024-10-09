@@ -5,7 +5,7 @@ export default async function baidu(query, proof) {
   const { apiKey: appid, apiSecret: key } = proof || {};
   if (!appid || !key) {
     console.log("请先配置 API KEY 和 API SECRET");
-    throw new Error("请先配置 API KEY 和 API SECRET");
+    throw new Error("missingKeyOrSecret");
   }
   const salt = new Date().getTime();
   const str1 = appid + query + salt + key;

@@ -81,9 +81,10 @@ export const defaultUserConfig = {
     sourceSrtSaveFileName: '${fileName}.${sourceLanguage}',
     model: 'tiny',
     translateProvider: 'baidu',
-    saveSourceSrt: false,
     translateContent: 'onlyTranslate',
     maxConcurrentTasks: 1,
+    sourceSrtSaveOption: 'noSave',
+    targetSrtSaveOption: 'fileNameWithLang',
 }
 
 export function getSrtFileName(
