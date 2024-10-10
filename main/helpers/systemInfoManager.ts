@@ -31,11 +31,12 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
   ipcMain.handle('downloadModel', async (event, { model, source }) => {
     downloadingModels.add(model);
     const onProcess = (data) => {
-      const match = data?.match(/(\d+)%/);
+      const match = data?.match?.(/(\d+)/);
+      console.log(match, model, 'match');
       if (match) {
         event.sender.send('downloadProgress', model, +match[1]);
       }
-      if (data?.includes('Done') || data?.includes('main')) {
+      if (data?.includes?.('Done') || data?.includes?.('main')) {
         event.sender.send('downloadProgress', model, 100);
       }
     };
@@ -43,7 +44,7 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
       await downloadModelSync(model?.toLowerCase(), source, onProcess);
       downloadingModels.delete(model);
     } catch (error) {
-      event.sender.send('message', '下载失败，请切换下载源重试');
+      event.sender.send('message', 'download error, please try again');
       downloadingModels.delete(model);
       return false;
     }

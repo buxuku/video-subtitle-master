@@ -16,7 +16,7 @@ import { useTranslation } from 'next-i18next';
 
 
 const Layout = ({ children }) => {
-  const { t } = useTranslation('common');
+  const { t, i18n: { language: locale } } = useTranslation('common');
   const { asPath } = useRouter();
   useEffect(() => {
     window?.ipc?.on('message', (res: string) => {
@@ -41,7 +41,7 @@ const Layout = ({ children }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/home">
+                <Link href={`/${locale}/home`}>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -60,7 +60,7 @@ const Layout = ({ children }) => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/modelsControl">
+                <Link href={`/${locale}/modelsControl`}>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -79,7 +79,7 @@ const Layout = ({ children }) => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/translateControl">
+                <Link href={`/${locale}/translateControl`}>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -98,7 +98,7 @@ const Layout = ({ children }) => {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/settings">
+                <Link href={`/${locale}/settings`}>
                   <Button
                     variant="ghost"
                     size="icon"

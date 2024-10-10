@@ -11,8 +11,8 @@ const DownModel: FC<IProps> = (props) => {
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   useEffect(() => {
-    window?.ipc?.on("downloadProgress", (model, progress: number) => {
-      if (model === modelName) {
+    window?.ipc?.on("downloadProgress", (model: string, progress: number) => {
+      if (model?.toLowerCase() === modelName?.toLowerCase()) {
         setProgress(progress);
         setLoading(progress < 100);
         if (progress >= 100) {

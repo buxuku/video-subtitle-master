@@ -4,8 +4,8 @@ import path from "path";
 import fs from "fs";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import replaceModelSource from "./model-source";
-import { isDarwin, isWin32, runCommand } from "./utils";
+import { isWin32 } from "./utils";
+import { BrowserWindow, DownloadItem } from 'electron';
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -120,40 +120,57 @@ export const deleteModel = async (model) => {
   });
 };
 
-export const downloadModelSync = async (model, source, onProcess) => {
+export const downloadModelSync = async (model: string, source: string, onProcess: (message: string) => void) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
-  if (fs.existsSync(modelPath)) return;
+  
+  if (fs.existsSync(modelPath)) {
+    return;
+  }
   if (!checkWhisperInstalled()) {
-    throw Error("whisper.cpp 未下载，请先下载 whisper.cpp");
+    throw Error("whisper.cpp 未安装，请先安装 whisper.cpp");
   }
-  try {
-    let downShellPath;
-    let shell: string;
-    let args = [];
-    if (isDarwin()) {
-      downShellPath = path.join(modelsPath, "download-ggml-model.sh");
-      shell = "bash";
-      args = [`${downShellPath}`, `${model}`];
-    } else if (isWin32()) {
-      downShellPath = path.join(modelsPath, "download-ggml-model.cmd");
-      shell = "cmd";
-      args = [`/c`, `${downShellPath}`, `${model}`];
-    } else {
-      throw Error("platform does not support! ");
-    }
-    await replaceModelSource(`${downShellPath}`, source);
-    console.log("完成模型下载地址替换", model);
-    console.log("正在安装 whisper.cpp 模型");
-    try {
-      await runCommand(`${shell}`, args, (data) => onProcess(data));
-    } catch (error) {
-      await deleteModel(model);
-      throw error;
-    }
-  } catch (error) {
-    throw error;
-  }
+
+  const url = `https://${source === 'huggingface' ? 'huggingface.co' : 'hf-mirror.com'}/ggerganov/whisper.cpp/resolve/main/ggml-${model}.bin`;
+  
+  return new Promise((resolve, reject) => {
+    const win = new BrowserWindow({ show: false });
+    
+    const willDownloadHandler = (event, item: DownloadItem) => {
+      if (item.getFilename() !== `ggml-${model}.bin`) {
+        return; // 忽略不匹配的下载项
+      }
+
+      item.setSavePath(modelPath);
+
+      item.on('updated', (event, state) => {
+        if (state === 'progressing' && !item.isPaused()) {
+          const percent = item.getReceivedBytes() / item.getTotalBytes() * 100;
+          onProcess(`${model}: ${percent.toFixed(2)}%`);
+        }
+      });
+
+      item.once('done', (event, state) => {
+        if (state === 'completed') {
+          onProcess(`${model} 完成`);
+          cleanup();
+          resolve(1);
+        } else {
+          fs.unlink(modelPath, () => {});
+          cleanup();
+          reject(new Error(`${model} download error: ${state}`));
+        }
+      });
+    };
+
+    const cleanup = () => {
+      win.webContents.session.removeListener('will-download', willDownloadHandler);
+      win.destroy();
+    };
+
+    win.webContents.session.on('will-download', willDownloadHandler);
+    win.webContents.downloadURL(url);
+  });
 };
 
 export async function checkOpenAiWhisper(): Promise<boolean> {

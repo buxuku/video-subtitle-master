@@ -93,7 +93,7 @@ const Guide: FC<IProps> = ({ systemInfo, updateSystemInfo }) => {
   };
 
   const changeLanguage = (lang: string) => {
-    router.push(router.pathname, router.asPath, { locale: lang });
+    router.push(`/${lang}/home/`);
     window?.ipc?.invoke('setSettings', { language: lang });
   };
 

@@ -32,7 +32,7 @@ const Models: FC<SelectPrimitive.SelectProps & IProps> = (props) => {
                   {item.name}
                   {!props?.modelsInstalled?.includes(
                     item.name?.toLowerCase()
-                  ) && `(${t('notInstalled')})`}
+                  ) && `(${t('modelNotDownloaded')})`}
                 </p>
                 <p className="text-xs" data-description>
                   {t(item.desc.key)} {item.desc.size}
