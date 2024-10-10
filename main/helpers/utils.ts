@@ -40,7 +40,7 @@ export function runCommand(command, args, onProcess = undefined) {
     child.on("close", (code) => {
       if (code !== 0) {
         reject(
-          new Error(`${command} ${args.join(" ")} 进程退出，退出码 ${code}`),
+          new Error(`${command} ${args.join(" ")} process error ${code}`),
         );
       } else {
         resolve(true);
@@ -77,8 +77,8 @@ function throttle(func, limit) {
 export const defaultUserConfig = {
     sourceLanguage: 'en',
     targetLanguage: 'zh',
-    targetSrtSaveFileName: '${fileName}.${targetLanguage}',
-    sourceSrtSaveFileName: '${fileName}.${sourceLanguage}',
+    customTargetSrtFileName: '${fileName}.${targetLanguage}',
+    customSourceSrtFileName: '${fileName}.${sourceLanguage}',
     model: 'tiny',
     translateProvider: 'baidu',
     translateContent: 'onlyTranslate',

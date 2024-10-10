@@ -72,7 +72,10 @@ export function setupStoreHandlers() {
   });
 
   ipcMain.handle('getUserConfig', async () => {
-    return store.get('userConfig');
+    const storedConfig = store.get('userConfig');
+    // 合并默认配置和存储的配置
+    const mergedConfig = { ...defaultUserConfig, ...storedConfig };
+    return mergedConfig;
   });
 
   ipcMain.handle('setSettings', async (event, settings) => {

@@ -68,11 +68,12 @@ const TaskConfigForm = ({
                       modelsInstalled={systemInfo.modelsInstalled}
                     />
                   </FormControl>
-                  {!isInstalledModel && (
+                  {!isInstalledModel && field.value && (
                     <FormDescription>
                       <DownModel
-                        modelName={formData.model}
+                        modelName={field.value}
                         callBack={updateSystemInfo}
+                        key={field.value}
                       >
                         <DownModelLink />
                       </DownModel>

@@ -28,6 +28,7 @@ export default async function translate(
     sourceLanguage,
     targetLanguage,
   } = formData || {};
+  console.log(formData, 'formData');
 
   const renderContentTemplate = contentTemplate[translateContent];
   const proof = provider;

@@ -12,9 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
-
+import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
 // 定义统一的服务提供商类型
 type Provider = {
   id: string;
@@ -27,16 +26,7 @@ type Provider = {
   prompt?: string;
 };
 
-export async function getStaticProps({ locale }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, [
-        'common',
-        'translateControl'
-      ])),
-    },
-  }
-}
+
 
 const TranslateControl: React.FC = () => {
   const { t } = useTranslation('translateControl');
@@ -297,3 +287,7 @@ const TranslateControl: React.FC = () => {
 };
 
 export default TranslateControl;
+
+export const getStaticProps = makeStaticProperties(['common', 'translateControl'])
+
+export { getStaticPaths }

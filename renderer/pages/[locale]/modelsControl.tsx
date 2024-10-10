@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { models, getModelDownloadUrl } from 'lib/utils';
 import { Button } from '@/components/ui/button';
-import { ISystemInfo } from '../types';
+import { ISystemInfo } from '../../types';
 import DeleteModel from '@/components/DeleteModel';
 import DownModel from '@/components/DownModel';
 import DownModelButton from '@/components/DownModelButton';
@@ -31,20 +31,8 @@ import { Upload } from 'lucide-react'; // 导入上传图标
 import { Copy } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
-
-export async function getStaticProps({ locale }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, [
-        'common',
-        'modelsControl'
-      ])),
-    },
-  }
-}
-
+import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
 const ModelsControl = () => {
   const { t } = useTranslation('modelsControl');
   const { t: tCommon } = useTranslation('common');
@@ -132,7 +120,7 @@ const ModelsControl = () => {
               <TableRow key={model?.name}>
                 <TableCell className="font-medium">{model?.name}</TableCell>
                 <TableCell>
-                  {tCommon(model.desc.key)}
+                  {tCommon(model.desc.key)} {model.desc.size}
                   <br />
                   {t('manualDownloadAddress')}:<br />
                   {['hf-mirror', 'huggingface'].map((source) => (
@@ -185,3 +173,7 @@ const ModelsControl = () => {
 };
 
 export default ModelsControl;
+
+export const getStaticProps = makeStaticProperties(['common', 'modelsControl'])
+
+export { getStaticPaths }

@@ -1,27 +1,18 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
 
-export async function getStaticProps({ locale }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, [
-        'common',
-        'settings'
-      ])),
-    },
-  }
-}
+
 
 const Settings = () => {
   const router = useRouter();
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -35,8 +26,8 @@ const Settings = () => {
       const settings = await window?.ipc?.invoke('getSettings');
       if (settings) {
         form.reset(settings);
-        if (settings.language !== router.locale) {
-          router.push(router.pathname, router.pathname, { locale: settings.language });
+        if (settings.language !== i18n.language) {
+          router.push(`/${settings.language}/settings`);
         }
       }
     };
@@ -48,8 +39,8 @@ const Settings = () => {
     await window?.ipc?.invoke('setSettings', data);
     
     // 更改语言
-    if (data.language !== router.locale) {
-      router.push(router.pathname, router.pathname, { locale: data.language });
+    if (data.language !== i18n.language) {
+      router.push(`/${data.language}/settings`);
     }
     
     // 显示成功消息
@@ -115,3 +106,7 @@ const Settings = () => {
 };
 
 export default Settings;
+
+export const getStaticProps = makeStaticProperties(['common', 'settings'])
+
+export { getStaticPaths }
