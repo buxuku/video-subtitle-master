@@ -85,4 +85,9 @@ export function setupStoreHandlers() {
   ipcMain.handle('getSettings', async () => {
     return store.get('settings');
   });
+
+  ipcMain.handle('clearConfig', async () => {
+    store.clear();
+    return true;
+  });
 }

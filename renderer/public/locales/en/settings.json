@@ -5,5 +5,15 @@
   "chinese": "Chinese",
   "english": "English",
   "saveSettings": "Save Settings",
-  "settingsSaved": "Settings saved"
+  "settingsSaved": "Settings saved",
+  "reinstallWhisper": "Reinstall Whisper",
+  "reinstallingWhisper": "Deleting Whisper",
+  "whisperDeleted": "Whisper deleted",
+  "whisperDeleteFailed": "Failed to delete Whisper",
+  "clearConfig": "Clear Config (Task Config, Translation Config)",
+  "configClearedSuccess": "Config cleared",
+  "configClearFailed": "Failed to clear Config",
+  "languageSettings": "Language Settings",
+  "systemSettings": "System Settings",
+  "changeLanguage": "Change Language"
 }

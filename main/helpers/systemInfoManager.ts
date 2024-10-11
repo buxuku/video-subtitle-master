@@ -7,6 +7,7 @@ import {
   downloadModelSync,
   install,
   makeWhisper,
+  reinstallWhisper,
 } from './whisper';
 import fs from 'fs';
 import path from 'path';
@@ -24,15 +25,18 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
   });
 
   ipcMain.handle('deleteModel', async (event, modelName) => {
-    await deleteModel(modelName);
+    await deleteModel(modelName?.toLowerCase());
     return true;
   });
 
   ipcMain.handle('downloadModel', async (event, { model, source }) => {
+    if (downloadingModels.has(model)) {
+      return false; // 如果模型已经在下载中，则返回 false
+    }
+    
     downloadingModels.add(model);
     const onProcess = (data) => {
       const match = data?.match?.(/(\d+)/);
-      console.log(match, model, 'match');
       if (match) {
         event.sender.send('downloadProgress', model, +match[1]);
       }
@@ -43,12 +47,12 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     try {
       await downloadModelSync(model?.toLowerCase(), source, onProcess);
       downloadingModels.delete(model);
+      return true;
     } catch (error) {
       event.sender.send('message', 'download error, please try again');
       downloadingModels.delete(model);
       return false;
     }
-    return true;
   });
 
   ipcMain.on('installWhisper', (event, source) => {
@@ -81,4 +85,16 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
 
     return false;
   });
+
+  ipcMain.handle('reinstallWhisper', async (event) => {
+    try {
+      await reinstallWhisper();
+      return true;
+    } catch (error) {
+      console.error('删除 whisper.cpp 目录失败:', error);
+      event.sender.send('message', `删除 whisper.cpp 目录失败: ${error.message}`);
+      return false;
+    }
+  });
+
 }
