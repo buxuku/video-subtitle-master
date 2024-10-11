@@ -1,104 +1,131 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
-
-
+import { Globe, Trash2, CloudDownload, Cog } from 'lucide-react'; 
 
 const Settings = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation('settings');
+  const [isReinstalling, setIsReinstalling] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(router.locale);
   const form = useForm({
     defaultValues: {
       language: router.locale,
-      // 在这里添加其他设置项的默认值
     }
   });
 
   useEffect(() => {
-    // 从存储中加载设置
     const loadSettings = async () => {
       const settings = await window?.ipc?.invoke('getSettings');
       if (settings) {
         form.reset(settings);
-        if (settings.language !== i18n.language) {
-          router.push(`/${settings.language}/settings`);
-        }
+        setCurrentLanguage(settings.language);
       }
     };
     loadSettings();
   }, []);
 
-  const onSubmit = async (data) => {
-    // 保存设置
-    await window?.ipc?.invoke('setSettings', data);
-    
-    // 更改语言
-    if (data.language !== i18n.language) {
-      router.push(`/${data.language}/settings`);
+  useEffect(() => {
+    setCurrentLanguage(i18n.language);
+  }, [i18n.language]);
+
+  const handleLanguageChange = async (value) => {
+    await window?.ipc?.invoke('setSettings', { language: value });
+    if (value !== i18n.language) {
+      router.push(`/${value}/settings`);
     }
-    
-    // 显示成功消息
-    toast.success(t('settingsSaved'));
   };
 
+  const handleReinstallWhisper = async () => {
+    setIsReinstalling(true);
+    try {
+      const result = await window?.ipc?.invoke('reinstallWhisper');
+      if (result) {
+        toast.success(t('whisperDeleted'));
+        router.push(`/${i18n.language}/home`);
+      } else {
+        toast.error(t('whisperDeleteFailed'));
+      }
+    } catch (error) {
+      toast.error(t('whisperDeleteFailed'));
+    } finally {
+      setIsReinstalling(false);
+    }
+  };
+
+  const handleClearConfig = async () => {
+    const result = await window?.ipc?.invoke('clearConfig');
+      if (result) {
+        toast.success(t('configClearedSuccess'));
+      } else {
+        toast.error(t('configClearFailed'));
+      }
+  };
+
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 space-y-6">
+      <h1 className="text-2xl font-bold mb-6">{t('settings')}</h1>
+      
       <Card>
         <CardHeader>
-          <CardTitle>{t('settings')}</CardTitle>
+          <CardTitle className="flex items-center">
+            <Globe className="mr-2" />
+            {t('languageSettings')}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('language')}</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={t('selectLanguage')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="zh">{t('chinese')}</SelectItem>
-                          <SelectItem value="en">{t('english')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              {/* 在这里添加更多设置项 */}
-              
-              {/* 例如:
-              <FormField
-                control={form.control}
-                name="otherSetting"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('otherSettingLabel')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              */}
-              
-              <button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md">
-                {t('saveSettings')}
-              </button>
-            </form>
-          </Form>
+          <div className="flex items-center justify-between">
+            <span>{t('changeLanguage')}</span>
+            <Select onValueChange={handleLanguageChange} value={currentLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder={t('selectLanguage')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="zh">{t('chinese')}</SelectItem>
+                <SelectItem value="en">{t('english')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Cog className="mr-2" />
+            {t('systemSettings')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span>{t('clearConfig')}</span>
+            <Button 
+              onClick={handleClearConfig}
+              variant="destructive"
+              className="flex items-center"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('clear')}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>{t('reinstallWhisper')}</span>
+            <Button 
+              onClick={handleReinstallWhisper}
+              disabled={isReinstalling}
+              className="flex items-center"
+            >
+              <CloudDownload className="mr-2 h-4 w-4" />
+              {isReinstalling ? t('reinstallingWhisper') : t('reinstall')}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

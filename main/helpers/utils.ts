@@ -14,6 +14,10 @@ export const isDarwin = () => os.platform() === "darwin";
 
 export const isWin32 = () => os.platform() === "win32";
 
+export const isAppleSilicon = () => {
+  return os.platform() === 'darwin' && os.arch() === 'arm64';
+};
+
 export const getExtraResourcesPath = () => {
   const isProd = process.env.NODE_ENV === "production";
   return isProd

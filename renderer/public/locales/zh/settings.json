@@ -5,5 +5,15 @@
   "chinese": "中文",
   "english": "英文",
   "saveSettings": "保存设置",
-  "settingsSaved": "设置已保存"
+  "settingsSaved": "设置已保存",
+  "reinstallWhisper": "重新安装 Whisper",
+  "reinstallingWhisper": "正在删除 Whisper",
+  "whisperDeleted": "Whisper 已删除",
+  "whisperDeleteFailed": "删除 Whisper 失败",
+  "clearConfig": "清除配置(任务配置、翻译配置)",
+  "configClearedSuccess": "配置已清除",
+  "configClearFailed": "清除配置失败",
+  "languageSettings": "语言设置",
+  "systemSettings": "系统设置",
+  "changeLanguage": "切换语言"
 }

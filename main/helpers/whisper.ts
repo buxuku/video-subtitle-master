@@ -1,11 +1,12 @@
 import { exec, spawn } from "child_process";
 import { app } from "electron";
 import path from "path";
-import fs from "fs";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
-import { isWin32 } from "./utils";
+import { isAppleSilicon, isWin32 } from "./utils";
 import { BrowserWindow, DownloadItem } from 'electron';
+import decompress from 'decompress';
+import fs from 'fs-extra';
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -95,7 +96,13 @@ export const makeWhisper = (event) => {
     event.sender.send("message", "whisper.cpp 未下载，请先下载 whisper.cpp");
   }
   event.sender.send("beginMakeWhisper", true);
-  exec(`make -C "${whisperPath}"`, (err, stdout) => {
+  
+  // 根据芯片类型选择编译命令
+  const makeCommand = isAppleSilicon() 
+    ? `WHISPER_COREML=1 make -j -C "${whisperPath}"`
+    : `make -C "${whisperPath}"`;
+
+  exec(makeCommand, (err, stdout) => {
     if (err) {
       event.sender.send("message", err);
     } else {
@@ -112,51 +119,96 @@ export const makeWhisper = (event) => {
 export const deleteModel = async (model) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
+  const coreMLModelPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc`);
+  
   return new Promise((resolve, reject) => {
-    if (fs.existsSync(modelPath)) {
-      fs.unlinkSync(modelPath);
+    try {
+      if (fs.existsSync(modelPath)) {
+        fs.unlinkSync(modelPath);
+      }
+      if (fs.existsSync(coreMLModelPath)) {
+        fs.removeSync(coreMLModelPath); // 递归删除目录
+      }
+      resolve("ok");
+    } catch (error) {
+      console.error('删除模型失败:', error);
+      reject(error);
     }
-    resolve("ok");
   });
 };
 
 export const downloadModelSync = async (model: string, source: string, onProcess: (message: string) => void) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
+  const coreMLModelPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc`);
   
-  if (fs.existsSync(modelPath)) {
+  if (fs.existsSync(modelPath) && (!isAppleSilicon() || fs.existsSync(coreMLModelPath))) {
     return;
   }
   if (!checkWhisperInstalled()) {
     throw Error("whisper.cpp 未安装，请先安装 whisper.cpp");
   }
 
-  const url = `https://${source === 'huggingface' ? 'huggingface.co' : 'hf-mirror.com'}/ggerganov/whisper.cpp/resolve/main/ggml-${model}.bin`;
+  const baseUrl = `https://${source === 'huggingface' ? 'huggingface.co' : 'hf-mirror.com'}/ggerganov/whisper.cpp/resolve/main`;
+  const url = `${baseUrl}/ggml-${model}.bin`;
+  const coreMLUrl = `${baseUrl}/ggml-${model}-encoder.mlmodelc.zip`;
   
   return new Promise((resolve, reject) => {
     const win = new BrowserWindow({ show: false });
+    let downloadCount = 0;
+    const totalDownloads = isAppleSilicon() ? 2 : 1;
+    let totalBytes = { normal: 0, coreML: 0 };
+    let receivedBytes = { normal: 0, coreML: 0 };
     
     const willDownloadHandler = (event, item: DownloadItem) => {
-      if (item.getFilename() !== `ggml-${model}.bin`) {
+      const isCoreML = item.getFilename().includes('-encoder.mlmodelc');
+      
+      // 检查是否为当前模型的下载项
+      if (!item.getFilename().includes(`ggml-${model}`)) {
         return; // 忽略不匹配的下载项
       }
 
-      item.setSavePath(modelPath);
+      if (isCoreML && !isAppleSilicon()) {
+        item.cancel();
+        return;
+      }
+      const savePath = isCoreML ? path.join(modelsPath, `ggml-${model}-encoder.mlmodelc.zip`) : modelPath;
+      item.setSavePath(savePath);
+
+      const type = isCoreML ? 'coreML' : 'normal';
+      totalBytes[type] = item.getTotalBytes();
 
       item.on('updated', (event, state) => {
         if (state === 'progressing' && !item.isPaused()) {
-          const percent = item.getReceivedBytes() / item.getTotalBytes() * 100;
+          receivedBytes[type] = item.getReceivedBytes();
+          const totalProgress = (receivedBytes.normal + receivedBytes.coreML) / (totalBytes.normal + totalBytes.coreML);
+          const percent = totalProgress * 100;
           onProcess(`${model}: ${percent.toFixed(2)}%`);
         }
       });
 
-      item.once('done', (event, state) => {
+      item.once('done', async (event, state) => {
         if (state === 'completed') {
-          onProcess(`${model} 完成`);
-          cleanup();
-          resolve(1);
+          downloadCount++;
+          
+          if (isCoreML) {
+            try {
+              const zipPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc.zip`);
+              await decompress(zipPath, modelsPath);
+              fs.unlinkSync(zipPath); // 删除zip文件
+              onProcess(`Core ML ${model} 解压完成`);
+            } catch (error) {
+              console.error('解压Core ML模型失败:', error);
+              reject(new Error(`解压Core ML模型失败: ${error.message}`));
+            }
+          }
+          
+          if (downloadCount === totalDownloads) {
+            onProcess(`${model} 下载完成`);
+            cleanup();
+            resolve(1);
+          }
         } else {
-          fs.unlink(modelPath, () => {});
           cleanup();
           reject(new Error(`${model} download error: ${state}`));
         }
@@ -170,6 +222,9 @@ export const downloadModelSync = async (model: string, source: string, onProcess
 
     win.webContents.session.on('will-download', willDownloadHandler);
     win.webContents.downloadURL(url);
+    if (isAppleSilicon()) {
+      win.webContents.downloadURL(coreMLUrl);
+    }
   });
 };
 
@@ -197,3 +252,16 @@ export async function checkOpenAiWhisper(): Promise<boolean> {
     });
   });
 }
+
+export const reinstallWhisper = async () => {
+  const whisperPath = getPath("whisperPath");
+  
+  // 删除现有的 whisper.cpp 目录
+  try {
+    await fs.remove(whisperPath);
+    return true;
+  } catch (error) {
+    console.error('删除 whisper.cpp 目录失败:', error);
+    throw new Error('删除 whisper.cpp 目录失败');
+  }
+};

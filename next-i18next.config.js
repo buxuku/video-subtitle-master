@@ -4,7 +4,6 @@ module.exports = {
     defaultLocale: 'zh',
     locales: ['zh', 'en'],
   },
-  debug: process.env.NODE_ENV === 'development',
   reloadOnPrerender: process.env.NODE_ENV === 'development',
   localePath:
     typeof window === 'undefined'

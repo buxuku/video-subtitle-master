@@ -32,6 +32,10 @@ This application retains all the features of the original [VideoSubtitleGenerato
 - Option to choose model download source (domestic mirror or official source)
 - Customizable number of concurrent tasks
 
+## Core ML support
+
+Starting from version 1.20.0, Core ML is supported on Apple Silicon, providing faster speech recognition. For users who have previously installed older versions, please uninstall the old version first and then reinstall the new version. Additionally, select "Reinstall Whisper" in the settings interface to enable Core ML acceleration.
+
 ## Translation Services
 
 This project supports various translation services, including Baidu Translation, Volcano Engine Translation, DeepLX, local Ollama models, and OpenAI-style APIs. Using these services requires the appropriate API keys or configurations.
