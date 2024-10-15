@@ -9,6 +9,7 @@ let isPaused = false;
 let shouldCancel = false;
 let maxConcurrentTasks = 3;
 let hasOpenAiWhisper = false;
+let useSystemWhisper = false;
 
 export function setupTaskProcessor(mainWindow: BrowserWindow) {
   ipcMain.on("handleTask", async (event, { files, formData }) => {
@@ -18,6 +19,7 @@ export function setupTaskProcessor(mainWindow: BrowserWindow) {
       isPaused = false;
       shouldCancel = false;
       hasOpenAiWhisper = await checkOpenAiWhisper();
+      useSystemWhisper = store.get('settings.useSystemWhisper', false);
       maxConcurrentTasks = formData.maxConcurrentTasks || 3;
       processNextTasks(event);
     }
@@ -62,7 +64,7 @@ async function processNextTasks(event) {
   try {
     await Promise.all(tasks.map(task => {
       const provider = translationProviders.find(p => p.id === task.formData.translateProvider);
-      return processFile(event, task.file, task.formData, hasOpenAiWhisper, provider);
+      return processFile(event, task.file, task.formData, hasOpenAiWhisper, provider, useSystemWhisper);
     }));
   } catch (error) {
     event.sender.send("message", error);

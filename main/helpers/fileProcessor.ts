@@ -12,7 +12,7 @@ async function extractAudioFromVideo(event, file, filePath, audioFile) {
   event.sender.send("taskStatusChange", file, "extractAudio", "done");
 }
 
-async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOpenAiWhisper) {
+async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOpenAiWhisper, useSystemWhisper) {
   const { model, sourceLanguage } = formData;
   const userPath = app.getPath("userData");
   const whisperPath = path.join(userPath, "whisper.cpp/");
@@ -24,7 +24,7 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
   }
 
   let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`;
-  if (hasOpenAiWhisper) {
+  if (hasOpenAiWhisper && useSystemWhisper) {
     runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${path.dirname(srtFile)} --language ${sourceLanguage}`;
   }
 
@@ -50,7 +50,7 @@ async function translateSubtitle(event, file, directory, fileName, srtFile, form
   event.sender.send("taskStatusChange", file, "translateSubtitle", "done");
 }
 
-export async function processFile(event, file, formData, hasOpenAiWhisper, provider) {
+export async function processFile(event, file, formData, hasOpenAiWhisper, provider, useSystemWhisper) {
   const { sourceLanguage, targetLanguage, sourceSrtSaveOption, customSourceSrtFileName, translateProvider } = formData || {};
 
   try {
@@ -77,7 +77,7 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
       srtFile = path.join(directory, `${sourceSrtFileName}`);
 
       await extractAudioFromVideo(event, file, filePath, audioFile);
-      srtFile = await generateSubtitle(event, file, audioFile, `${srtFile}`, formData, hasOpenAiWhisper);
+      srtFile = await generateSubtitle(event, file, audioFile, `${srtFile}`, formData, hasOpenAiWhisper, useSystemWhisper);
       fs.unlink(audioFile, (err) => {
         if (err) console.log(err);
       });

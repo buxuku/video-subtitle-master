@@ -15,5 +15,7 @@
   "configClearFailed": "清除配置失败",
   "languageSettings": "语言设置",
   "systemSettings": "系统设置",
-  "changeLanguage": "切换语言"
+  "changeLanguage": "切换语言",
+  "useSystemWhisper": "使用系统安装的 Whisper",
+  "useSystemWhisperHint": "如果你自己在系统里面安装了 Whisper，可以调用你自己安装的 Whisper。请注意，它会强制使用 CUDA 模式，请确保你安装的 Whisper 支持该模式。"
 }

@@ -1,23 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
-import { Globe, Trash2, CloudDownload, Cog } from 'lucide-react'; 
+import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
+import { Globe, Trash2, CloudDownload, Cog, HelpCircle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const Settings = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation('settings');
   const [isReinstalling, setIsReinstalling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(router.locale);
+  const [useSystemWhisper, setUseSystemWhisper] = useState(false);
   const form = useForm({
     defaultValues: {
       language: router.locale,
-    }
+    },
   });
 
   useEffect(() => {
@@ -26,6 +40,7 @@ const Settings = () => {
       if (settings) {
         form.reset(settings);
         setCurrentLanguage(settings.language);
+        setUseSystemWhisper(settings.useSystemWhisper || false);
       }
     };
     loadSettings();
@@ -61,18 +76,22 @@ const Settings = () => {
 
   const handleClearConfig = async () => {
     const result = await window?.ipc?.invoke('clearConfig');
-      if (result) {
-        toast.success(t('configClearedSuccess'));
-      } else {
-        toast.error(t('configClearFailed'));
-      }
+    if (result) {
+      toast.success(t('configClearedSuccess'));
+    } else {
+      toast.error(t('configClearFailed'));
+    }
   };
 
+  const handleUseSystemWhisperChange = async (checked: boolean) => {
+    setUseSystemWhisper(checked);
+    await window?.ipc?.invoke('setSettings', { useSystemWhisper: checked });
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-2xl font-bold mb-6">{t('settings')}</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -83,7 +102,10 @@ const Settings = () => {
         <CardContent>
           <div className="flex items-center justify-between">
             <span>{t('changeLanguage')}</span>
-            <Select onValueChange={handleLanguageChange} value={currentLanguage}>
+            <Select
+              onValueChange={handleLanguageChange}
+              value={currentLanguage}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={t('selectLanguage')} />
               </SelectTrigger>
@@ -105,8 +127,27 @@ const Settings = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span>{t('useSystemWhisper')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-gray-500" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">{t('useSystemWhisperHint')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Switch
+              checked={useSystemWhisper}
+              onCheckedChange={handleUseSystemWhisperChange}
+            />
+          </div>
+          <div className="flex items-center justify-between">
             <span>{t('clearConfig')}</span>
-            <Button 
+            <Button
               onClick={handleClearConfig}
               variant="destructive"
               className="flex items-center"
@@ -117,7 +158,7 @@ const Settings = () => {
           </div>
           <div className="flex items-center justify-between">
             <span>{t('reinstallWhisper')}</span>
-            <Button 
+            <Button
               onClick={handleReinstallWhisper}
               disabled={isReinstalling}
               className="flex items-center"
@@ -134,6 +175,6 @@ const Settings = () => {
 
 export default Settings;
 
-export const getStaticProps = makeStaticProperties(['common', 'settings'])
+export const getStaticProps = makeStaticProperties(['common', 'settings']);
 
-export { getStaticPaths }
+export { getStaticPaths };

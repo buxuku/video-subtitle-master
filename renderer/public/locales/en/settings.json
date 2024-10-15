@@ -15,5 +15,7 @@
   "configClearFailed": "Failed to clear Config",
   "languageSettings": "Language Settings",
   "systemSettings": "System Settings",
-  "changeLanguage": "Change Language"
+  "changeLanguage": "Change Language",
+  "useSystemWhisper": "Use system-installed Whisper",
+  "useSystemWhisperHint": "If you have installed Whisper on your system, you can use your own installation. Please note that it will force CUDA mode, ensure your installed Whisper supports this mode."
 }
