@@ -1,4 +1,4 @@
-import React, { useEffect, FC, PropsWithChildren } from "react";
+import React, { useEffect, FC, PropsWithChildren } from 'react';
 
 interface IProps extends PropsWithChildren {
   modelName: string;
@@ -7,11 +7,11 @@ interface IProps extends PropsWithChildren {
 }
 
 const DownModel: FC<IProps> = (props) => {
-  const { modelName, callBack, downSource = "hf-mirror", children } = props;
+  const { modelName, callBack, downSource = 'hf-mirror', children } = props;
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   useEffect(() => {
-    window?.ipc?.on("downloadProgress", (model: string, progress: number) => {
+    window?.ipc?.on('downloadProgress', (model: string, progress: number) => {
       if (model?.toLowerCase() === modelName?.toLowerCase()) {
         setProgress(progress);
         setLoading(progress < 100);
@@ -23,7 +23,7 @@ const DownModel: FC<IProps> = (props) => {
   }, []);
   const handleDownModel = async (source = downSource) => {
     setLoading(true);
-    await window?.ipc?.invoke("downloadModel", {
+    await window?.ipc?.invoke('downloadModel', {
       model: modelName,
       source,
     });

@@ -7,6 +7,7 @@ import { isAppleSilicon, isWin32 } from "./utils";
 import { BrowserWindow, DownloadItem } from 'electron';
 import decompress from 'decompress';
 import fs from 'fs-extra';
+import { IModelDownloadProgress } from "../types";
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -137,7 +138,7 @@ export const deleteModel = async (model) => {
   });
 };
 
-export const downloadModelSync = async (model: string, source: string, onProcess: (message: string) => void) => {
+export const downloadModelSync = async (model: string, source: string, onProcess: (message: IModelDownloadProgress) => void) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
   const coreMLModelPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc`);
@@ -182,8 +183,12 @@ export const downloadModelSync = async (model: string, source: string, onProcess
         if (state === 'progressing' && !item.isPaused()) {
           receivedBytes[type] = item.getReceivedBytes();
           const totalProgress = (receivedBytes.normal + receivedBytes.coreML) / (totalBytes.normal + totalBytes.coreML);
-          const percent = totalProgress * 100;
-          onProcess(`${model}: ${percent.toFixed(2)}%`);
+          const percent = Math.round((totalProgress || 0) * 100);
+          onProcess({
+            model,
+            percent,
+            status: 'loading',
+          });
         }
       });
 
@@ -196,7 +201,6 @@ export const downloadModelSync = async (model: string, source: string, onProcess
               const zipPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc.zip`);
               await decompress(zipPath, modelsPath);
               fs.unlinkSync(zipPath); // 删除zip文件
-              onProcess(`Core ML ${model} 解压完成`);
             } catch (error) {
               console.error('解压Core ML模型失败:', error);
               reject(new Error(`解压Core ML模型失败: ${error.message}`));
@@ -204,7 +208,11 @@ export const downloadModelSync = async (model: string, source: string, onProcess
           }
           
           if (downloadCount === totalDownloads) {
-            onProcess(`${model} 下载完成`);
+            onProcess({
+              model,
+              percent: 100,
+              status: 'done',
+            });
             cleanup();
             resolve(1);
           }

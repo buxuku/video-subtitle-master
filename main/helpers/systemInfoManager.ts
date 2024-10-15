@@ -11,6 +11,7 @@ import {
 } from './whisper';
 import fs from 'fs';
 import path from 'path';
+import { IModelDownloadProgress } from '../types';
 
 let downloadingModels = new Set<string>();
 
@@ -35,12 +36,11 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     }
     
     downloadingModels.add(model);
-    const onProcess = (data) => {
-      const match = data?.match?.(/(\d+)/);
-      if (match) {
-        event.sender.send('downloadProgress', model, +match[1]);
+    const onProcess = (data: IModelDownloadProgress) => {
+      if (data?.status === 'loading') {
+        event.sender.send('downloadProgress', model, data?.percent);
       }
-      if (data?.includes?.('Done') || data?.includes?.('main')) {
+      if (data?.status === 'done') {
         event.sender.send('downloadProgress', model, 100);
       }
     };
