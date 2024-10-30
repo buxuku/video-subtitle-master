@@ -76,7 +76,7 @@ const TranslateControl: React.FC = () => {
   const addOpenAIProvider = () => {
     const newProvider: Provider = {
       ...newOpenAIProvider,
-      id: Date.now().toString(),
+      id: newOpenAIProvider.name,
       type: 'openai',
     };
     const updatedProviders = [...providers, newProvider];
