@@ -25,7 +25,10 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
 
   let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`;
   if (hasOpenAiWhisper) {
-    runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${path.dirname(srtFile)} --language ${sourceLanguage}`;
+    runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${path.dirname(srtFile)}`;
+    if (sourceLanguage && sourceLanguage !== 'auto') {
+      runShell += ` --language ${sourceLanguage}`;
+    }
   }
 
   event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
