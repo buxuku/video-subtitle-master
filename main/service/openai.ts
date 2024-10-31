@@ -41,7 +41,7 @@ export async function translateWithOpenAI(
   try {
     const systemPrompt = provider.prompt
       ? renderTemplate(provider.prompt, { sourceLanguage, targetLanguage, content: text })
-      : `You are a helpful assistant that translates text from ${sourceLanguage} to ${targetLanguage}.`;
+      : `You are a helpful assistant.`;
 
     const userPrompt = `Translate the following text from ${sourceLanguage} to ${targetLanguage}: "${text}"`;
 
