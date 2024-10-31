@@ -8,6 +8,8 @@ import { setupSystemInfoManager } from './helpers/systemInfoManager';
 import { setupStoreHandlers, store } from './helpers/storeManager';
 import { setupTaskManager } from "./helpers/taskManager";
 
+//控制台出现中文乱码，需要去node_modules\electron\cli.js中修改启动代码页
+
 const isProd = process.env.NODE_ENV === "production";
 
 if (isProd) {
@@ -16,7 +18,7 @@ if (isProd) {
   app.setPath("userData", `${app.getPath("userData")}-dev`);
 }
 
-(async () => {
+(async () => { 
   await app.whenReady();
 
   setupStoreHandlers();

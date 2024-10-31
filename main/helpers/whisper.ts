@@ -97,22 +97,42 @@ export const makeWhisper = (event) => {
   }
   event.sender.send("beginMakeWhisper", true);
   
-  // 根据芯片类型选择编译命令
+  // 修改编译命令以支持 GPU
   const makeCommand = isAppleSilicon() 
-    ? `WHISPER_COREML=1 make -j -C "${whisperPath}"`
-    : `make -C "${whisperPath}"`;
+    ? `WHISPER_COREML=1 make -j -C "${whisperPath}"`  // Apple Silicon 继续使用 CoreML
+    : `WHISPER_CUBLAS=1 make -j -C "${whisperPath}"`; // 其他平台启用 CUDA 支持
 
   exec(makeCommand, (err, stdout) => {
     if (err) {
-      event.sender.send("message", err);
+      // 如果 CUDA 编译失败，尝试回退到 CPU 版本
+      if (err.message?.includes('cublas')) {
+        console.log('CUDA 编译失败，回退到 CPU 版本');
+        const cpuCommand = `make -j -C "${whisperPath}"`;
+        exec(cpuCommand, (cpuErr, cpuStdout) => {
+          if (cpuErr) {
+            event.sender.send("message", cpuErr);
+            event.sender.send("makeWhisperComplete", false);
+          } else {
+            event.sender.send("getSystemComplete", {
+              whisperInstalled: checkWhisperInstalled(),
+              modelsInstalled: getModelsInstalled(),
+            });
+            event.sender.send("message", "编译完成 (CPU 版本)");
+            event.sender.send("makeWhisperComplete", true);
+          }
+        });
+      } else {
+        event.sender.send("message", err);
+        event.sender.send("makeWhisperComplete", false);
+      }
     } else {
       event.sender.send("getSystemComplete", {
         whisperInstalled: checkWhisperInstalled(),
         modelsInstalled: getModelsInstalled(),
       });
+      event.sender.send("message", "编译完成 (GPU 加速版本)");
+      event.sender.send("makeWhisperComplete", !err);
     }
-    event.sender.send("message", "编译完成");
-    event.sender.send("makeWhisperComplete", !err);
   });
 };
 
