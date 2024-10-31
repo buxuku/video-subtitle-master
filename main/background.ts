@@ -18,7 +18,7 @@ if (isProd) {
   app.setPath("userData", `${app.getPath("userData")}-dev`);
 }
 
-(async () => { 
+(async () => {
   await app.whenReady();
 
   setupStoreHandlers();

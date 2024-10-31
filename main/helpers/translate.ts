@@ -82,6 +82,55 @@ export default async function translate(
         });
       }
 
+      // let batchSourceContents = [];
+      // let batchIndices = [];
+      
+      // for (var i = 0; i < data.length; i += 4) {
+      //   const sourceContent = data[i + 2];
+      //   if (!sourceContent) continue;
+        
+      //   if (proof.type === 'openai') {
+      //     batchSourceContents.push(sourceContent);
+      //     batchIndices.push(i);
+          
+      //     // 每10条或最后一批进行翻译, 防止翻译内容过长导致翻译失败
+      //     if (batchSourceContents.length >= 10 || i + 4 >= data.length) {
+      //       try {
+      //         const batchResults = await translator(batchSourceContents.join('\n'), proof);
+      //         const translatedContents = batchResults.split('\n');
+              
+      //         for (let j = 0; j < batchIndices.length; j++) {
+      //           const idx = batchIndices[j];
+      //           items.push({
+      //             id: data[idx],
+      //             startEndTime: data[idx + 1], 
+      //             targetContent: translatedContents[j],
+      //             sourceContent: batchSourceContents[j]
+      //           });
+      //         }
+              
+      //         batchSourceContents = [];
+      //         batchIndices = [];
+      //       } catch (translationError) {
+      //         throw new Error(`${translationError.message}`);
+      //       }
+      //     }
+      //   } else {
+      //     let targetContent;
+      //     try {
+      //       targetContent = await translator(sourceContent, proof);
+      //     } catch (translationError) {
+      //       throw new Error(`${translationError.message}`);
+      //     }
+      //     items.push({
+      //       id: data[i],
+      //       startEndTime: data[i + 1],
+      //       targetContent,
+      //       sourceContent,
+      //     });
+      //   }
+      // }
+
       const templateData = { fileName, sourceLanguage, targetLanguage };
       const targetSrtFileName = getSrtFileName(
         targetSrtSaveOption,

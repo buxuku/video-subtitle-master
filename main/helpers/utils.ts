@@ -100,7 +100,7 @@ export function getSrtFileName(
 ): string {
   switch (option) {
     case 'noSave':
-      return `${fileName}-temp`;
+      return `${fileName}_temp`;
     case 'fileName':
       return fileName;
     case 'fileNameWithLang':
@@ -108,6 +108,6 @@ export function getSrtFileName(
     case 'custom':
       return renderTemplate(customFileName, templateData);
     default:
-      return `${fileName}-temp`;
+      return `${fileName}_temp`;
   }
 }
