@@ -76,7 +76,7 @@ const TranslateControl: React.FC = () => {
   const addOpenAIProvider = () => {
     const newProvider: Provider = {
       ...newOpenAIProvider,
-      id: newOpenAIProvider.name,
+      id: newOpenAIProvider.name?.toLowerCase(),
       type: 'openai',
     };
     const updatedProviders = [...providers, newProvider];
@@ -100,7 +100,7 @@ const TranslateControl: React.FC = () => {
         <TableHeader>
           <TableRow>
             <TableHead>{t('translationServiceProvider')}</TableHead>
-            <TableHead>{t('key')}</TableHead>
+            <TableHead>Key/{t('apiAddress')}</TableHead>
             <TableHead>{t('secret')}</TableHead>
           </TableRow>
         </TableHeader>
