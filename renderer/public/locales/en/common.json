@@ -47,6 +47,7 @@
     "small": "Moderate text output speed, good transcription quality.",
     "medium": "Slow text output, best transcription quality.",
     "large": "Slow text output, best transcription quality.",
+    "largeTurbo": "With little loss of accuracy, the transfer speed is greatly improved",
     "tinyEn": "English only, fast text output, average transcription quality.",
     "baseEn": "English only, fast text output, average transcription quality.",
     "smallEn": "English only, moderate text output speed, good transcription quality.",

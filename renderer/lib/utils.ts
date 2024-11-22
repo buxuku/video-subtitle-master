@@ -56,6 +56,13 @@ export const models = [
     },
   },
   {
+    name: 'Large-v3-turbo',
+    desc: {
+      key: 'modelDesc.largeTurbo',
+      size: '1.62 GB'
+    }
+  },
+  {
     name: 'Tiny.en',
     desc: {
       key: 'modelDesc.tinyEn',
