@@ -62,6 +62,7 @@ export const install = (event, source) => {
       url: repoUrl,
       singleBranch: true,
       depth: 1,
+      ref: 'v1.7.2',
       onProgress: (res) => {
         if (res.total) {
           event.sender.send("installWhisperProgress", res.phase, res.loaded / res.total);

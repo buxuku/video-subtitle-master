@@ -34,6 +34,10 @@ if (isProd) {
     },
   });
 
+  mainWindow.webContents.on('will-navigate', (e) => {
+    e.preventDefault();
+  });
+
   if (isProd) {
     await mainWindow.loadURL(`app://./${userLanguage}/home/`);
   } else {
