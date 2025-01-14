@@ -1,4 +1,5 @@
 import { ipcMain, BrowserWindow, dialog, shell } from 'electron';
+import * as fs from 'fs';
 
 export function setupIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.on("message", async (event, arg) => {
@@ -35,5 +36,21 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
 
   ipcMain.on("openUrl", (event, url) => {
     shell.openExternal(url);
+  });
+
+  ipcMain.handle('getDroppedFiles', async (event, files) => {
+    // 验证文件是否存在和可访问
+    const validPaths = await Promise.all(
+      files.map(async (filePath) => {
+        try {
+          await fs.promises.access(filePath);
+          return filePath;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    return validPaths.filter(Boolean);
   });
 }

@@ -147,3 +147,24 @@ export const getModelDownloadUrl = (modelName: string, source: 'hf-mirror' | 'hu
   const domain = source === 'hf-mirror' ? 'hf-mirror.com' : 'huggingface.co';
   return `https://${domain}/ggerganov/whisper.cpp/resolve/main/ggml-${modelName.toLowerCase()}.bin?download=true`;
 };
+
+// 添加支持的文件扩展名常量
+export const SUPPORTED_FILE_EXTENSIONS = [
+  // 视频格式
+  'mp4', 'avi', 'mov', 'mkv', 'flv', 'wmv', 'webm',
+  // 音频格式
+  'mp3', 'wav', 'ogg', 'aac', 'wma', 'flac', 'm4a',
+  'aiff', 'ape', 'opus', 'ac3', 'amr', 'au', 'mid',
+  // 其他常见格式
+  '3gp', 'asf', 'rm', 'rmvb', 'vob', 'ts', 'mts', 'm2ts',
+  // 字幕格式
+  'srt', 'vtt', 'ass', 'ssa'
+] as const;
+
+// 添加文件过滤方法
+export const filterSupportedFiles = (files: File[]) => {
+  return Array.from(files).filter(file => {
+    const ext = file.name.toLowerCase().split('.').pop();
+    return SUPPORTED_FILE_EXTENSIONS.includes(ext as typeof SUPPORTED_FILE_EXTENSIONS[number]);
+  });
+};
