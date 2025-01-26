@@ -67,10 +67,10 @@ cd video-subtitle-master
 yarn install 
 ```
 
-3️⃣ 依赖包安装好之后，执行 `yarn start` 或者 `npm start` 启动项目
+3️⃣ 依赖包安装好之后，执行 `yarn dev` 或者 `npm run dev` 启动项目
 
 ```shell
-yarn start
+yarn dev
 ```
 
 ## 手动下载和导入模型
