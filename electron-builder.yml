@@ -18,6 +18,13 @@ win:
   target: nsis
   requestedExecutionLevel: asInvoker
   artifactName: "${productName}_Windows_${version}_${arch}.${ext}"
+linux:
+  target:
+    - AppImage
+    - tar.gz
+    - deb
+  category: AudioVideo
+  artifactName: "${productName}_Linux_${version}_${arch}.${ext}"
 nsis:
   oneClick: false
   perMachine: false
