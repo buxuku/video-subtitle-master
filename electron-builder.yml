@@ -31,8 +31,11 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
 extraResources:
-  - from: ./extraResources/
+  - from: ./extraResources/windows/  # Windows 平台whisper.cpp
     to: ./extraResources/
+    filter:
+      - "**/*"
+    when: win
 asarUnpack:
   - "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg"
   - "node_modules/ffmpeg-static/index.js"
