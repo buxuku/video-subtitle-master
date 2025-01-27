@@ -12,10 +12,14 @@ files:
 publish: ['github']
 mac:
   target:
-    - target: dmg
+    - zip
+    - dmg
   artifactName: "${productName}_Mac_${version}_${arch}.${ext}"
 win:
-  target: nsis
+  target: 
+    - nsis
+    - portable
+    - zip
   requestedExecutionLevel: asInvoker
   artifactName: "${productName}_Windows_${version}_${arch}.${ext}"
 linux:
