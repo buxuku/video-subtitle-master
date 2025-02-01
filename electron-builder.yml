@@ -12,20 +12,33 @@ files:
 publish: ['github']
 mac:
   target:
-    - target: dmg
+    - zip
+    - dmg
   artifactName: "${productName}_Mac_${version}_${arch}.${ext}"
 win:
-  target: nsis
+  target: 
+    - nsis
+    - portable
+    - zip
+  extraResources:
+  - from: ./extraResources/windows/
+    to: ./extraResources/
+    filter:
+      - "**/*"
   requestedExecutionLevel: asInvoker
   artifactName: "${productName}_Windows_${version}_${arch}.${ext}"
+linux:
+  target:
+    - AppImage
+    - tar.gz
+    - deb
+  category: AudioVideo
+  artifactName: "${productName}_Linux_${version}_${arch}.${ext}"
 nsis:
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
-extraResources:
-  - from: ./extraResources/
-    to: ./extraResources/
 asarUnpack:
   - "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg"
   - "node_modules/ffmpeg-static/index.js"
