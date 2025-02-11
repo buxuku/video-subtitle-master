@@ -31,7 +31,7 @@ const Layout = ({ children }) => {
     <div className="grid h-screen w-full pl-[56px]">
       <aside className="inset-y fixed  left-0 z-20 flex h-full flex-col border-r">
         <div className="border-b p-2">
-          <Link href="/home">
+          <Link href={`/${locale}/home`}>
             <Button aria-label="Home" size="icon" variant="outline">
               <FileVideo2 className="size-5" />
             </Button>
