@@ -15,5 +15,12 @@
   "configClearFailed": "Failed to clear Config",
   "languageSettings": "Language Settings",
   "systemSettings": "System Settings",
-  "changeLanguage": "Change Language"
+  "changeLanguage": "Change Language",
+  "useLocalWhisper": "Use Local Whisper Installation",
+  "useLocalWhisperTip": "Please make sure you have Whisper installed locally and can run the 'whisper' command in terminal",
+  "whisperCommand": "Whisper Command",
+  "whisperCommandTip": "Available variables: ${audioFile}, ${whisperModel}, ${srtFile}, ${sourceLanguage}, ${outputDir}. These will be replaced with actual values when executing.",
+  "whisperCommandPlaceholder": "Enter custom whisper command...",
+  "save": "Save",
+  "commandSaved": "Command saved successfully"
 }

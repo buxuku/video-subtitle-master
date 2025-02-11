@@ -5,6 +5,7 @@ import { exec } from 'child_process';
 import { extractAudio } from './ffmpeg';
 import translate from './translate';
 import { getSrtFileName, isWin32, getExtraResourcesPath } from './utils';
+import { store } from './storeManager';
 
 async function extractAudioFromVideo(event, file, filePath, audioFile) {
   event.sender.send("taskStatusChange", file, "extractAudio", "loading");
@@ -24,11 +25,28 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
   }
 
   let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`;
-  if (hasOpenAiWhisper) {
-    runShell = `whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${path.dirname(srtFile)}`;
-    if (sourceLanguage && sourceLanguage !== 'auto') {
-      runShell += ` --language ${sourceLanguage}`;
-    }
+  
+  const settings = store.get('settings');
+  const useLocalWhisper = settings?.useLocalWhisper;
+  const whisperCommand = settings?.whisperCommand;
+
+  if (hasOpenAiWhisper && useLocalWhisper && whisperCommand) {
+    // 替换变量，处理路径和引号
+    runShell = whisperCommand
+      .replace(/\${audioFile}/g, audioFile)
+      .replace(/\${whisperModel}/g, whisperModel)
+      .replace(/\${srtFile}/g, srtFile)
+      .replace(/\${sourceLanguage}/g, sourceLanguage || 'auto')
+      .replace(/\${outputDir}/g, path.dirname(srtFile));
+
+    // 确保路径被正确引用
+    runShell = runShell.replace(/("[^"]*")|(\S+)/g, (match, quoted, unquoted) => {
+      if (quoted) return quoted; // 已经被引号包裹的不处理
+      if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
+        return `"${unquoted}"`; // 给包含路径分隔符的参数加上引号
+      }
+      return unquoted || match;
+    });
   }
 
   event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
