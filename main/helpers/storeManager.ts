@@ -6,7 +6,9 @@ type StoreType = {
   translationProviders: Record<string, any>[],
   userConfig: Record<string, any>,
   settings: {
+    whisperCommand: any;
     language: string;
+    useLocalWhisper: boolean;
   },
   [key: string]: any
 }
@@ -30,7 +32,9 @@ export const store = new Store<StoreType>({
     userConfig: defaultUserConfig,
     translationProviders: defaultTranslationProviders,
     settings: {
-      language: 'zh'
+      language: 'zh',
+      useLocalWhisper: false,
+      whisperCommand: ''
     }
   }
 });

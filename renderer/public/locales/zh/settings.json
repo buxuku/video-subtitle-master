@@ -15,5 +15,12 @@
   "configClearFailed": "清除配置失败",
   "languageSettings": "语言设置",
   "systemSettings": "系统设置",
-  "changeLanguage": "切换语言"
+  "changeLanguage": "切换语言",
+  "useLocalWhisper": "使用本地 Whisper 命令",
+  "useLocalWhisperTip": "请确保你本地自己安装了 Whisper，并可以在终端运行 whisper 命令",
+  "whisperCommand": "Whisper 命令",
+  "whisperCommandTip": "可用变量：${audioFile}, ${whisperModel}, ${srtFile}, ${sourceLanguage}, ${outputDir}。这些变量在执行时会被替换为实际值。",
+  "whisperCommandPlaceholder": "输入自定义 whisper 命令...",
+  "save": "保存",
+  "commandSaved": "命令保存成功"
 }

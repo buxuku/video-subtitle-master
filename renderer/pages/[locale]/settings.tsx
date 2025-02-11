@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,13 +7,26 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
-import { Globe, Trash2, CloudDownload, Cog } from 'lucide-react'; 
+import { Globe, Trash2, CloudDownload, Cog, HelpCircle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
 
 const Settings = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation('settings');
   const [isReinstalling, setIsReinstalling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(router.locale);
+  const [useLocalWhisper, setUseLocalWhisper] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [whisperCommand, setWhisperCommand] = useState(
+    'whisper ${audioFile} --model ${whisperModel} --device cuda --output_format srt --output_dir ${outputDir} --language ${sourceLanguage}'
+  );
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -26,6 +39,8 @@ const Settings = () => {
       if (settings) {
         form.reset(settings);
         setCurrentLanguage(settings.language);
+        setUseLocalWhisper(settings.useLocalWhisper || false);
+        setWhisperCommand(settings.whisperCommand || 'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${path.dirname(srtFile)}');
       }
     };
     loadSettings();
@@ -68,6 +83,25 @@ const Settings = () => {
       }
   };
 
+  const handleLocalWhisperChange = async (checked: boolean) => {
+    await window?.ipc?.invoke('setSettings', { 
+      useLocalWhisper: checked,
+      whisperCommand: whisperCommand 
+    });
+    setUseLocalWhisper(checked);
+  };
+
+  const handleWhisperCommandChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWhisperCommand(e.target.value);
+  };
+
+  const handleSaveWhisperCommand = async () => {
+    await window?.ipc?.invoke('setSettings', { 
+      useLocalWhisper,
+      whisperCommand 
+    });
+    toast.success(t('commandSaved'));
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -126,6 +160,57 @@ const Settings = () => {
               {isReinstalling ? t('reinstallingWhisper') : t('reinstall')}
             </Button>
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span>{t('useLocalWhisper')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('useLocalWhisperTip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Switch
+              checked={useLocalWhisper}
+              onCheckedChange={handleLocalWhisperChange}
+            />
+          </div>
+          {useLocalWhisper && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span>{t('whisperCommand')}</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('whisperCommandTip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={whisperCommand}
+                  onChange={handleWhisperCommandChange}
+                  className="font-mono text-sm"
+                  placeholder={t('whisperCommandPlaceholder')}
+                />
+                <Button
+                  onClick={handleSaveWhisperCommand}
+                  size="sm"
+                  className="flex-shrink-0"
+                >
+                  {t('save')}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
