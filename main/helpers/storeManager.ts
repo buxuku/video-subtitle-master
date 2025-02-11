@@ -9,6 +9,7 @@ type StoreType = {
     whisperCommand: any;
     language: string;
     useLocalWhisper: boolean;
+    builtinWhisperCommand: string;
   },
   [key: string]: any
 }
@@ -34,7 +35,8 @@ export const store = new Store<StoreType>({
     settings: {
       language: 'zh',
       useLocalWhisper: false,
-      whisperCommand: ''
+      whisperCommand: '',
+      builtinWhisperCommand: '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}',
     }
   }
 });
