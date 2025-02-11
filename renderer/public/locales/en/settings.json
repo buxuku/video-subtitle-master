@@ -10,7 +10,7 @@
   "reinstallingWhisper": "Deleting Whisper",
   "whisperDeleted": "Whisper deleted",
   "whisperDeleteFailed": "Failed to delete Whisper",
-  "clearConfig": "Clear Config (Task Config, Translation Config)",
+  "clearConfig": "Clear Config (Task Config, Translation Config, System Config)",
   "configClearedSuccess": "Config cleared",
   "configClearFailed": "Failed to clear Config",
   "languageSettings": "Language Settings",
@@ -18,12 +18,12 @@
   "changeLanguage": "Change Language",
   "useLocalWhisper": "Use Local Whisper Installation",
   "useLocalWhisperTip": "Please make sure you have Whisper installed locally and can run the 'whisper' command in terminal",
-  "whisperCommand": "Whisper Command",
+  "whisperCommand": "Local Whisper Command",
   "whisperCommandTip": "Available variables: ${audioFile}, ${whisperModel}, ${srtFile}, ${sourceLanguage}, ${outputDir}. These will be replaced with actual values when executing.",
   "whisperCommandPlaceholder": "Enter custom whisper command...",
   "save": "Save",
   "commandSaved": "Command saved successfully",
-  "builtinWhisperCommand": "Built-in Whisper Command",
+  "builtinWhisperCommand": "Software Built-in Whisper Command",
   "builtinWhisperCommandTip": "Available variables: ${mainPath}, ${modelPath}, ${audioFile}, ${srtFile}, ${sourceLanguage}. These will be replaced with actual values when executing.",
   "builtinWhisperCommandPlaceholder": "Enter built-in whisper command..."
 }
