@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, SetStateAction } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,16 +17,69 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 
+const DEFAULT_COMMANDS = {
+  WHISPER: 'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}',
+  BUILTIN_WHISPER: '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}'
+} as const;
+
+// 新增一个 CommandInput 组件
+const CommandInput = ({ 
+  label, 
+  tooltip, 
+  value, 
+  onChange, 
+  onSave 
+}: { 
+  label: string;
+  tooltip: string;
+  value: string;
+  onChange: (value: SetStateAction<string>) => void;
+  onSave: () => void;
+}) => {
+  const { t } = useTranslation('settings');
+  
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span>{label}</span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="font-mono text-sm"
+          placeholder={t('whisperCommandPlaceholder')}
+        />
+        <Button
+          onClick={onSave}
+          size="sm"
+          className="flex-shrink-0"
+        >
+          {t('save')}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const Settings = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation('settings');
   const [isReinstalling, setIsReinstalling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(router.locale);
   const [useLocalWhisper, setUseLocalWhisper] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [whisperCommand, setWhisperCommand] = useState(
-    'whisper ${audioFile} --model ${whisperModel} --device cuda --output_format srt --output_dir ${outputDir} --language ${sourceLanguage}'
-  );
+  const [whisperCommand, setWhisperCommand] = useState(DEFAULT_COMMANDS.WHISPER);
+  const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState(DEFAULT_COMMANDS.BUILTIN_WHISPER);
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -40,7 +93,8 @@ const Settings = () => {
         form.reset(settings);
         setCurrentLanguage(settings.language);
         setUseLocalWhisper(settings.useLocalWhisper || false);
-        setWhisperCommand(settings.whisperCommand || 'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir ${path.dirname(srtFile)}');
+        setWhisperCommand(settings.whisperCommand || DEFAULT_COMMANDS.WHISPER);
+        setBuiltinWhisperCommand(settings.builtinWhisperCommand || DEFAULT_COMMANDS.BUILTIN_WHISPER);
       }
     };
     loadSettings();
@@ -91,16 +145,30 @@ const Settings = () => {
     setUseLocalWhisper(checked);
   };
 
-  const handleWhisperCommandChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setWhisperCommand(e.target.value);
+
+  // 统一的设置保存函数
+  const saveSettings = async (settings: Partial<any>) => {
+    try {
+      await window?.ipc?.invoke('setSettings', settings);
+      toast.success(t('commandSaved'));
+    } catch (error) {
+      toast.error(t('saveFailed'));
+    }
   };
 
-  const handleSaveWhisperCommand = async () => {
-    await window?.ipc?.invoke('setSettings', { 
+  const handleWhisperCommandSave = () => {
+    saveSettings({ 
       useLocalWhisper,
       whisperCommand 
     });
-    toast.success(t('commandSaved'));
+  };
+
+  const handleBuiltinCommandSave = () => {
+    saveSettings({ 
+      useLocalWhisper,
+      whisperCommand,
+      builtinWhisperCommand 
+    });
   };
 
   return (
@@ -179,38 +247,24 @@ const Settings = () => {
               onCheckedChange={handleLocalWhisperChange}
             />
           </div>
+
           {useLocalWhisper && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span>{t('whisperCommand')}</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('whisperCommandTip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={whisperCommand}
-                  onChange={handleWhisperCommandChange}
-                  className="font-mono text-sm"
-                  placeholder={t('whisperCommandPlaceholder')}
-                />
-                <Button
-                  onClick={handleSaveWhisperCommand}
-                  size="sm"
-                  className="flex-shrink-0"
-                >
-                  {t('save')}
-                </Button>
-              </div>
-            </div>
+            <CommandInput
+              label={t('whisperCommand')}
+              tooltip={t('whisperCommandTip')}
+              value={whisperCommand}
+              onChange={setWhisperCommand}
+              onSave={handleWhisperCommandSave}
+            />
           )}
+
+          <CommandInput
+            label={t('builtinWhisperCommand')}
+            tooltip={t('builtinWhisperCommandTip')}
+            value={builtinWhisperCommand}
+            onChange={setBuiltinWhisperCommand}
+            onSave={handleBuiltinCommandSave}
+          />
         </CardContent>
       </Card>
     </div>

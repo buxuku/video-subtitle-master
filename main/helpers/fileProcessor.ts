@@ -18,37 +18,46 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
   const userPath = app.getPath("userData");
   const whisperPath = path.join(userPath, "whisper.cpp/");
   const whisperModel = model?.toLowerCase();
+  const modelPath = `${whisperPath}models/ggml-${whisperModel}.bin`;
 
   let mainPath = `${whisperPath}main`;
   if (isWin32()) {
     mainPath = path.join(getExtraResourcesPath(), "whisper-bin-x64", "main.exe");
   }
 
-  let runShell = `"${mainPath}" -m "${whisperPath}models/ggml-${whisperModel}.bin" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}`;
-  
   const settings = store.get('settings');
   const useLocalWhisper = settings?.useLocalWhisper;
   const whisperCommand = settings?.whisperCommand;
+  const builtinWhisperCommand = settings?.builtinWhisperCommand;
 
+  let runShell;
   if (hasOpenAiWhisper && useLocalWhisper && whisperCommand) {
-    // 替换变量，处理路径和引号
+    // 使用用户自定义的本地 Whisper 命令
     runShell = whisperCommand
       .replace(/\${audioFile}/g, audioFile)
       .replace(/\${whisperModel}/g, whisperModel)
       .replace(/\${srtFile}/g, srtFile)
       .replace(/\${sourceLanguage}/g, sourceLanguage || 'auto')
       .replace(/\${outputDir}/g, path.dirname(srtFile));
-
-    // 确保路径被正确引用
-    runShell = runShell.replace(/("[^"]*")|(\S+)/g, (match, quoted, unquoted) => {
-      if (quoted) return quoted; // 已经被引号包裹的不处理
-      if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
-        return `"${unquoted}"`; // 给包含路径分隔符的参数加上引号
-      }
-      return unquoted || match;
-    });
+  } else {
+    // 使用内置的 Whisper 命令
+    runShell = (builtinWhisperCommand || '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}')
+      .replace(/\${mainPath}/g, mainPath)
+      .replace(/\${modelPath}/g, modelPath)
+      .replace(/\${audioFile}/g, audioFile)
+      .replace(/\${srtFile}/g, srtFile)
+      .replace(/\${sourceLanguage}/g, sourceLanguage);
   }
 
+  // 确保路径被正确引用
+  runShell = runShell.replace(/("[^"]*")|(\S+)/g, (match, quoted, unquoted) => {
+    if (quoted) return quoted;
+    if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
+      return `"${unquoted}"`;
+    }
+    return unquoted || match;
+  });
+  console.log(runShell, 'runShell');
   event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
   
   await new Promise((resolve, reject) => {
