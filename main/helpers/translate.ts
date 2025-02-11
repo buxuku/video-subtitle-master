@@ -70,7 +70,7 @@ export default async function translate(
         if (!sourceContent) continue;
         let targetContent;
         try {
-          targetContent = await translator(sourceContent, proof);
+          targetContent = await translator(sourceContent, proof, sourceLanguage, targetLanguage);
         } catch (translationError) {
           throw new Error(`${translationError.message}`);
         }
