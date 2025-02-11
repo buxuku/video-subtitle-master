@@ -8,7 +8,9 @@ on:
 jobs:
   release:
     runs-on: ${{ matrix.os }}
-
+    env:
+      ELECTRON_BUILDER_HTTP_TIMEOUT: 600000
+      ELECTRON_MIRROR: "https://npmmirror.com/mirrors/electron/"
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14(macos-latest) is apple silicon
