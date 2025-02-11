@@ -1,11 +1,18 @@
 import crypto from "crypto";
 import axios from "axios";
+import { convertLanguageCode } from "../helpers/utils";
 
-export default async function baidu(query, proof) {
+export default async function baidu(query, proof, sourceLanguage, targetLanguage) {
   const { apiKey: appid, apiSecret: key } = proof || {};
   if (!appid || !key) {
     console.log("请先配置 API KEY 和 API SECRET");
     throw new Error("missingKeyOrSecret");
+  }
+  const formatSourceLanguage = convertLanguageCode(sourceLanguage, 'baidu');
+  const formatTargetLanguage = convertLanguageCode(targetLanguage, 'baidu');
+  if(!formatSourceLanguage || !formatTargetLanguage){
+    console.log("不支持的语言");
+    throw new Error("not supported language"); 
   }
   const salt = new Date().getTime();
   const str1 = appid + query + salt + key;
@@ -14,8 +21,8 @@ export default async function baidu(query, proof) {
     q: query,
     appid,
     salt,
-    from: "en",
-    to: "zh",
+    from: formatSourceLanguage,
+    to: formatTargetLanguage,
     sign,
   };
   const res = await axios.post(

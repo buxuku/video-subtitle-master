@@ -1,31 +1,38 @@
-import { Service } from "@volcengine/openapi";
+import { Service } from '@volcengine/openapi';
+import { convertLanguageCode } from '../helpers/utils';
 
 let service;
 let fetchApi;
 
-export default async function translate(query, proof) {
+export default async function translate(query, proof, sourceLanguage, targetLanguage) {
   const { apiKey: accessKeyId, apiSecret: secretKey } = proof || {};
   if (!accessKeyId || !secretKey) {
-    console.log("请先配置 API KEY 和 API SECRET");
-    throw new Error("missingKeyOrSecret");
+    console.log('请先配置 API KEY 和 API SECRET');
+    throw new Error('missingKeyOrSecret');
+  }
+  const formatSourceLanguage = convertLanguageCode(sourceLanguage, 'baidu');
+  const formatTargetLanguage = convertLanguageCode(targetLanguage, 'baidu');
+  if (!formatSourceLanguage || !formatTargetLanguage) {
+    console.log('不支持的语言');
+    throw new Error('not supported language');
   }
   if (!service || !fetchApi) {
     service = new Service({
-      host: "open.volcengineapi.com",
-      serviceName: "translate",
-      region: "cn-north-1",
+      host: 'open.volcengineapi.com',
+      serviceName: 'translate',
+      region: 'cn-north-1',
       accessKeyId,
       secretKey,
     });
-    fetchApi = service.createAPI("TranslateText", {
-      Version: "2020-06-01",
-      method: "POST",
-      contentType: "json",
+    fetchApi = service.createAPI('TranslateText', {
+      Version: '2020-06-01',
+      method: 'POST',
+      contentType: 'json',
     });
   }
   const postBody = {
-    SourceLanguage: "en",
-    TargetLanguage: "zh",
+    SourceLanguage: formatSourceLanguage,
+    TargetLanguage: formatTargetLanguage,
     TextList: [query],
   };
   try {
