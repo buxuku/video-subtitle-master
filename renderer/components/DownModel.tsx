@@ -7,7 +7,7 @@ interface IProps extends PropsWithChildren {
 }
 
 const DownModel: FC<IProps> = (props) => {
-  const { modelName, callBack, downSource = "hf-mirror", children } = props;
+  const { modelName, callBack, downSource = "huggingface", children } = props;
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   useEffect(() => {
