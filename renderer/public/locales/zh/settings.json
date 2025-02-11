@@ -10,7 +10,7 @@
   "reinstallingWhisper": "正在删除 Whisper",
   "whisperDeleted": "Whisper 已删除",
   "whisperDeleteFailed": "删除 Whisper 失败",
-  "clearConfig": "清除配置(任务配置、翻译配置)",
+  "clearConfig": "清除配置(任务配置、翻译配置、系统配置)",
   "configClearedSuccess": "配置已清除",
   "configClearFailed": "清除配置失败",
   "languageSettings": "语言设置",
@@ -18,12 +18,12 @@
   "changeLanguage": "切换语言",
   "useLocalWhisper": "使用本地 Whisper 命令",
   "useLocalWhisperTip": "请确保你本地自己安装了 Whisper，并可以在终端运行 whisper 命令",
-  "whisperCommand": "Whisper 命令",
+  "whisperCommand": "本地 Whisper 命令",
   "whisperCommandTip": "可用变量：${audioFile}, ${whisperModel}, ${srtFile}, ${sourceLanguage}, ${outputDir}。这些变量在执行时会被替换为实际值。",
   "whisperCommandPlaceholder": "输入自定义 whisper 命令...",
   "save": "保存",
   "commandSaved": "命令保存成功",
-  "builtinWhisperCommand": "内置 Whisper 命令",
+  "builtinWhisperCommand": "软件内置 Whisper 命令",
   "builtinWhisperCommandTip": "可用变量：${mainPath}, ${modelPath}, ${audioFile}, ${srtFile}, ${sourceLanguage}。这些变量在执行时会被替换为实际值。",
   "builtinWhisperCommandPlaceholder": "输入内置 whisper 命令..."
 }

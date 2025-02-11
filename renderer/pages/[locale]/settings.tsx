@@ -1,12 +1,18 @@
 import React, { useEffect, useState, useRef, SetStateAction } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
+import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
 import { Globe, Trash2, CloudDownload, Cog, HelpCircle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -14,22 +20,24 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 
 const DEFAULT_COMMANDS = {
-  WHISPER: 'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}',
-  BUILTIN_WHISPER: '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}'
+  WHISPER:
+    'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}',
+  BUILTIN_WHISPER:
+    '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}',
 } as const;
 
 // 新增一个 CommandInput 组件
-const CommandInput = ({ 
-  label, 
-  tooltip, 
-  value, 
-  onChange, 
-  onSave 
-}: { 
+const CommandInput = ({
+  label,
+  tooltip,
+  value,
+  onChange,
+  onSave,
+}: {
   label: string;
   tooltip: string;
   value: string;
@@ -37,7 +45,7 @@ const CommandInput = ({
   onSave: () => void;
 }) => {
   const { t } = useTranslation('settings');
-  
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -60,11 +68,7 @@ const CommandInput = ({
           className="font-mono text-sm"
           placeholder={t('whisperCommandPlaceholder')}
         />
-        <Button
-          onClick={onSave}
-          size="sm"
-          className="flex-shrink-0"
-        >
+        <Button onClick={onSave} size="sm" className="flex-shrink-0">
           {t('save')}
         </Button>
       </div>
@@ -78,12 +82,16 @@ const Settings = () => {
   const [isReinstalling, setIsReinstalling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(router.locale);
   const [useLocalWhisper, setUseLocalWhisper] = useState(false);
-  const [whisperCommand, setWhisperCommand] = useState(DEFAULT_COMMANDS.WHISPER);
-  const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState(DEFAULT_COMMANDS.BUILTIN_WHISPER);
+  const [whisperCommand, setWhisperCommand] = useState(
+    DEFAULT_COMMANDS.WHISPER
+  );
+  const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState(
+    DEFAULT_COMMANDS.BUILTIN_WHISPER
+  );
   const form = useForm({
     defaultValues: {
       language: router.locale,
-    }
+    },
   });
 
   useEffect(() => {
@@ -94,7 +102,9 @@ const Settings = () => {
         setCurrentLanguage(settings.language);
         setUseLocalWhisper(settings.useLocalWhisper || false);
         setWhisperCommand(settings.whisperCommand || DEFAULT_COMMANDS.WHISPER);
-        setBuiltinWhisperCommand(settings.builtinWhisperCommand || DEFAULT_COMMANDS.BUILTIN_WHISPER);
+        setBuiltinWhisperCommand(
+          settings.builtinWhisperCommand || DEFAULT_COMMANDS.BUILTIN_WHISPER
+        );
       }
     };
     loadSettings();
@@ -130,21 +140,22 @@ const Settings = () => {
 
   const handleClearConfig = async () => {
     const result = await window?.ipc?.invoke('clearConfig');
-      if (result) {
-        toast.success(t('configClearedSuccess'));
-      } else {
-        toast.error(t('configClearFailed'));
-      }
+    if (result) {
+      // 跳转到首页
+      router.push(`/${i18n.language}/home`);
+      toast.success(t('configClearedSuccess'));
+    } else {
+      toast.error(t('configClearFailed'));
+    }
   };
 
   const handleLocalWhisperChange = async (checked: boolean) => {
-    await window?.ipc?.invoke('setSettings', { 
+    await window?.ipc?.invoke('setSettings', {
       useLocalWhisper: checked,
-      whisperCommand: whisperCommand 
+      whisperCommand: whisperCommand,
     });
     setUseLocalWhisper(checked);
   };
-
 
   // 统一的设置保存函数
   const saveSettings = async (settings: Partial<any>) => {
@@ -157,24 +168,24 @@ const Settings = () => {
   };
 
   const handleWhisperCommandSave = () => {
-    saveSettings({ 
+    saveSettings({
       useLocalWhisper,
-      whisperCommand 
+      whisperCommand,
     });
   };
 
   const handleBuiltinCommandSave = () => {
-    saveSettings({ 
+    saveSettings({
       useLocalWhisper,
       whisperCommand,
-      builtinWhisperCommand 
+      builtinWhisperCommand,
     });
   };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-2xl font-bold mb-6">{t('settings')}</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -185,7 +196,10 @@ const Settings = () => {
         <CardContent>
           <div className="flex items-center justify-between">
             <span>{t('changeLanguage')}</span>
-            <Select onValueChange={handleLanguageChange} value={currentLanguage}>
+            <Select
+              onValueChange={handleLanguageChange}
+              value={currentLanguage}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={t('selectLanguage')} />
               </SelectTrigger>
@@ -207,19 +221,8 @@ const Settings = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span>{t('clearConfig')}</span>
-            <Button 
-              onClick={handleClearConfig}
-              variant="destructive"
-              className="flex items-center"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {t('clear')}
-            </Button>
-          </div>
-          <div className="flex items-center justify-between">
             <span>{t('reinstallWhisper')}</span>
-            <Button 
+            <Button
               onClick={handleReinstallWhisper}
               disabled={isReinstalling}
               className="flex items-center"
@@ -265,6 +268,17 @@ const Settings = () => {
             onChange={setBuiltinWhisperCommand}
             onSave={handleBuiltinCommandSave}
           />
+          <div className="flex items-center justify-between">
+            <span>{t('clearConfig')}</span>
+            <Button
+              onClick={handleClearConfig}
+              variant="destructive"
+              className="flex items-center"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('clear')}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -273,6 +287,6 @@ const Settings = () => {
 
 export default Settings;
 
-export const getStaticProps = makeStaticProperties(['common', 'settings'])
+export const getStaticProps = makeStaticProperties(['common', 'settings']);
 
-export { getStaticPaths }
+export { getStaticPaths };

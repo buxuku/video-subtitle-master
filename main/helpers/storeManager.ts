@@ -14,6 +14,8 @@ type StoreType = {
   [key: string]: any
 }
 
+const defaultPrompt = 'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}';
+
 const defaultTranslationProviders = [
   { id: 'baidu', name: '百度', type: 'api', apiKey: '', apiSecret: '' },
   { id: 'volc', name: '火山', type: 'api', apiKey: '', apiSecret: '' },
@@ -24,7 +26,16 @@ const defaultTranslationProviders = [
     type: 'local', 
     apiUrl: 'http://localhost:11434',
     modelName: 'llama2',
-    prompt: 'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}'
+    prompt: defaultPrompt
+  },
+  {
+    id: 'deepseek',
+    name: 'deepseek',
+    type: 'openai',
+    apiUrl: 'https://api.deepseek.com/v1',
+    apiKey: '',
+    modelName: 'deepseek-chat',
+    prompt: defaultPrompt
   },
 ];
 
