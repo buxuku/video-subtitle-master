@@ -29,10 +29,15 @@ import DownModel from '@/components/DownModel';
 import DownModelButton from '@/components/DownModelButton';
 import { Upload } from 'lucide-react'; // 导入上传图标
 import { Copy } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { useTranslation } from 'next-i18next';
-import { getStaticPaths, makeStaticProperties } from '../../lib/get-static'
+import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
 const ModelsControl = () => {
   const { t } = useTranslation('modelsControl');
   const { t: tCommon } = useTranslation('common');
@@ -41,7 +46,7 @@ const ModelsControl = () => {
     modelsInstalled: [],
     downloadingModels: [],
   });
-  const [downSource, setDownSource] = useState('hf-mirror');
+  const [downSource, setDownSource] = useState('huggingface');
   useEffect(() => {
     updateSystemInfo();
   }, []);
@@ -67,15 +72,18 @@ const ModelsControl = () => {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success(t('copySuccess'), {
-        duration: 2000,
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast.success(t('copySuccess'), {
+          duration: 2000,
+        });
+      })
+      .catch((err) => {
+        toast.error(t('copyError'), {
+          duration: 2000,
+        });
       });
-    }).catch((err) => {
-      toast.error(t('copyError'), {
-        duration: 2000,
-      });
-    });
   };
 
   return (
@@ -94,10 +102,10 @@ const ModelsControl = () => {
                 <SelectValue placeholder={t('switchDownloadSource')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hf-mirror">{t('domesticMirror')}</SelectItem>
                 <SelectItem value="huggingface">
                   {t('officialSource')}
                 </SelectItem>
+                <SelectItem value="hf-mirror">{t('domesticMirror')}</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleImportModel} className="ml-4">
@@ -126,14 +134,24 @@ const ModelsControl = () => {
                   {['hf-mirror', 'huggingface'].map((source) => (
                     <div key={source} className="flex items-center mb-1">
                       <span className="mr-2 text-sm">
-                        {getModelDownloadUrl(model.name, source as 'hf-mirror' | 'huggingface')}
+                        {getModelDownloadUrl(
+                          model.name,
+                          source as 'hf-mirror' | 'huggingface'
+                        )}
                       </span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Copy 
-                              className="h-4 w-4 cursor-pointer" 
-                              onClick={() => copyToClipboard(getModelDownloadUrl(model.name, source as 'hf-mirror' | 'huggingface'))}
+                            <Copy
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() =>
+                                copyToClipboard(
+                                  getModelDownloadUrl(
+                                    model.name,
+                                    source as 'hf-mirror' | 'huggingface'
+                                  )
+                                )
+                              }
                             />
                           </TooltipTrigger>
                           <TooltipContent>
@@ -174,6 +192,6 @@ const ModelsControl = () => {
 
 export default ModelsControl;
 
-export const getStaticProps = makeStaticProperties(['common', 'modelsControl'])
+export const getStaticProps = makeStaticProperties(['common', 'modelsControl']);
 
-export { getStaticPaths }
+export { getStaticPaths };
