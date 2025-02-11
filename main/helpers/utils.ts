@@ -176,5 +176,5 @@ export const supportedLanguage = [
 export const convertLanguageCode = (code: string, target: 'baidu' | 'volc') => {
   const lang = supportedLanguage.find(lang => lang.value === code);
   if (!lang) return code;
-  return lang[target] || code;
+  return lang[target];
 };
