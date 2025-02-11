@@ -173,7 +173,7 @@ const TaskConfigForm = ({
                         <SelectItem value={'-1'}>{t('Untranslate')}</SelectItem>
                         {providers.map((provider) => (
                           <SelectItem key={provider.id} value={provider.id}>
-                            {tCommon(`provider.${provider.id}`)}
+                            {tCommon(`provider.${provider.id}`, { defaultValue: provider.id })}
                           </SelectItem>
                         ))}
                       </SelectContent>
