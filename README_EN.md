@@ -23,7 +23,7 @@ This application retains all the features of the original [VideoSubtitleGenerato
   - Baidu Translation
   - DeepLX Translation (Note: Batch translation may be rate-limited)
   - Local Ollama model translation
-  - Support for OpenAI-style API translations (e.g., DeepSpeed)
+  - Support for OpenAI-style API translations (e.g., [deepseek](https://www.deepseek.com/), [azure](https://azure.microsoft.com/))
 - Customizable subtitle file naming for compatibility with various media players
 - Flexible translated subtitle content: choose between pure translation or original + translated subtitles
 - Integrated `whisper.cpp` with optimization for Apple Silicon, offering faster generation speeds

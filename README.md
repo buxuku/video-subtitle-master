@@ -23,7 +23,7 @@
   - 百度翻译
   - DeepLX 翻译 （批量翻译容易存在被限流的情况）
   - 本地模型 Ollama 翻译
-  - 支持 OpenAI 风格 API 翻译，如 DeepSpeed 等
+  - 支持 OpenAI 风格 API 翻译，如 [deepseek](https://www.deepseek.com/), [azure](https://azure.microsoft.com) 等
 - 自定义字幕文件名，方便兼容不同的播放器挂载字幕识别
 - 自定义翻译后的字幕文件内容，支持纯翻译结果或原字幕+翻译结果
 - 项目集成 `whisper.cpp`，对 Apple Silicon 进行了优化，有较快的生成速度
