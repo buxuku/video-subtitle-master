@@ -1,5 +1,4 @@
 import OpenAI, { AzureOpenAI } from "openai";
-import { renderTemplate } from '../helpers/utils';
 
 type OpenAIProvider = {
   id: string;
@@ -12,8 +11,6 @@ type OpenAIProvider = {
 export async function translateWithOpenAI(
   text: string,
   provider: OpenAIProvider,
-  sourceLanguage: string,
-  targetLanguage: string
 ) {
   let openai;
   
@@ -39,12 +36,8 @@ export async function translateWithOpenAI(
   }
 
   try {
-    const systemPrompt = provider.prompt
-      ? renderTemplate(provider.prompt, { sourceLanguage, targetLanguage, content: text })
-      : `You are a helpful assistant.`;
-
-    const userPrompt = `Translate the following text from ${sourceLanguage} to ${targetLanguage}: "${text}"`;
-
+    const systemPrompt = 'You are a professional subtitle translation tool';
+    const userPrompt = text;
     const completion = await openai.chat.completions.create({
       model: provider.id === 'azure' ? undefined : (provider.modelName || "gpt-3.5-turbo"),
       messages: [

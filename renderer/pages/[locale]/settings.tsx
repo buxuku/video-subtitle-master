@@ -23,18 +23,12 @@ import {
 } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 
-const DEFAULT_COMMANDS = {
-  WHISPER:
-    'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}',
-  BUILTIN_WHISPER:
-    '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}',
-} as const;
 
 // 新增一个 CommandInput 组件
 const CommandInput = ({
   label,
   tooltip,
-  value,
+  value = '',
   onChange,
   onSave,
 }: {
@@ -63,7 +57,7 @@ const CommandInput = ({
       </div>
       <div className="flex gap-2">
         <Input
-          value={value}
+          value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           className="font-mono text-sm"
           placeholder={t('whisperCommandPlaceholder')}
@@ -82,12 +76,11 @@ const Settings = () => {
   const [isReinstalling, setIsReinstalling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(router.locale);
   const [useLocalWhisper, setUseLocalWhisper] = useState(false);
-  const [whisperCommand, setWhisperCommand] = useState(
-    DEFAULT_COMMANDS.WHISPER
-  );
-  const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState(
-    DEFAULT_COMMANDS.BUILTIN_WHISPER
-  );
+  const [whisperCommand, setWhisperCommand] = useState('');
+  const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState('');
+  const [useBatchTranslation, setUseBatchTranslation] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [batchTranslationSize, setBatchTranslationSize] = useState(10);
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -99,12 +92,13 @@ const Settings = () => {
       const settings = await window?.ipc?.invoke('getSettings');
       if (settings) {
         form.reset(settings);
-        setCurrentLanguage(settings.language);
+        setCurrentLanguage(settings.language || router.locale);
         setUseLocalWhisper(settings.useLocalWhisper || false);
-        setWhisperCommand(settings.whisperCommand || DEFAULT_COMMANDS.WHISPER);
-        setBuiltinWhisperCommand(
-          settings.builtinWhisperCommand || DEFAULT_COMMANDS.BUILTIN_WHISPER
-        );
+        setWhisperCommand(settings.whisperCommand || '');
+        setBuiltinWhisperCommand(settings.builtinWhisperCommand || '');
+        setUseBatchTranslation(settings.useBatchTranslation || false);
+        setAiPrompt(settings.aiPrompt || '');
+        setBatchTranslationSize(settings.batchTranslationSize || 10);
       }
     };
     loadSettings();
@@ -141,11 +135,10 @@ const Settings = () => {
   const handleClearConfig = async () => {
     const result = await window?.ipc?.invoke('clearConfig');
     if (result) {
-      // 跳转到首页
       router.push(`/${i18n.language}/home`);
-      toast.success(t('configClearedSuccess'));
+      toast.success(t('restoreDefaultsSuccess'));
     } else {
-      toast.error(t('configClearFailed'));
+      toast.error(t('restoreDefaultsFailed'));
     }
   };
 
@@ -179,6 +172,29 @@ const Settings = () => {
       useLocalWhisper,
       whisperCommand,
       builtinWhisperCommand,
+    });
+  };
+
+  const handleBatchTranslationChange = async (checked: boolean) => {
+    await window?.ipc?.invoke('setSettings', {
+      useBatchTranslation: checked,
+      aiPrompt: aiPrompt,
+    });
+    setUseBatchTranslation(checked);
+  };
+
+  const handlePromptSave = () => {
+    saveSettings({
+      useBatchTranslation,
+      aiPrompt,
+    });
+  };
+
+  const handleBatchTranslationSizeChange = (value: number) => {
+    setBatchTranslationSize(value);
+    saveSettings({ 
+      useBatchTranslation,
+      batchTranslationSize: value
     });
   };
 
@@ -228,7 +244,7 @@ const Settings = () => {
               className="flex items-center"
             >
               <CloudDownload className="mr-2 h-4 w-4" />
-              {isReinstalling ? t('reinstallingWhisper') : t('reinstall')}
+              {isReinstalling ? t('reinstallingWhisper') : t('reinstallWhisper')}
             </Button>
           </div>
           <div className="flex items-center justify-between">
@@ -268,15 +284,113 @@ const Settings = () => {
             onChange={setBuiltinWhisperCommand}
             onSave={handleBuiltinCommandSave}
           />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Cog className="mr-2" />
+            {t('AiTranslationSettings')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span>{t('clearConfig')}</span>
+            <div className="flex items-center gap-2">
+              <span>{t('useBatchTranslation')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('useBatchTranslationTip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Switch
+              checked={useBatchTranslation}
+              onCheckedChange={handleBatchTranslationChange}
+            />
+          </div>
+
+          {useBatchTranslation && (
+            <>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span>{t('batchTranslationSize')}</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('batchTranslationSizeTip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min="1"
+                    value={batchTranslationSize}
+                    onChange={(e) => handleBatchTranslationSizeChange(Number(e.target.value))}
+                    className="w-32"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span>{t('aiPrompt')}</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('aiPromptTip')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="flex gap-2">
+                  <textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    className="w-full h-48 p-2 font-mono text-sm border rounded-md"
+                  />
+                </div>
+                <Button onClick={handlePromptSave} size="sm">
+                  {t('save')}
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="flex items-center text-destructive">
+            <Trash2 className="mr-2" />
+            {t('dangerZone')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">{t('restoreDefaults')}</div>
+              <div className="text-sm text-muted-foreground">{t('restoreDefaultsDescription')}</div>
+            </div>
             <Button
               onClick={handleClearConfig}
               variant="destructive"
               className="flex items-center"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              {t('clear')}
+              {t('restore')}
             </Button>
           </div>
         </CardContent>
