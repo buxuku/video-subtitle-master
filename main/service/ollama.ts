@@ -9,22 +9,14 @@ interface OllamaConfig {
 
 export default async function translateWithOllama(
   text: string,
-  config: OllamaConfig,
-  sourceLanguage: string,
-  targetLanguage: string
+  config: OllamaConfig
 ) {
   const { apiUrl, modelName, prompt } = config;
-
-  const renderedPrompt = renderTemplate(prompt, {
-    sourceLanguage,
-    targetLanguage,
-    content: text
-  });
 
   try {
     const response = await axios.post(`${apiUrl}/api/generate`, {
       model: modelName,
-      prompt: renderedPrompt,
+      prompt: text,
       stream: false
     });
 

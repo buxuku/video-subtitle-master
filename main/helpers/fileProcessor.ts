@@ -8,21 +8,32 @@ import { getSrtFileName, isWin32, getExtraResourcesPath } from './utils';
 import { store } from './storeManager';
 
 async function extractAudioFromVideo(event, file, filePath, audioFile) {
-  event.sender.send("taskStatusChange", file, "extractAudio", "loading");
+  event.sender.send('taskStatusChange', file, 'extractAudio', 'loading');
   await extractAudio(filePath, audioFile);
-  event.sender.send("taskStatusChange", file, "extractAudio", "done");
+  event.sender.send('taskStatusChange', file, 'extractAudio', 'done');
 }
 
-async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOpenAiWhisper) {
+async function generateSubtitle(
+  event,
+  file,
+  audioFile,
+  srtFile,
+  formData,
+  hasOpenAiWhisper
+) {
   const { model, sourceLanguage } = formData;
-  const userPath = app.getPath("userData");
-  const whisperPath = path.join(userPath, "whisper.cpp/");
+  const userPath = app.getPath('userData');
+  const whisperPath = path.join(userPath, 'whisper.cpp/');
   const whisperModel = model?.toLowerCase();
   const modelPath = `${whisperPath}models/ggml-${whisperModel}.bin`;
 
   let mainPath = `${whisperPath}main`;
   if (isWin32()) {
-    mainPath = path.join(getExtraResourcesPath(), "whisper-bin-x64", "main.exe");
+    mainPath = path.join(
+      getExtraResourcesPath(),
+      'whisper-bin-x64',
+      'main.exe'
+    );
   }
 
   const settings = store.get('settings');
@@ -41,7 +52,10 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
       .replace(/\${outputDir}/g, path.dirname(srtFile));
   } else {
     // 使用内置的 Whisper 命令
-    runShell = (builtinWhisperCommand || '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}')
+    runShell = (
+      builtinWhisperCommand ||
+      '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}'
+    )
       .replace(/\${mainPath}/g, mainPath)
       .replace(/\${modelPath}/g, modelPath)
       .replace(/\${audioFile}/g, audioFile)
@@ -58,15 +72,15 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
     return unquoted || match;
   });
   console.log(runShell, 'runShell');
-  event.sender.send("taskStatusChange", file, "extractSubtitle", "loading");
-  
+  event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
+
   await new Promise((resolve, reject) => {
     exec(runShell, (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
       }
-      event.sender.send("taskStatusChange", file, "extractSubtitle", "done");
+      event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
       resolve(1);
     });
   });
@@ -74,28 +88,48 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
   return `${srtFile}.srt`;
 }
 
-async function translateSubtitle(event, file, directory, fileName, srtFile, formData, provider) {
-  event.sender.send("taskStatusChange", file, "translateSubtitle", "loading");
+async function translateSubtitle(
+  event,
+  file,
+  directory,
+  fileName,
+  srtFile,
+  formData,
+  provider
+) {
+  event.sender.send('taskStatusChange', file, 'translateSubtitle', 'loading');
   await translate(event, directory, fileName, srtFile, formData, provider);
-  event.sender.send("taskStatusChange", file, "translateSubtitle", "done");
+  event.sender.send('taskStatusChange', file, 'translateSubtitle', 'done');
 }
 
-export async function processFile(event, file, formData, hasOpenAiWhisper, provider) {
-  const { sourceLanguage, targetLanguage, sourceSrtSaveOption, customSourceSrtFileName, translateProvider } = formData || {};
-
+export async function processFile(
+  event,
+  file,
+  formData,
+  hasOpenAiWhisper,
+  provider
+) {
+  const {
+    sourceLanguage,
+    targetLanguage,
+    sourceSrtSaveOption,
+    customSourceSrtFileName,
+    translateProvider,
+  } = formData || {};
   try {
     const { filePath } = file;
     let directory = path.dirname(filePath);
     let fileName = path.basename(filePath, path.extname(filePath));
     const fileExtension = path.extname(filePath).toLowerCase();
 
-    const isSubtitleFile = ['.srt', '.vtt', '.ass', '.ssa'].includes(fileExtension);
+    const isSubtitleFile = ['.srt', '.vtt', '.ass', '.ssa'].includes(
+      fileExtension
+    );
     let srtFile = filePath;
 
     if (!isSubtitleFile) {
-      const audioFile = path.join(directory, `${fileName}_temp.wav`);
       const templateData = { fileName, sourceLanguage, targetLanguage };
-      
+
       const sourceSrtFileName = getSrtFileName(
         sourceSrtSaveOption,
         fileName,
@@ -103,23 +137,39 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
         customSourceSrtFileName,
         templateData
       );
-      
+      const audioFile = path.join(directory, `${sourceSrtFileName}.wav`);
+
       srtFile = path.join(directory, `${sourceSrtFileName}`);
 
       await extractAudioFromVideo(event, file, filePath, audioFile);
-      srtFile = await generateSubtitle(event, file, audioFile, `${srtFile}`, formData, hasOpenAiWhisper);
+      srtFile = await generateSubtitle(
+        event,
+        file,
+        audioFile,
+        `${srtFile}`,
+        formData,
+        hasOpenAiWhisper
+      );
       fs.unlink(audioFile, (err) => {
         if (err) console.log(err);
       });
     } else {
       // 如果是字幕文件，可能需要进行格式转换
-      event.sender.send("taskStatusChange", file, "prepareSubtitle", "loading");
+      event.sender.send('taskStatusChange', file, 'prepareSubtitle', 'loading');
       // 这里可以添加字幕格式转换的逻辑，如果需要的话
-      event.sender.send("taskStatusChange", file, "prepareSubtitle", "done");
+      event.sender.send('taskStatusChange', file, 'prepareSubtitle', 'done');
     }
 
-    if (translateProvider !== "-1") {
-      await translateSubtitle(event, file, directory, fileName, srtFile, formData, provider);
+    if (translateProvider !== '-1') {
+      await translateSubtitle(
+        event,
+        file,
+        directory,
+        fileName,
+        srtFile,
+        formData,
+        provider
+      );
     }
 
     // 清理临时文件
@@ -129,6 +179,6 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
       });
     }
   } catch (error) {
-    event.sender.send("message", error);
+    event.sender.send('message', error);
   }
 }

@@ -37,5 +37,7 @@ export default async function baidu(query, proof, sourceLanguage, targetLanguage
   if (!res?.data?.trans_result) {
     throw new Error(res?.data?.error_msg || '未知错误');
   }
-  return res?.data?.trans_result?.[0]?.dst || "";
+  
+  // 统一处理翻译结果，不论单行还是多行
+  return res.data.trans_result.map(item => item.dst).join('\n');
 }
