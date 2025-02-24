@@ -33,14 +33,19 @@ export default async function translate(query, proof, sourceLanguage, targetLang
   const postBody = {
     SourceLanguage: formatSourceLanguage,
     TargetLanguage: formatTargetLanguage,
-    TextList: [query],
+    TextList: Array.isArray(query) ? query : [query],
   };
   try {
     const res = await fetchApi(postBody, {});
     if (!res?.TranslationList?.[0]?.Translation) {
       throw new Error(res?.ResponseMetadata?.Error?.Code || '未知错误');
     }
-    return res.TranslationList?.[0]?.Translation;
+    
+    // 如果输入是数组，返回结果数组
+    if (Array.isArray(query)) {
+      return res.TranslationList.map(item => item.Translation);
+    }
+    return res.TranslationList[0].Translation;
   } catch (error) {
     throw new Error(error?.message || '未知错误');
   }

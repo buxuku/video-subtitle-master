@@ -8,6 +8,10 @@ export default async function baidu(query, proof, sourceLanguage, targetLanguage
     console.log("请先配置 API KEY 和 API SECRET");
     throw new Error("missingKeyOrSecret");
   }
+  
+  // 支持字符串数组输入
+  const queryText = Array.isArray(query) ? query.join('\n') : query;
+  
   const formatSourceLanguage = convertLanguageCode(sourceLanguage, 'baidu');
   const formatTargetLanguage = convertLanguageCode(targetLanguage, 'baidu');
   if(!formatSourceLanguage || !formatTargetLanguage){
@@ -15,10 +19,10 @@ export default async function baidu(query, proof, sourceLanguage, targetLanguage
     throw new Error("not supported language"); 
   }
   const salt = new Date().getTime();
-  const str1 = appid + query + salt + key;
+  const str1 = appid + queryText + salt + key;
   const sign = crypto.createHash("md5").update(str1).digest("hex");
   const data = {
-    q: query,
+    q: queryText,
     appid,
     salt,
     from: formatSourceLanguage,
@@ -38,6 +42,9 @@ export default async function baidu(query, proof, sourceLanguage, targetLanguage
     throw new Error(res?.data?.error_msg || '未知错误');
   }
   
-  // 统一处理翻译结果，不论单行还是多行
+  // 如果输入是数组，返回结果也转换为数组
+  if (Array.isArray(query)) {
+    return res.data.trans_result.map(item => item.dst);
+  }
   return res.data.trans_result.map(item => item.dst).join('\n');
 }

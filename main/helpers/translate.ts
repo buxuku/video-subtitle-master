@@ -171,39 +171,73 @@ export default async function translate(
         resolve(true);
         return;
       } else {
-        // 使用相同的解析方法处理逐行翻译
+        // 使用相同的解析方法处理翻译
         const subtitles = parseSubtitles(data);
-
-        // 逐条翻译
-        for (const subtitle of subtitles) {
-          let sourceContent = subtitle.content.join('\n');
-          if (!sourceContent) continue;
-
-          if (proof.prompt) {
-            sourceContent = renderTemplate(proof.prompt, {
-              sourceLanguage,
-              targetLanguage,
-              content: sourceContent,
-            });
+        
+        // 从设置中获取批量大小
+        const batchSize = settings?.apiTranslationBatchSize || 1;
+        
+        // 根据提供商决定是否使用批量翻译
+        const useApiBatch = ['volc', 'baidu'].includes(proof.id) && batchSize > 1;
+        
+        if (useApiBatch) {
+          // 批量处理翻译
+          for (let i = 0; i < subtitles.length; i += batchSize) {
+            const batch = subtitles.slice(i, Math.min(i + batchSize, subtitles.length));
+            const sourceContents = batch.map(subtitle => subtitle.content.join('\n'));
+            
+            try {
+              const translatedContents = await translator(
+                sourceContents,
+                proof,
+                sourceLanguage,
+                targetLanguage
+              );
+              
+              batch.forEach((subtitle, index) => {
+                items.push({
+                  id: subtitle.id,
+                  startEndTime: subtitle.startEndTime,
+                  targetContent: translatedContents[index],
+                  sourceContent: sourceContents[index],
+                });
+              });
+            } catch (translationError) {
+              throw new Error(`${translationError.message}`);
+            }
           }
+        } else {
+          // 原有的逐条翻译逻辑
+          for (const subtitle of subtitles) {
+            let sourceContent = subtitle.content.join('\n');
+            if (!sourceContent) continue;
 
-          let targetContent;
-          try {
-            targetContent = await translator(
-              sourceContent,
-              proof,
-              sourceLanguage,
-              targetLanguage
-            );
+            if (proof.prompt) {
+              sourceContent = renderTemplate(proof.prompt, {
+                sourceLanguage,
+                targetLanguage,
+                content: sourceContent,
+              });
+            }
 
-            items.push({
-              id: subtitle.id,
-              startEndTime: subtitle.startEndTime,
-              targetContent,
-              sourceContent,
-            });
-          } catch (translationError) {
-            throw new Error(`${translationError.message}`);
+            let targetContent;
+            try {
+              targetContent = await translator(
+                sourceContent,
+                proof,
+                sourceLanguage,
+                targetLanguage
+              );
+
+              items.push({
+                id: subtitle.id,
+                startEndTime: subtitle.startEndTime,
+                targetContent,
+                sourceContent,
+              });
+            } catch (translationError) {
+              throw new Error(`${translationError.message}`);
+            }
           }
         }
       }

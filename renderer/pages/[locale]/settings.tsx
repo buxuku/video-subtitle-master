@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 
-
 // 新增一个 CommandInput 组件
 const CommandInput = ({
   label,
@@ -81,6 +80,7 @@ const Settings = () => {
   const [useBatchTranslation, setUseBatchTranslation] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [batchTranslationSize, setBatchTranslationSize] = useState(10);
+  const [apiTranslationBatchSize, setApiTranslationBatchSize] = useState(1);
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -99,6 +99,7 @@ const Settings = () => {
         setUseBatchTranslation(settings.useBatchTranslation || false);
         setAiPrompt(settings.aiPrompt || '');
         setBatchTranslationSize(settings.batchTranslationSize || 10);
+        setApiTranslationBatchSize(settings.apiTranslationBatchSize || 1);
       }
     };
     loadSettings();
@@ -192,9 +193,16 @@ const Settings = () => {
 
   const handleBatchTranslationSizeChange = (value: number) => {
     setBatchTranslationSize(value);
-    saveSettings({ 
+    window?.ipc?.invoke('setSettings', {
       useBatchTranslation,
-      batchTranslationSize: value
+      batchTranslationSize: value,
+    });
+  };
+
+  const handleApiTranslationBatchSizeChange = (value: number) => {
+    setApiTranslationBatchSize(value);
+    window?.ipc?.invoke('setSettings', {
+      apiTranslationBatchSize: value,
     });
   };
 
@@ -244,7 +252,9 @@ const Settings = () => {
               className="flex items-center"
             >
               <CloudDownload className="mr-2 h-4 w-4" />
-              {isReinstalling ? t('reinstallingWhisper') : t('reinstallWhisper')}
+              {isReinstalling
+                ? t('reinstallingWhisper')
+                : t('reinstallWhisper')}
             </Button>
           </div>
           <div className="flex items-center justify-between">
@@ -284,6 +294,33 @@ const Settings = () => {
             onChange={setBuiltinWhisperCommand}
             onSave={handleBuiltinCommandSave}
           />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span>{t('apiTranslationBatchSize')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('apiTranslationBatchSizeTip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min="1"
+                max="18"
+                value={apiTranslationBatchSize}
+                onChange={(e) =>
+                  handleApiTranslationBatchSizeChange(Number(e.target.value))
+                }
+                className="w-32"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -317,7 +354,7 @@ const Settings = () => {
 
           {useBatchTranslation && (
             <>
-              <div className="space-y-2">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span>{t('batchTranslationSize')}</span>
                   <TooltipProvider>
@@ -336,7 +373,9 @@ const Settings = () => {
                     type="number"
                     min="1"
                     value={batchTranslationSize}
-                    onChange={(e) => handleBatchTranslationSizeChange(Number(e.target.value))}
+                    onChange={(e) =>
+                      handleBatchTranslationSizeChange(Number(e.target.value))
+                    }
                     className="w-32"
                   />
                 </div>
@@ -382,7 +421,9 @@ const Settings = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium">{t('restoreDefaults')}</div>
-              <div className="text-sm text-muted-foreground">{t('restoreDefaultsDescription')}</div>
+              <div className="text-sm text-muted-foreground">
+                {t('restoreDefaultsDescription')}
+              </div>
             </div>
             <Button
               onClick={handleClearConfig}

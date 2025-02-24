@@ -35,5 +35,7 @@
   "restoreDefaultsSuccess": "Settings restored to defaults",
   "restoreDefaultsFailed": "Failed to restore default settings",
   "batchTranslationSize": "Batch Translation Size",
-  "batchTranslationSizeTip": "Due to token limits of different models, you can control how many subtitles to translate at once by splitting the full text. This controls the maximum number of subtitles per translation batch."
+  "batchTranslationSizeTip": "Due to token limits of different models, you can control how many subtitles to translate at once by splitting the full text. This controls the maximum number of subtitles per translation batch.",
+  "apiTranslationBatchSize": "API Translation Batch number",
+  "apiTranslationBatchSizeTip": "Due to the limits of different APIs, you can control how many subtitles to translate at once. This controls the maximum number of subtitles per translation batch."
 }

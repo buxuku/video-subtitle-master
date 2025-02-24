@@ -13,6 +13,7 @@ type StoreType = {
     useBatchTranslation: boolean;
     aiPrompt: string;
     batchTranslationSize: number;
+    apiTranslationBatchSize: number;
   },
   [key: string]: any
 }
