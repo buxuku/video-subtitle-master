@@ -3,7 +3,14 @@ import Store from 'electron-store';
 import { defaultUserConfig, isAppleSilicon } from './utils';
 
 type StoreType = {
-  translationProviders: Record<string, any>[],
+  translationProviders: Array<{
+    id: string;
+    name: string;
+    type: string;
+    apiKey?: string;
+    apiSecret?: string;
+    region?: string;
+  }>,
   userConfig: Record<string, any>,
   settings: {
     whisperCommand: string;
@@ -53,6 +60,13 @@ const defaultTranslationProviders = [
   { id: 'baidu', name: '百度', type: 'api', apiKey: '', apiSecret: '' },
   { id: 'volc', name: '火山', type: 'api', apiKey: '', apiSecret: '' },
   { id: 'deeplx', name: 'DeepLX', type: 'api', apiKey: '', apiSecret: '' },
+  { 
+    id: 'azure', 
+    name: 'Azure Translator', 
+    type: 'api', 
+    apiKey: '', 
+    apiSecret: ''
+  },
   { 
     id: 'ollama', 
     name: 'Ollama', 

@@ -6,6 +6,7 @@ import baiduTranslator from '../service/baidu';
 import deeplxTranslator from '../service/deeplx';
 import ollamaTranslator from '../service/ollama';
 import openaiTranslator from '../service/openai';
+import azureTranslator from '../service/azure';
 import { store } from './storeManager';
 
 const contentTemplate = {
@@ -97,6 +98,9 @@ export default async function translate(
             case 'deeplx':
               translator = deeplxTranslator;
               break;
+            case 'azure':
+              translator = azureTranslator;
+              break;
             default:
               throw new Error(`未知的API翻译提供商: ${proof.id}`);
           }
@@ -178,7 +182,7 @@ export default async function translate(
         const batchSize = settings?.apiTranslationBatchSize || 1;
         
         // 根据提供商决定是否使用批量翻译
-        const useApiBatch = ['volc', 'baidu'].includes(proof.id) && batchSize > 1;
+        const useApiBatch = ['volc', 'baidu', 'azure'].includes(proof.id) && batchSize > 1;
         
         if (useApiBatch) {
           // 批量处理翻译
