@@ -101,7 +101,7 @@ const TranslateControl: React.FC = () => {
           <TableRow>
             <TableHead>{t('translationServiceProvider')}</TableHead>
             <TableHead>Key/{t('apiAddress')}</TableHead>
-            <TableHead>{t('secret')}</TableHead>
+            <TableHead>{t('Secret')}/Region</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

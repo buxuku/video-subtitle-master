@@ -9,7 +9,8 @@
     "baidu": "百度",
     "volc": "火山",
     "deeplx": "DeepLx",
-    "ollama": "Ollama"
+    "ollama": "Ollama",
+    "azure": "Azure Translator"
   },
   "language": {
     "zh": "中文",

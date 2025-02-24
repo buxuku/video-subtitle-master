@@ -9,7 +9,8 @@
     "baidu": "Baidu",
     "volc": "Volcano",
     "deeplx": "DeepLx",
-    "ollama": "Ollama"
+    "ollama": "Ollama",
+    "azure": "Azure Translator"
   },
   "language": {
     "zh": "Chinese",
