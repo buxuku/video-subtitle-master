@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { processFile } from './fileProcessor';
 import { checkOpenAiWhisper } from './whisper';
-import { store } from './storeManager';
+import { logMessage, store } from './storeManager';
 
 let processingQueue = [];
 let isProcessing = false;
@@ -12,6 +12,8 @@ let hasOpenAiWhisper = false;
 
 export function setupTaskProcessor(mainWindow: BrowserWindow) {
   ipcMain.on("handleTask", async (event, { files, formData }) => {
+    logMessage(`handleTask start`, 'info');
+    logMessage(`formData: \n ${JSON.stringify(formData, null, 2)}`, 'info');
     processingQueue.push(...files.map(file => ({ file, formData })));
     if (!isProcessing) {
       isProcessing = true;

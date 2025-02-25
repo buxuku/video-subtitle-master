@@ -1,6 +1,13 @@
 import { ipcMain } from 'electron';
 import Store from 'electron-store';
 import { defaultUserConfig, isAppleSilicon } from './utils';
+import { BrowserWindow } from 'electron';
+
+type LogEntry = {
+  timestamp: number;
+  message: string;
+  type?: 'info' | 'error' | 'warning';
+};
 
 type StoreType = {
   translationProviders: Array<{
@@ -22,6 +29,7 @@ type StoreType = {
     batchTranslationSize: number;
     apiTranslationBatchSize: number;
   },
+  logs: LogEntry[],
   [key: string]: any
 }
 
@@ -101,8 +109,10 @@ export const store = new Store<StoreType>({
       builtinWhisperCommand: '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}',
       useBatchTranslation: false,
       aiPrompt: DEFAULT_AI_PROMPT,
-      batchTranslationSize: 10
-    }
+      batchTranslationSize: 10,
+      apiTranslationBatchSize: 10,
+    },
+    logs: []
   }
 });
 
@@ -162,4 +172,44 @@ export function setupStoreHandlers() {
     store.clear();
     return true;
   });
+
+  ipcMain.handle('addLog', async (event, logEntry: Omit<LogEntry, 'timestamp'>) => {
+    const logs = store.get('logs');
+    const newLog = {
+      ...logEntry,
+      timestamp: Date.now()
+    };
+    store.set('logs', [...logs, newLog]);
+    event.sender.send('newLog', newLog);
+  });
+
+  ipcMain.handle('getLogs', async () => {
+    return store.get('logs');
+  });
+
+  ipcMain.handle('clearLogs', async () => {
+    store.set('logs', []);
+    return true;
+  });
 }
+
+export function logMessage(message: string | Error, type: 'info' | 'error' | 'warning' = 'info') {
+  const logs = store.get('logs');
+  const messageStr = message instanceof Error ? message.message : String(message);
+  
+  const newLog = {
+    message: messageStr,
+    type,
+    timestamp: Date.now()
+  };
+  console.log(newLog, 'newLog');
+  store.set('logs', [...logs, newLog]);
+  
+  // 确保所有窗口都能收到新日志
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('newLog', newLog);
+  });
+}
+
+logMessage('app start', 'info');
+// store.set('logs', []);
