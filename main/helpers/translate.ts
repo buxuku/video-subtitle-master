@@ -7,7 +7,7 @@ import deeplxTranslator from '../service/deeplx';
 import ollamaTranslator from '../service/ollama';
 import openaiTranslator from '../service/openai';
 import azureTranslator from '../service/azure';
-import { store } from './storeManager';
+import { logMessage, store } from './storeManager';
 
 const contentTemplate = {
   onlyTranslate: '${targetContent}\n\n',
@@ -114,11 +114,11 @@ export default async function translate(
         default:
           throw new Error(`未知的翻译提供商类型: ${proof.type}`);
       }
-
+      logMessage(`translate start, use ${proof.type} : ${proof.id}`, 'info');
       // 直接从 store 获取设置
       const settings = store.get('settings');
       const useBatchTranslation = settings?.useBatchTranslation;
-
+      logMessage(`useBatchTranslation: ${useBatchTranslation}`, 'info');
       if (useBatchTranslation && (proof.type === 'openai' || proof.type === 'local')) {
         // 使用通用解析方法
         const allSubtitles = parseSubtitles(data);
@@ -153,11 +153,15 @@ export default async function translate(
           // 执行批量翻译
           let translatedContent;
           try {
+            logMessage(`translate start, batch ${i + 1}`, 'info'); 
+            logMessage(`fullPrompt: ${fullPrompt}`, 'info');
             translatedContent = await translator(fullPrompt, proof);
             translatedContent = translatedContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-            console.log(fullPrompt, '\n\n', translatedContent, translatedContent);
+            logMessage(`translate done, batch ${i + 1}`, 'info');
+            logMessage(`translatedContent: ${translatedContent}`, 'info');
           } catch (translationError) {
-            throw new Error(`批次 ${i + 1} 翻译失败: ${translationError.message}`);
+            logMessage(`translate error, batch ${i + 1}: ${translationError.message || translationError}`, 'error');
+            throw new Error(`批次 ${i + 1} 翻译失败: ${translationError.message || translationError}`);
           }
 
           // 提取 <result> 标签中的内容
@@ -165,9 +169,11 @@ export default async function translate(
           const sourceMatch = translatedContent.match(pattern);
           if (!sourceMatch) {
             // 直接追加写入这一批的翻译结果
+            logMessage(`appendFileSync: ${translatedContent}`, 'info');
             fs.appendFileSync(fileSave, translatedContent + '\n\n');
           } else {
             // 直接追加写入这一批的翻译结果
+            logMessage(`appendFileSync: ${sourceMatch[1].trim()}`, 'info');
             fs.appendFileSync(fileSave, sourceMatch[1].trim() + '\n\n');
           }
         }
@@ -183,7 +189,7 @@ export default async function translate(
         
         // 根据提供商决定是否使用批量翻译
         const useApiBatch = ['volc', 'baidu', 'azure'].includes(proof.id) && batchSize > 1;
-        
+        logMessage(`useApiBatch: ${useApiBatch}, batchSize: ${batchSize}`, 'info');
         if (useApiBatch) {
           // 批量处理翻译
           for (let i = 0; i < subtitles.length; i += batchSize) {
@@ -191,13 +197,16 @@ export default async function translate(
             const sourceContents = batch.map(subtitle => subtitle.content.join('\n'));
             
             try {
+              logMessage(`translate start, batch ${i + 1}`, 'info');
+              logMessage(`sourceContents: ${sourceContents}`, 'info');
               const translatedContents = await translator(
                 sourceContents,
                 proof,
                 sourceLanguage,
                 targetLanguage
               );
-              
+              logMessage(`translate done, batch ${i + 1}`, 'info');
+              logMessage(`translatedContents: ${translatedContents}`, 'info');
               batch.forEach((subtitle, index) => {
                 items.push({
                   id: subtitle.id,
@@ -207,12 +216,14 @@ export default async function translate(
                 });
               });
             } catch (translationError) {
-              throw new Error(`${translationError.message}`);
+              logMessage(`translate error, batch ${i + 1}: ${translationError.message || translationError}`, 'error');
+              throw new Error(`批次 ${i + 1} 翻译失败: ${translationError.message || translationError}`);
             }
           }
         } else {
           // 原有的逐条翻译逻辑
           for (const subtitle of subtitles) {
+            logMessage(`translate start, subtitle ${subtitle.id}`, 'info');
             let sourceContent = subtitle.content.join('\n');
             if (!sourceContent) continue;
 
@@ -226,13 +237,15 @@ export default async function translate(
 
             let targetContent;
             try {
+              logMessage(`sourceContent: ${sourceContent}`, 'info');
               targetContent = await translator(
                 sourceContent,
                 proof,
                 sourceLanguage,
                 targetLanguage
               );
-
+              logMessage(`translate done, subtitle ${subtitle.id}`, 'info');
+              logMessage(`targetContent: ${targetContent}`, 'info');
               items.push({
                 id: subtitle.id,
                 startEndTime: subtitle.startEndTime,
@@ -240,7 +253,8 @@ export default async function translate(
                 sourceContent,
               });
             } catch (translationError) {
-              throw new Error(`${translationError.message}`);
+              logMessage(`translate error, subtitle ${subtitle.id}: ${translationError.message || translationError}`, 'error');
+              throw new Error(`subtitle ${subtitle.id} 翻译失败: ${translationError.message || translationError}`);
             }
           }
         }
@@ -255,10 +269,12 @@ export default async function translate(
           renderContentTemplate,
           item
         )}`;
+        logMessage(`write ${fileSave} content: ${content}`, 'info');
         fs.appendFileSync(fileSave, content);
       }
       resolve(true);
     } catch (error) {
+      logMessage(`translate error: ${error.message || error}`, 'error');
       event.sender.send('message', error);
       reject(error);
     }

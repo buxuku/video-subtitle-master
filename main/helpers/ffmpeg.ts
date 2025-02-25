@@ -1,6 +1,7 @@
 import ffmpegStatic from 'ffmpeg-static';
 
 import ffmpeg from 'fluent-ffmpeg';
+import { logMessage } from './storeManager';
 
 const ffmpegPath = ffmpegStatic.replace('app.asar',
     'app.asar.unpacked'
@@ -17,22 +18,23 @@ export const extractAudio = (videoPath, audioPath) => {
                 .audioCodec('pcm_s16le')
                 .outputOptions('-y')
                 .on('start', function (str) {
-                    console.log('转换任务开始~', str);
+                    logMessage(`extract audio start ${str}`, 'info');
                 })
                 .on('progress', function (progress) {
-                    console.log('进行中，完成' + (progress.percent || 0) + '%');
+                    logMessage(`extract audio progress ${progress.percent || 0}%`, 'info');
                 })
                 .on('end', function (str) {
-                    console.log('转换任务完成!');
+                    logMessage(`extract audio done!`, 'info');
                     resolve(true);
                 })
                 .on('error', function (err) {
-                    console.log('转换任务出错:', err);
+                    logMessage(`extract audio error: ${err}`, 'error');
                     reject(err);
                 })
                 .save(`${audioPath}`);
         } catch (err) {
-            reject(`${err}: ffmpeg 转码出错！`);
+            logMessage(`ffmpeg extract audio error: ${err}`, 'error'); 
+            reject(`${err}: ffmpeg extract audio error!`);
         }
     });
 };

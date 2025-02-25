@@ -1,5 +1,6 @@
 import { ipcMain, BrowserWindow, dialog, shell } from 'electron';
 import * as fs from 'fs';
+import { createMessageSender } from './messageHandler';
 
 export function setupIpcHandlers(mainWindow: BrowserWindow) {
   ipcMain.on("message", async (event, arg) => {
@@ -30,7 +31,10 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
     try {
       event.sender.send("file-selected", result.filePaths);
     } catch (error) {
-      event.sender.send("message", error);
+      createMessageSender(event.sender).send('message', {
+        type: 'error',
+        message: error.message
+      });
     }
   });
 

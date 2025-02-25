@@ -5,7 +5,8 @@ import { exec } from 'child_process';
 import { extractAudio } from './ffmpeg';
 import translate from './translate';
 import { getSrtFileName, isWin32, getExtraResourcesPath } from './utils';
-import { store } from './storeManager';
+import { logMessage, store } from './storeManager';
+import { createMessageSender } from './messageHandler';
 
 async function extractAudioFromVideo(event, file, filePath, audioFile) {
   event.sender.send('taskStatusChange', file, 'extractAudio', 'loading');
@@ -72,14 +73,23 @@ async function generateSubtitle(
     return unquoted || match;
   });
   console.log(runShell, 'runShell');
+  logMessage(`run shell ${runShell}`, 'info');
   event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
 
   await new Promise((resolve, reject) => {
     exec(runShell, (error, stdout, stderr) => {
       if (error) {
+        logMessage(`generate subtitle error: ${error}`, 'error');
         reject(error);
         return;
       }
+      if (stderr) {
+        logMessage(`generate subtitle stderr: ${stderr}`, 'warning');
+      }
+      if (stdout) {
+        logMessage(`generate subtitle stdout: ${stdout}`, 'info');
+      }
+      logMessage(`generate subtitle done!`, 'info');
       event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
       resolve(1);
     });
@@ -126,6 +136,7 @@ export async function processFile(
       fileExtension
     );
     let srtFile = filePath;
+    logMessage(`begin process ${fileName}`, 'info');
 
     if (!isSubtitleFile) {
       const templateData = { fileName, sourceLanguage, targetLanguage };
@@ -141,7 +152,9 @@ export async function processFile(
 
       srtFile = path.join(directory, `${sourceSrtFileName}`);
 
+      logMessage(`extract audio ${audioFile}`, 'info');
       await extractAudioFromVideo(event, file, filePath, audioFile);
+      logMessage(`generate subtitle ${srtFile}`, 'info');
       srtFile = await generateSubtitle(
         event,
         file,
@@ -150,6 +163,7 @@ export async function processFile(
         formData,
         hasOpenAiWhisper
       );
+      logMessage(`delete audio ${audioFile}`, 'info');
       fs.unlink(audioFile, (err) => {
         if (err) console.log(err);
       });
@@ -161,6 +175,7 @@ export async function processFile(
     }
 
     if (translateProvider !== '-1') {
+      logMessage(`translate subtitle ${srtFile}`, 'info');
       await translateSubtitle(
         event,
         file,
@@ -174,11 +189,16 @@ export async function processFile(
 
     // 清理临时文件
     if (!isSubtitleFile && sourceSrtSaveOption === 'noSave') {
+      logMessage(`delete temp subtitle ${srtFile}`, 'warning');
       fs.unlink(srtFile, (err) => {
         if (err) console.log(err);
       });
     }
+    logMessage(`process file done ${fileName}`, 'info');
   } catch (error) {
-    event.sender.send('message', error);
+    createMessageSender(event.sender).send('message', {
+      type: 'error',
+      message: error,
+    });
   }
 }
