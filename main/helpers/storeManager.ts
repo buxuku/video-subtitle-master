@@ -2,6 +2,7 @@ import { ipcMain } from 'electron';
 import Store from 'electron-store';
 import { defaultUserConfig, isAppleSilicon } from './utils';
 import { BrowserWindow } from 'electron';
+import { Provider, PROVIDER_TYPES } from '../../types';
 
 type LogEntry = {
   timestamp: number;
@@ -10,142 +11,114 @@ type LogEntry = {
 };
 
 type StoreType = {
-  translationProviders: Array<{
-    id: string;
-    name: string;
-    type: string;
-    apiKey?: string;
-    apiSecret?: string;
-    region?: string;
-  }>,
+  translationProviders: Provider[],
   userConfig: Record<string, any>,
   settings: {
     whisperCommand: string;
     language: string;
     useLocalWhisper: boolean;
     builtinWhisperCommand: string;
-    useBatchTranslation: boolean;
-    aiPrompt: string;
-    batchTranslationSize: number;
-    apiTranslationBatchSize: number;
   },
   logs: LogEntry[],
   [key: string]: any
 }
 
-const DEFAULT_AI_PROMPT = `**Characterization**
-You are a professional subtitle translator who specializes in line-by-line cross-referencing and preserving the original formatting.
-
-**Task description**
-I will provide you with subtitle content (wrapped in <source></source> tags) in srt subtitle format, which you will need to:
-1. maintain strict line-by-line correspondence between the original and the translated text (timeline, line numbers, line breaks, list symbols are identical)
-2. output only the result of the translation, no summarization, annotation or formatting is allowed
-3. adopt a colloquial language style that is in line with the target language.
-
-**Format specification***
-- Preserve the structure of the original subtitle content (including timeline, line breaks, indentation levels, blank lines)
-- Each line of translation must correspond exactly to the line number of the original.
-- Special formatting (e.g., timecode, proper nouns) is retained as is.
-- Whenever you encounter untranslatable content, leave it as it is.
-- Multiple lines are not allowed to be combined; each line of the output must correspond to a separate line.
-- The language of the original subtitle content is \${sourceLanguage}
-
-**The original subtitle content is in the language \${targetLanguage}
-Only the translated subtitle file content should be returned, do not include:
-1. any additional explanatory or summarizing text
-2. additional blank lines or formatting
-3. unsolicited style changes
-4. target translation language is \${targetLanguage}
-5. the returned subtitle content is wrapped in <result></result> tags
-
-<source>
-\${content}
-</source>`;
-
-const defaultPrompt = 'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}';
-
-const defaultTranslationProviders = [
-  { id: 'baidu', name: '百度', type: 'api', apiKey: '', apiSecret: '' },
-  { id: 'volc', name: '火山', type: 'api', apiKey: '', apiSecret: '' },
-  { id: 'deeplx', name: 'DeepLX', type: 'api', apiKey: '', apiSecret: '' },
-  { 
-    id: 'azure', 
-    name: 'Azure Translator', 
-    type: 'api', 
-    apiKey: '', 
-    apiSecret: ''
-  },
-  { 
-    id: 'ollama', 
-    name: 'Ollama', 
-    type: 'local', 
-    apiUrl: 'http://localhost:11434',
-    modelName: 'llama2',
-    prompt: defaultPrompt
-  },
-  {
-    id: 'deepseek',
-    name: 'deepseek',
-    type: 'openai',
-    apiUrl: 'https://api.deepseek.com/v1',
-    apiKey: '',
-    modelName: 'deepseek-chat',
-    prompt: defaultPrompt
-  },
-];
 
 const defaultWhisperCommand = isAppleSilicon()
   ? 'whisper "${audioFile}" --model ${whisperModel} --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}'
   : 'whisper "${audioFile}" --model ${whisperModel} --device cuda --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}';
 
+
 export const store = new Store<StoreType>({
   defaults: {
     userConfig: defaultUserConfig,
-    translationProviders: defaultTranslationProviders,
+    translationProviders: [], // 不再需要默认值
     settings: {
       language: 'zh',
       useLocalWhisper: false,
       whisperCommand: defaultWhisperCommand,
       builtinWhisperCommand: '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}',
-      useBatchTranslation: false,
-      aiPrompt: DEFAULT_AI_PROMPT,
-      batchTranslationSize: 10,
-      apiTranslationBatchSize: 10,
+
     },
     logs: []
   }
 });
 
+// 将获取服务商的逻辑抽取为独立函数
+async function getAndInitializeProviders(): Promise<Provider[]> {
+  try {
+    // 获取用户保存的服务商配置
+    const savedProviders: Provider[] = store.get('translationProviders') || [];
+    
+    // 获取所有内置服务商的ID
+    const builtinProviderIds = PROVIDER_TYPES
+      .filter(type => type.isBuiltin)
+      .map(type => type.id);
+    
+    // 找出已保存的内置服务商ID
+    const savedBuiltinIds = savedProviders
+      .filter(p => builtinProviderIds.includes(p.type))
+      .map(p => p.type);
+    
+    // 找出缺失的内置服务商
+    const missingBuiltinProviders = PROVIDER_TYPES
+      .filter(type => 
+        type.isBuiltin && 
+        !savedBuiltinIds.includes(type.id)
+      )
+      .map(type => {
+        const provider: Provider = {
+          type: type.id,
+          id: type.id,
+          name: type.name,
+          isAi: type.isAi,
+          ...Object.fromEntries(
+            type.fields
+              .filter(field => field.defaultValue !== undefined)
+              .map(field => [field.key, field.defaultValue])
+          )
+        };
+        return provider;
+      });
+
+    // 合并和排序服务商
+    const customProviders = savedProviders.filter(p => p.type === 'openai');
+    const builtinProviders = [
+      ...savedProviders.filter(p => builtinProviderIds.includes(p.type)),
+      ...missingBuiltinProviders
+    ];
+
+    const sortedBuiltinProviders = builtinProviders.sort((a, b) => {
+      const aIndex = builtinProviderIds.indexOf(a.type);
+      const bIndex = builtinProviderIds.indexOf(b.type);
+      return aIndex - bIndex;
+    });
+
+    const allProviders = [...sortedBuiltinProviders, ...customProviders];
+    
+    // 更新存储
+    store.set('translationProviders', allProviders);
+    
+    return allProviders;
+  } catch (error) {
+    logMessage(`Error initializing providers: ${error.message}`, 'error');
+    return [];
+  }
+}
+
 export function setupStoreHandlers() {
+  // 启动时初始化服务商配置
+  getAndInitializeProviders().then(() => {
+    logMessage('Translation providers initialized', 'info');
+  });
+
+  // 更新现有的 IPC 处理函数
   ipcMain.on('setTranslationProviders', async (event, providers) => {
     store.set('translationProviders', providers);
   });
 
   ipcMain.handle('getTranslationProviders', async () => {
-    let storedProviders = store.get('translationProviders');
-    
-    // 合并存储的提供商和默认提供商
-    const mergedProviders = defaultTranslationProviders.map(defaultProvider => {
-      const storedProvider = storedProviders.find(p => p.id === defaultProvider.id);
-      if (storedProvider) {
-        // 如果存储的提供商存在，合并默认值和存储的值
-        return { ...defaultProvider, ...storedProvider };
-      }
-      // 如果存储中不存在该提供商，使用默认值
-      return defaultProvider;
-    });
-
-    // 添加用户自定义的提供商（如OpenAI风格的API）
-    const customProviders = storedProviders.filter(provider => 
-      !defaultTranslationProviders.some(defaultProvider => defaultProvider.id === provider.id)
-    );
-
-    const allProviders = [...mergedProviders, ...customProviders];
-
-    // 更新存储
-    store.set('translationProviders', allProviders);
-    
-    return allProviders;
+    return getAndInitializeProviders();
   });
 
   ipcMain.on('setUserConfig', async (event, config) => {
@@ -202,7 +175,6 @@ export function logMessage(message: string | Error, type: 'info' | 'error' | 'wa
     type,
     timestamp: Date.now()
   };
-  console.log(newLog, 'newLog');
   store.set('logs', [...logs, newLog]);
   
   // 确保所有窗口都能收到新日志

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { renderTemplate } from '../helpers/utils';
 
 interface OllamaConfig {
   apiUrl: string;
@@ -11,15 +10,13 @@ export default async function translateWithOllama(
   text: string,
   config: OllamaConfig
 ) {
-  const { apiUrl, modelName, prompt } = config;
-
+  const { apiUrl, modelName } = config;
   try {
-    const response = await axios.post(`${apiUrl}/api/generate`, {
+    const response = await axios.post(`${apiUrl}`, {
       model: modelName,
       prompt: text,
       stream: false
     });
-
     if (response.data && response.data.response) {
       return response.data.response.trim();
     } else {
