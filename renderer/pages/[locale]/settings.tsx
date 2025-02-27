@@ -77,10 +77,6 @@ const Settings = () => {
   const [useLocalWhisper, setUseLocalWhisper] = useState(false);
   const [whisperCommand, setWhisperCommand] = useState('');
   const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState('');
-  const [useBatchTranslation, setUseBatchTranslation] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [batchTranslationSize, setBatchTranslationSize] = useState(10);
-  const [apiTranslationBatchSize, setApiTranslationBatchSize] = useState(1);
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -96,10 +92,6 @@ const Settings = () => {
         setUseLocalWhisper(settings.useLocalWhisper || false);
         setWhisperCommand(settings.whisperCommand || '');
         setBuiltinWhisperCommand(settings.builtinWhisperCommand || '');
-        setUseBatchTranslation(settings.useBatchTranslation || false);
-        setAiPrompt(settings.aiPrompt || '');
-        setBatchTranslationSize(settings.batchTranslationSize || 10);
-        setApiTranslationBatchSize(settings.apiTranslationBatchSize || 1);
       }
     };
     loadSettings();
@@ -173,36 +165,6 @@ const Settings = () => {
       useLocalWhisper,
       whisperCommand,
       builtinWhisperCommand,
-    });
-  };
-
-  const handleBatchTranslationChange = async (checked: boolean) => {
-    await window?.ipc?.invoke('setSettings', {
-      useBatchTranslation: checked,
-      aiPrompt: aiPrompt,
-    });
-    setUseBatchTranslation(checked);
-  };
-
-  const handlePromptSave = () => {
-    saveSettings({
-      useBatchTranslation,
-      aiPrompt,
-    });
-  };
-
-  const handleBatchTranslationSizeChange = (value: number) => {
-    setBatchTranslationSize(value);
-    window?.ipc?.invoke('setSettings', {
-      useBatchTranslation,
-      batchTranslationSize: value,
-    });
-  };
-
-  const handleApiTranslationBatchSizeChange = (value: number) => {
-    setApiTranslationBatchSize(value);
-    window?.ipc?.invoke('setSettings', {
-      apiTranslationBatchSize: value,
     });
   };
 
@@ -294,119 +256,6 @@ const Settings = () => {
             onChange={setBuiltinWhisperCommand}
             onSave={handleBuiltinCommandSave}
           />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span>{t('apiTranslationBatchSize')}</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('apiTranslationBatchSizeTip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                min="1"
-                max="18"
-                value={apiTranslationBatchSize}
-                onChange={(e) =>
-                  handleApiTranslationBatchSizeChange(Number(e.target.value))
-                }
-                className="w-32"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Cog className="mr-2" />
-            {t('AiTranslationSettings')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span>{t('useBatchTranslation')}</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('useBatchTranslationTip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <Switch
-              checked={useBatchTranslation}
-              onCheckedChange={handleBatchTranslationChange}
-            />
-          </div>
-
-          {useBatchTranslation && (
-            <>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span>{t('batchTranslationSize')}</span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('batchTranslationSizeTip')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min="1"
-                    value={batchTranslationSize}
-                    onChange={(e) =>
-                      handleBatchTranslationSizeChange(Number(e.target.value))
-                    }
-                    className="w-32"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span>{t('aiPrompt')}</span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('aiPromptTip')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <div className="flex gap-2">
-                  <textarea
-                    value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
-                    className="w-full h-48 p-2 font-mono text-sm border rounded-md"
-                  />
-                </div>
-                <Button onClick={handlePromptSave} size="sm">
-                  {t('save')}
-                </Button>
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
 

@@ -7,7 +7,9 @@ import deeplxTranslator from '../service/deeplx';
 import ollamaTranslator from '../service/ollama';
 import openaiTranslator from '../service/openai';
 import azureTranslator from '../service/azure';
-import { logMessage, store } from './storeManager';
+import azureOpenaiTranslator from '../service/azureOpenai';
+import { logMessage } from './storeManager';
+import { Provider } from '../../types';
 
 const contentTemplate = {
   onlyTranslate: '${targetContent}\n\n',
@@ -51,13 +53,236 @@ function parseSubtitles(data: string[]) {
   return subtitles;
 }
 
+// 定义翻译结果的接口
+interface TranslationResult {
+  id: string;
+  startEndTime: string;
+  sourceContent: string;
+  targetContent: string;
+}
+
+// 定义字幕结构的接口
+interface Subtitle {
+  id: string;
+  startEndTime: string;
+  content: string[];
+}
+
+// 翻译服务的基础配置接口
+interface TranslationConfig {
+  sourceLanguage: string;
+  targetLanguage: string;
+  provider: Provider;
+  translator: (text: string[], config: any, from: string, to: string) => Promise<string>;
+}
+
+/**
+ * API 服务批量翻译处理
+ */
+async function handleAPIBatchTranslation(
+  subtitles: Subtitle[],
+  config: TranslationConfig,
+  batchSize: number
+): Promise<TranslationResult[]> {
+  const { provider, sourceLanguage, targetLanguage, translator } = config;
+  const results: TranslationResult[] = [];
+  
+  // 分批处理
+  for (let i = 0; i < subtitles.length; i += batchSize) {
+    const batch = subtitles.slice(i, i + batchSize);
+    const batchContents = batch.map(s => s.content.join('\n'));
+
+    try {
+      // 调用 API 翻译服务
+      const translatedContent = await translator(
+        batchContents,
+        provider,
+        sourceLanguage,
+        targetLanguage
+      );
+
+      // 处理翻译结果
+      const translatedLines = Array.isArray(translatedContent) 
+        ? translatedContent 
+        : translatedContent.split('\n');
+
+      if (translatedLines.length !== batch.length) {
+        throw new Error('Translation result count does not match source count');
+      }
+
+      // 组装结果
+      const batchResults = batch.map((subtitle, index) => ({
+        id: subtitle.id,
+        startEndTime: subtitle.startEndTime,
+        sourceContent: subtitle.content.join('\n'),
+        targetContent: translatedLines[index]
+      }));
+
+      results.push(...batchResults);
+    } catch (error) {
+      logMessage(`Batch translation error: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+
+  return results;
+}
+
+/**
+ * AI 服务单条翻译处理
+ */
+async function handleAISingleTranslation(
+  subtitle: Subtitle,
+  config: TranslationConfig
+): Promise<TranslationResult> {
+  const { provider, sourceLanguage, targetLanguage, translator } = config;
+  const sourceContent = subtitle.content.join('\n');
+
+  try {
+    // 使用 prompt 格式化内容
+    const translationContent = provider.prompt 
+      ? renderTemplate(provider.prompt, {
+          sourceLanguage,
+          targetLanguage,
+          content: sourceContent,
+        })
+      : sourceContent;
+
+    const translationConfig = {
+      ...provider,
+      systemPrompt: provider.systemPrompt
+    };
+
+    // 调用 AI 翻译服务
+    let targetContent = await translator(
+      translationContent,
+      translationConfig,
+      sourceLanguage,
+      targetLanguage
+    );
+    targetContent = targetContent.replace(/<think>[\s\S]*?<\/think>\n/g, '').trim();
+
+    return {
+      id: subtitle.id,
+      startEndTime: subtitle.startEndTime,
+      sourceContent,
+      targetContent: targetContent.trim()
+    };
+  } catch (error) {
+    logMessage(`Single translation error: ${error.message}`, 'error');
+    throw error;
+  }
+}
+
+/**
+ * AI 服务批量翻译处理
+ */
+async function handleAIBatchTranslation(
+  subtitles: Subtitle[],
+  config: TranslationConfig,
+  batchSize: number
+): Promise<string[]> {
+  const { provider, sourceLanguage, targetLanguage, translator } = config;
+  const results: string[] = [];
+
+  // 分批处理
+  for (let i = 0; i < subtitles.length; i += batchSize) {
+    const batch = subtitles.slice(i, i + batchSize);
+
+    try {
+      // 准备完整字幕内容
+      const fullContent = batch.map(s => 
+        `${s.id}\n${s.startEndTime}\n${s.content.join('\n')}`
+      ).join('\n\n');
+
+      // 使用批量翻译 prompt
+      const translationContent = renderTemplate(provider.batchPrompt, {
+        sourceLanguage,
+        targetLanguage,
+        content: fullContent,
+      });
+
+      const translationConfig = {
+        ...provider,
+        systemPrompt: provider.systemPrompt
+      };
+
+      // 调用 AI 翻译服务
+      logMessage(`ai translate num: ${i}`, 'info');
+      const responseOrigin = await translator(
+        translationContent,
+        translationConfig,
+        sourceLanguage,
+        targetLanguage
+      );
+      const response = responseOrigin.replace(/<think>[\s\S]*?<\/think>\n/g, '').trim();
+      // 提取 <result> 标签中的内容
+      const pattern = /<result[^>]*>([\s\S]*?)<\/result>/;
+      const match = response.match(pattern);
+      logMessage(`ai response: ${responseOrigin}`, 'info');
+      results.push(match[1].trim() || response);
+    } catch (error) {
+      logMessage(`AI batch translation error: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+
+  return results;
+}
+
+/**
+ * 统一的翻译处理函数
+ */
+export async function translateWithProvider(
+  provider: Provider,
+  subtitles: Subtitle[],
+  sourceLanguage: string,
+  targetLanguage: string,
+  translator: (text: string[], config: any, from: string, to: string) => Promise<string>
+): Promise<TranslationResult[] | string[]> {
+  const config: TranslationConfig = {
+    provider,
+    sourceLanguage,
+    targetLanguage,
+    translator
+  };
+  logMessage(`translateWithProvider start, use \n ${JSON.stringify(provider, null, 2)}`, 'info');
+  if (provider.isAi) {
+    // AI 翻译服务
+    if (provider.useBatchTranslation) {
+      // 批量翻译
+      return handleAIBatchTranslation(
+        subtitles,
+        config,
+        provider.batchTranslationSize || 10
+      );
+    } else {
+      // 逐条翻译
+      const results: TranslationResult[] = [];
+      for (const subtitle of subtitles) {
+        const result = await handleAISingleTranslation(subtitle, config);
+        results.push(result);
+      }
+      return results;
+    }
+  } else {
+    // API 翻译服务
+    return handleAPIBatchTranslation(
+      subtitles,
+      config,
+      provider.batchSize || 1
+    );
+  }
+}
+
+// 更新主翻译函数
 export default async function translate(
   event,
   folder,
   fileName,
   absolutePath,
   formData,
-  provider
+  provider: Provider
 ) {
   const {
     translateContent,
@@ -68,13 +293,46 @@ export default async function translate(
   } = formData || {};
 
   const renderContentTemplate = contentTemplate[translateContent];
-  const proof = provider;
 
   return new Promise(async (resolve, reject) => {
     try {
       const result = fs.readFileSync(absolutePath, 'utf8');
       const data = result.split('\n');
-      const items = [];
+      // 获取对应的翻译器
+      let translator;
+      switch (provider.type) {
+        case 'volc':
+          translator = volcTranslator;
+          break;
+        case 'baidu':
+          translator = baiduTranslator;
+          break;
+        case 'deeplx':
+          translator = deeplxTranslator;
+          break;
+        case 'azure':
+          translator = azureTranslator;
+          break;
+        case 'ollama':
+          translator = ollamaTranslator;
+          break;
+        case 'azureopenai':
+          translator = azureOpenaiTranslator;
+          break;
+        case 'openai':
+        case 'deepseek':
+          translator = openaiTranslator;
+          break;
+        default:
+          throw new Error(`未知的翻译提供商: ${provider.type}`);
+      }
+
+      logMessage(`translate start, use ${provider.type}`, 'info');
+
+      // 解析字幕
+      const subtitles = parseSubtitles(data);
+
+      // 获取文件名
       const templateData = { fileName, sourceLanguage, targetLanguage };
       const targetSrtFileName = getSrtFileName(
         targetSrtSaveOption,
@@ -83,199 +341,42 @@ export default async function translate(
         customTargetSrtFileName,
         templateData
       );
-      let translator;
 
-      // 根据提供商类型选择翻译器
-      switch (proof.type) {
-        case 'api':
-          switch (proof.id) {
-            case 'volc':
-              translator = volcTranslator;
-              break;
-            case 'baidu':
-              translator = baiduTranslator;
-              break;
-            case 'deeplx':
-              translator = deeplxTranslator;
-              break;
-            case 'azure':
-              translator = azureTranslator;
-              break;
-            default:
-              throw new Error(`未知的API翻译提供商: ${proof.id}`);
-          }
-          break;
-        case 'local':
-          translator = (text) => ollamaTranslator(text, proof);
-          break;
-        case 'openai':
-          translator = (text) => openaiTranslator(text, proof);
-          break;
-        default:
-          throw new Error(`未知的翻译提供商类型: ${proof.type}`);
-      }
-      logMessage(`translate start, use ${proof.type} : ${proof.id}`, 'info');
-      // 直接从 store 获取设置
-      const settings = store.get('settings');
-      const useBatchTranslation = settings?.useBatchTranslation;
-      logMessage(`useBatchTranslation: ${useBatchTranslation}`, 'info');
-      if (useBatchTranslation && (proof.type === 'openai' || proof.type === 'local')) {
-        // 使用通用解析方法
-        const allSubtitles = parseSubtitles(data);
+      // 创建输出文件
+      const fileSave = path.join(folder, `${targetSrtFileName}.srt`);
+      fs.writeFileSync(fileSave, ''); // 清空或创建文件
 
-        // 从设置中获取批量大小
-        const batchSize = settings?.batchTranslationSize || 10;
-        const batches = [];
-        for (let i = 0; i < allSubtitles.length; i += batchSize) {
-          batches.push(allSubtitles.slice(i, i + batchSize));
-        }
-
-        // 创建文件
-        const fileSave = path.join(folder, `${targetSrtFileName}.srt`);
-        // 确保文件是空的
-        fs.writeFileSync(fileSave, '');
-
-        // 逐批翻译
-        for (let i = 0; i < batches.length; i++) {
-          const batch = batches[i];
-          let result = '';
-          batch.forEach(item => {
-            const content = item.content.join('\n');
-            result += `${item.id}\n${item.startEndTime}\n${content}\n\n`;
-          });
-
-          const fullPrompt = renderTemplate(settings?.aiPrompt, {
-            content: result,
-            sourceLanguage,
-            targetLanguage,
-          });
-
-          // 执行批量翻译
-          let translatedContent;
-          try {
-            logMessage(`translate start, batch ${i + 1}`, 'info'); 
-            logMessage(`fullPrompt: ${fullPrompt}`, 'info');
-            translatedContent = await translator(fullPrompt, proof);
-            translatedContent = translatedContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-            logMessage(`translate done, batch ${i + 1}`, 'info');
-            logMessage(`translatedContent: ${translatedContent}`, 'info');
-          } catch (translationError) {
-            logMessage(`translate error, batch ${i + 1}: ${translationError.message || translationError}`, 'error');
-            throw new Error(`批次 ${i + 1} 翻译失败: ${translationError.message || translationError}`);
-          }
-
-          // 提取 <result> 标签中的内容
-          const pattern = /result[>\]\)]([\s\S]*?)[\[<\(]\/result/;
-          const sourceMatch = translatedContent.match(pattern);
-          if (!sourceMatch) {
-            // 直接追加写入这一批的翻译结果
-            logMessage(`appendFileSync: ${translatedContent}`, 'info');
-            fs.appendFileSync(fileSave, translatedContent + '\n\n');
-          } else {
-            // 直接追加写入这一批的翻译结果
-            logMessage(`appendFileSync: ${sourceMatch[1].trim()}`, 'info');
-            fs.appendFileSync(fileSave, sourceMatch[1].trim() + '\n\n');
-          }
-        }
-
+      // 使用重构后的翻译函数进行翻译
+      const results = await translateWithProvider(
+        provider,
+        subtitles,
+        sourceLanguage,
+        targetLanguage,
+        translator
+      );
+      if(provider.isAi && provider.useBatchTranslation) {
+        fs.appendFileSync(fileSave, results.join('\n'));
         resolve(true);
         return;
-      } else {
-        // 使用相同的解析方法处理翻译
-        const subtitles = parseSubtitles(data);
-        
-        // 从设置中获取批量大小
-        const batchSize = settings?.apiTranslationBatchSize || 1;
-        
-        // 根据提供商决定是否使用批量翻译
-        const useApiBatch = ['volc', 'baidu', 'azure'].includes(proof.id) && batchSize > 1;
-        logMessage(`useApiBatch: ${useApiBatch}, batchSize: ${batchSize}`, 'info');
-        if (useApiBatch) {
-          // 批量处理翻译
-          for (let i = 0; i < subtitles.length; i += batchSize) {
-            const batch = subtitles.slice(i, Math.min(i + batchSize, subtitles.length));
-            const sourceContents = batch.map(subtitle => subtitle.content.join('\n'));
-            
-            try {
-              logMessage(`translate start, batch ${i + 1}`, 'info');
-              logMessage(`sourceContents: ${sourceContents}`, 'info');
-              const translatedContents = await translator(
-                sourceContents,
-                proof,
-                sourceLanguage,
-                targetLanguage
-              );
-              logMessage(`translate done, batch ${i + 1}`, 'info');
-              logMessage(`translatedContents: ${translatedContents}`, 'info');
-              batch.forEach((subtitle, index) => {
-                items.push({
-                  id: subtitle.id,
-                  startEndTime: subtitle.startEndTime,
-                  targetContent: translatedContents[index],
-                  sourceContent: sourceContents[index],
-                });
-              });
-            } catch (translationError) {
-              logMessage(`translate error, batch ${i + 1}: ${translationError.message || translationError}`, 'error');
-              throw new Error(`批次 ${i + 1} 翻译失败: ${translationError.message || translationError}`);
-            }
-          }
-        } else {
-          // 原有的逐条翻译逻辑
-          for (const subtitle of subtitles) {
-            logMessage(`translate start, subtitle ${subtitle.id}`, 'info');
-            let sourceContent = subtitle.content.join('\n');
-            if (!sourceContent) continue;
-
-            if (proof.prompt) {
-              sourceContent = renderTemplate(proof.prompt, {
-                sourceLanguage,
-                targetLanguage,
-                content: sourceContent,
-              });
-            }
-
-            let targetContent;
-            try {
-              logMessage(`sourceContent: ${sourceContent}`, 'info');
-              targetContent = await translator(
-                sourceContent,
-                proof,
-                sourceLanguage,
-                targetLanguage
-              );
-              logMessage(`translate done, subtitle ${subtitle.id}`, 'info');
-              logMessage(`targetContent: ${targetContent}`, 'info');
-              items.push({
-                id: subtitle.id,
-                startEndTime: subtitle.startEndTime,
-                targetContent,
-                sourceContent,
-              });
-            } catch (translationError) {
-              logMessage(`translate error, subtitle ${subtitle.id}: ${translationError.message || translationError}`, 'error');
-              throw new Error(`subtitle ${subtitle.id} 翻译失败: ${translationError.message || translationError}`);
-            }
-          }
-        }
       }
-
-      const fileSave = path.join(folder, `${targetSrtFileName}.srt`);
 
       // 写入翻译结果
-      for (let i = 0; i <= items.length - 1; i++) {
-        const item = items[i];
-        const content = `${item.id}\n${item.startEndTime}\n${renderTemplate(
+      for (const result of results as TranslationResult[]) {
+        const content = `${result.id}\n${result.startEndTime}\n${renderTemplate(
           renderContentTemplate,
-          item
+          {
+            sourceContent: result.sourceContent,
+            targetContent: result.targetContent
+          }
         )}`;
-        logMessage(`write ${fileSave} content: ${content}`, 'info');
         fs.appendFileSync(fileSave, content);
       }
+
+      logMessage('translate complete', 'info');
       resolve(true);
     } catch (error) {
-      logMessage(`translate error: ${error.message || error}`, 'error');
-      event.sender.send('message', error);
+      // logMessage(`Translation error: ${error.message}`, 'error');
+      event.sender.send('message', error.message || error);
       reject(error);
     }
   });

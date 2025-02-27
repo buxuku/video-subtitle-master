@@ -10,8 +10,8 @@ export default async function translate(query, proof, sourceLanguage, targetLang
     console.log('请先配置 API KEY 和 API SECRET');
     throw new Error('missingKeyOrSecret');
   }
-  const formatSourceLanguage = convertLanguageCode(sourceLanguage, 'baidu');
-  const formatTargetLanguage = convertLanguageCode(targetLanguage, 'baidu');
+  const formatSourceLanguage = convertLanguageCode(sourceLanguage, 'volc');
+  const formatTargetLanguage = convertLanguageCode(targetLanguage, 'volc');
   if (!formatSourceLanguage || !formatTargetLanguage) {
     console.log('不支持的语言');
     throw new Error('not supported language');
