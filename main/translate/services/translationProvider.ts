@@ -53,7 +53,7 @@ export async function translateWithProvider(
       return handleAIBatchTranslation(
         subtitles,
         config,
-        +provider.batchTranslationSize || DEFAULT_BATCH_SIZE.AI
+        +provider.batchSize || DEFAULT_BATCH_SIZE.AI
       );
     } else {
       const results: TranslationResult[] = [];

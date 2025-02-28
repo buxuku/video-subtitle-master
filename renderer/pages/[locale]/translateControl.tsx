@@ -80,7 +80,7 @@ const TranslateControl: React.FC = () => {
       isAi: true,
       prompt: defaultUserPrompt,
       useBatchTranslation: false,
-      batchTranslationSize: 10,
+      batchSize: 10,
       systemPrompt: defaultSystemPrompt,
     };
 

@@ -34,7 +34,6 @@ export interface Provider {
   systemPrompt?: string;
   batchPrompt?: string;
   useBatchTranslation?: boolean;
-  batchTranslationSize?: number;
   batchSize?: number;
   [key: string]: any;
 } 

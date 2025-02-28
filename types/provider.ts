@@ -131,7 +131,7 @@ export const PROVIDER_TYPES: ProviderType[] = [
     icon: '☁️',
     fields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { key: 'region', label: 'Region', type: 'text', required: true },
+      { key: 'apiSecret', label: 'API Secret', type: 'password', required: true },
       {
         key: 'batchSize',
         label: 'Batch Size',
@@ -180,11 +180,11 @@ export const PROVIDER_TYPES: ProviderType[] = [
         defaultValue: false,
       },
       {
-        key: 'batchTranslationSize',
-        label: 'batchTranslationSize',
+        key: 'batchSize',
+        label: 'Batch Size',
         type: 'number',
         defaultValue: 10,
-        tips: 'batchTranslationSizeTip',
+        tips: 'batchSizeTip',
         depends: 'useBatchTranslation',
       },
       {
@@ -241,11 +241,11 @@ export const PROVIDER_TYPES: ProviderType[] = [
         defaultValue: false,
       },
       {
-        key: 'batchTranslationSize',
-        label: 'batchTranslationSize',
+        key: 'batchSize',
+        label: 'Batch Size',
         type: 'number',
         defaultValue: 10,
-        tips: 'batchTranslationSizeTip',
+        tips: 'batchSizeTip',
         depends: 'useBatchTranslation',
       },
       {
@@ -294,11 +294,11 @@ export const PROVIDER_TYPES: ProviderType[] = [
         defaultValue: false,
       },
       {
-        key: 'batchTranslationSize',
-        label: 'batchTranslationSize',
+        key: 'batchSize',
+        label: 'Batch Size',
         type: 'number',
         defaultValue: 10,
-        tips: 'batchTranslationSizeTip',
+        tips: 'batchSizeTip',
         depends: 'useBatchTranslation',
       },
       {
@@ -342,11 +342,11 @@ export const CONFIG_TEMPLATES: Record<string, ProviderType> = {
         defaultValue: false,
       },
       {
-        key: 'batchTranslationSize',
-        label: 'batchTranslationSize',
+        key: 'batchSize',
+        label: 'Batch Size',
         type: 'number',
         defaultValue: 10,
-        tips: 'batchTranslationSizeTip',
+        tips: 'batchSizeTip',
         depends: 'useBatchTranslation',
       },
       {
