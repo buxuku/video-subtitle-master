@@ -34,8 +34,8 @@
   "restore": "恢复",
   "restoreDefaultsSuccess": "已恢复默认设置",
   "restoreDefaultsFailed": "恢复默认设置失败",
-  "batchTranslationSize": "批量翻译条数",
-  "batchTranslationSizeTip": "受不同模型的 token 限制，你可以控制对全文进行拆分，控制每次最多翻译多少条字幕",
+  "batchSize": "批量翻译条数",
+  "batchSizeTip": "受不同模型的 token 限制，你可以控制对全文进行拆分，控制每次最多翻译多少条字幕",
   "apiTranslationBatchSize": "API 翻译批量条数",
   "apiTranslationBatchSizeTip": "受不同 API 的限制，你可以控制每次翻译多少条字幕"
 }

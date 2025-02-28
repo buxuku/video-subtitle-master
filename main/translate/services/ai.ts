@@ -25,13 +25,14 @@ export async function handleAISingleTranslation(
       ...provider,
       systemPrompt: provider.systemPrompt
     };
-
+    logMessage(`AI translate single: \n ${translationContent}`, 'info');
     let targetContent = await translator(
       translationContent,
       translationConfig,
       sourceLanguage,
       targetLanguage
     );
+    logMessage(`AI response: \n ${targetContent}`, 'info');
     targetContent = targetContent.replace(THINK_TAG_REGEX, '').trim();
 
     return {
