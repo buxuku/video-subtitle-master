@@ -3,7 +3,7 @@
   "translationServices": "翻译服务",
   "builtinProviders": "内置服务商",
   "customProviders": "自定义服务商",
-  "addCustomProvider": "添加自定义服务商",
+  "addCustomProvider": "添加自定义 OpenAI 服务",
   "providerName": "服务商名称",
   "apiAddress": "API 地址",
   "modelName": "模型名称",

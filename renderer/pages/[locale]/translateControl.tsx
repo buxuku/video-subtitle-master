@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 
 const TranslateControl: React.FC = () => {
   const { t } = useTranslation('translateControl');
+  const { t: commonT } = useTranslation('common');
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -137,7 +138,7 @@ const TranslateControl: React.FC = () => {
               )}
             >
               <span className="text-xl">{type.icon}</span>
-              <span>{type.name}</span>
+              <span>{commonT(`provider.${type.name}`, { defaultValue: type.name })}</span>
             </button>
           ))}
 
