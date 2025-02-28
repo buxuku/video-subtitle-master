@@ -13,6 +13,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import { useTranslation } from 'next-i18next';
+import packageInfo from '../../package.json';
 
 
 const Layout = ({ children }) => {
@@ -138,7 +139,7 @@ const Layout = ({ children }) => {
       <div className="flex flex-col">
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
           <h4 className="text-base font-semibold">
-            {t('headerTitle')}
+            {t('headerTitle')} <span className="text-xs text-gray-500 ml-2">v{packageInfo.version}</span>
           </h4>
         </header>
         <main className="">{children}</main>
