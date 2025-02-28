@@ -6,11 +6,11 @@
   "settings": "设置",
   "headerTitle": "批量为视频/音频生成字幕并翻译",
   "provider": {
-    "baidu": "百度",
-    "volc": "火山",
+    "baidu": "百度翻译",
+    "volc": "火山翻译",
     "deeplx": "DeepLx",
     "ollama": "Ollama",
-    "azure": "Azure Translator"
+    "azure": "Azure 翻译器"
   },
   "language": {
     "zh": "中文",

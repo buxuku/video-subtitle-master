@@ -56,7 +56,7 @@ I will provide you with multiple subtitle lines (wrapped in <source></source> ta
 export const PROVIDER_TYPES: ProviderType[] = [
   {
     id: 'baidu',
-    name: '百度翻译',
+    name: 'baidu',
     isBuiltin: true,
     isAi: false,
     icon: '🔤',
@@ -80,7 +80,7 @@ export const PROVIDER_TYPES: ProviderType[] = [
   },
   {
     id: 'volc',
-    name: '火山翻译',
+    name: 'volc',
     isBuiltin: true,
     isAi: false,
     icon: '🌋',
@@ -125,13 +125,13 @@ export const PROVIDER_TYPES: ProviderType[] = [
   },
   {
     id: 'azure',
-    name: 'Azure 翻译',
+    name: 'azure',
     isBuiltin: true,
     isAi: false,
     icon: '☁️',
     fields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { key: 'apiSecret', label: 'API Secret', type: 'password', required: true },
+      { key: 'apiSecret', label: 'Region', type: 'password', required: true },
       {
         key: 'batchSize',
         label: 'Batch Size',
