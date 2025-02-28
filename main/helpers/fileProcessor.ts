@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { exec } from 'child_process';
 import { extractAudio } from './ffmpeg';
-import translate from './translate';
+import translate from '../translate';
 import { getSrtFileName, isWin32, getExtraResourcesPath } from './utils';
 import { logMessage, store } from './storeManager';
 import { createMessageSender } from './messageHandler';
