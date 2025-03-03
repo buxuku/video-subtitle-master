@@ -66,10 +66,10 @@ cd video-subtitle-master
 yarn install 
 ```
 
-3️⃣ After installing dependencies, run `yarn start` or `npm start` to launch the project
+3️⃣ After installing dependencies, run `yarn dev` or `npm run dev` to launch the project
 
 ```shell
-yarn start
+yarn dev
 ```
 
 ## Manually Downloading and Importing Models
