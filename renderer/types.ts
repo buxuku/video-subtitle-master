@@ -1,7 +1,7 @@
 export interface ISystemInfo {
-    whisperInstalled?: boolean;
-    modelsInstalled?: string[];
-    [key: string]: any;
+    modelsInstalled: string[];
+    modelsPath: string;
+    downloadingModels: string[];
 }
 
 export interface IFiles {

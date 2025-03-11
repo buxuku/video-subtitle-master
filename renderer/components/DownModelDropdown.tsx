@@ -16,8 +16,6 @@ interface IProps {
   progress?: number;
   handleDownModel?: (source: string) => void;
   setShowGuide?: (type: boolean) => void;
-  installComplete?: boolean;
-  whisperLoading?: boolean;
 }
 
 const DownModelDropdown: FC<IProps> = ({
@@ -25,8 +23,6 @@ const DownModelDropdown: FC<IProps> = ({
   progress,
   handleDownModel,
   setShowGuide,
-  installComplete,
-  whisperLoading,
 }) => {
   const { t } = useTranslation("common");
   return (
@@ -34,7 +30,7 @@ const DownModelDropdown: FC<IProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          disabled={loading || !installComplete || whisperLoading}
+          disabled={loading}
           className="w-24"
         >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

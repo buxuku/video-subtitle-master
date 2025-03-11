@@ -37,5 +37,13 @@
   "batchSize": "Batch Translation Size",
   "batchSizeTip": "Due to token limits of different models, you can control how many subtitles to translate at once by splitting the full text. This controls the maximum number of subtitles per translation batch.",
   "apiTranslationBatchSize": "API Translation Batch number",
-  "apiTranslationBatchSizeTip": "Due to the limits of different APIs, you can control how many subtitles to translate at once. This controls the maximum number of subtitles per translation batch."
+  "apiTranslationBatchSizeTip": "Due to the limits of different APIs, you can control how many subtitles to translate at once. This controls the maximum number of subtitles per translation batch.",
+  "useCuda": "Enable CUDA",
+  "useCudaTip": "Please ensure your computer supports CUDA. If enabled, it will use CUDA to accelerate translation, otherwise it will use CPU for translation.",
+  "modelsPath": "Models Path",
+  "modelsPathTip": "The directory where Whisper models will be stored",
+  "modelsPathPlaceholder": "Select models storage path",
+  "selectPath": "Browse",
+  "modelPathSaved": "Models path saved successfully",
+  "saveFailed": "Failed to save settings"
 }

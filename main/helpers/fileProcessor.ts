@@ -7,11 +7,53 @@ import translate from '../translate';
 import { getSrtFileName, isWin32, getExtraResourcesPath } from './utils';
 import { logMessage, store } from './storeManager';
 import { createMessageSender } from './messageHandler';
+import { promisify } from 'util';
+import { getPath } from './whisper';
 
 async function extractAudioFromVideo(event, file, filePath, audioFile) {
   event.sender.send('taskStatusChange', file, 'extractAudio', 'loading');
   await extractAudio(filePath, audioFile);
   event.sender.send('taskStatusChange', file, 'extractAudio', 'done');
+}
+
+function loadWhisperAddon() {
+  const platform = process.platform;
+  const arch = process.arch;
+  const settings = store.get('settings') || { useCuda: false };
+  const useCuda = settings.useCuda || false;
+  let addonPath;
+
+  if (platform === 'darwin') {
+    if (arch === 'arm64') {
+      addonPath = path.join(getExtraResourcesPath(), 'addons/darwin-arm64/addon.node');
+    } else {
+      addonPath = path.join(getExtraResourcesPath(), 'addons/darwin-x64/addon.node');
+    }
+  } else if (platform === 'win32') {
+    if (useCuda) {
+      addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64-cuda/addon.node');
+    } else {
+      addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64/addon.node');
+    }
+  }
+
+  if (!addonPath) {
+    throw new Error('Unsupported platform or architecture');
+  }
+
+  const module = { exports: { whisper: null } };
+  process.dlopen(module, addonPath);
+  return module.exports.whisper as (params: any, callback: (error: Error | null, result?: any) => void) => void;
+}
+
+function formatSrtContent(subtitles: [string, string, string][]) {
+  return subtitles
+    .map((subtitle, index) => {
+      const [startTime, endTime, text] = subtitle;
+      // SRT 格式：序号 + 时间码 + 文本 + 空行
+      return `${index + 1}\n${startTime} --> ${endTime}\n${text.trim()}\n`;
+    })
+    .join('\n');
 }
 
 async function generateSubtitle(
@@ -23,79 +65,99 @@ async function generateSubtitle(
   hasOpenAiWhisper
 ) {
   const { model, sourceLanguage } = formData;
-  const userPath = app.getPath('userData');
-  const whisperPath = path.join(userPath, 'whisper.cpp/');
   const whisperModel = model?.toLowerCase();
-  const modelPath = `${whisperPath}models/ggml-${whisperModel}.bin`;
-
-  let mainPath = `${whisperPath}main`;
-  if (isWin32()) {
-    mainPath = path.join(
-      getExtraResourcesPath(),
-      'whisper-bin-x64',
-      'main.exe'
-    );
-  }
+  const modelPath = `${getPath('modelsPath')}/ggml-${whisperModel}.bin`;
 
   const settings = store.get('settings');
   const useLocalWhisper = settings?.useLocalWhisper;
   const whisperCommand = settings?.whisperCommand;
-  const builtinWhisperCommand = settings?.builtinWhisperCommand;
 
-  let runShell;
   if (hasOpenAiWhisper && useLocalWhisper && whisperCommand) {
-    // 使用用户自定义的本地 Whisper 命令
-    runShell = whisperCommand
+    let runShell = whisperCommand
       .replace(/\${audioFile}/g, audioFile)
       .replace(/\${whisperModel}/g, whisperModel)
       .replace(/\${srtFile}/g, srtFile)
       .replace(/\${sourceLanguage}/g, sourceLanguage || 'auto')
       .replace(/\${outputDir}/g, path.dirname(srtFile));
-  } else {
-    // 使用内置的 Whisper 命令
-    runShell = (
-      builtinWhisperCommand ||
-      '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}'
-    )
-      .replace(/\${mainPath}/g, mainPath)
-      .replace(/\${modelPath}/g, modelPath)
-      .replace(/\${audioFile}/g, audioFile)
-      .replace(/\${srtFile}/g, srtFile)
-      .replace(/\${sourceLanguage}/g, sourceLanguage);
-  }
 
-  // 确保路径被正确引用
-  runShell = runShell.replace(/("[^"]*")|(\S+)/g, (match, quoted, unquoted) => {
-    if (quoted) return quoted;
-    if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
-      return `"${unquoted}"`;
-    }
-    return unquoted || match;
-  });
-  console.log(runShell, 'runShell');
-  logMessage(`run shell ${runShell}`, 'info');
-  event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
-
-  await new Promise((resolve, reject) => {
-    exec(runShell, (error, stdout, stderr) => {
-      if (error) {
-        logMessage(`generate subtitle error: ${error}`, 'error');
-        reject(error);
-        return;
+    runShell = runShell.replace(/("[^"]*")|(\S+)/g, (match, quoted, unquoted) => {
+      if (quoted) return quoted;
+      if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
+        return `"${unquoted}"`;
       }
-      if (stderr) {
-        logMessage(`generate subtitle stderr: ${stderr}`, 'warning');
-      }
-      if (stdout) {
-        logMessage(`generate subtitle stdout: ${stdout}`, 'info');
-      }
-      logMessage(`generate subtitle done!`, 'info');
-      event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
-      resolve(1);
+      return unquoted || match;
     });
-  });
+    console.log(runShell, 'runShell');
+    logMessage(`run shell ${runShell}`, 'info');
+    event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
 
-  return `${srtFile}.srt`;
+    await new Promise((resolve, reject) => {
+      exec(runShell, (error, stdout, stderr) => {
+        if (error) {
+          logMessage(`generate subtitle error: ${error}`, 'error');
+          reject(error);
+          return;
+        }
+        if (stderr) {
+          logMessage(`generate subtitle stderr: ${stderr}`, 'warning');
+        }
+        if (stdout) {
+          logMessage(`generate subtitle stdout: ${stdout}`, 'info');
+        }
+        logMessage(`generate subtitle done!`, 'info');
+        event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
+        resolve(1);
+      });
+    });
+
+    return `${srtFile}.srt`;
+  } else {
+    event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
+    
+    try {
+      const whisper = loadWhisperAddon();
+      const whisperAsync = promisify(whisper);
+      const settings = store.get('settings') || { useCuda: false };
+      const useCuda = settings.useCuda || false;
+      const platform = process.platform;
+      const arch = process.arch;
+      
+      // 确定是否使用 GPU
+      const shouldUseGpu = platform === 'darwin' && arch === 'arm64' || (platform === 'win32' && useCuda);
+      
+      const whisperParams = {
+        language: sourceLanguage || 'auto',
+        model: modelPath,
+        fname_inp: audioFile,
+        use_gpu: shouldUseGpu,
+        flash_attn: false,
+        no_prints: true,
+        comma_in_time: false,
+        translate: false,
+        no_timestamps: false,
+        audio_ctx: 0,
+        max_len: 0,
+      };
+      logMessage(`whisperParams: ${JSON.stringify(whisperParams, null, 2)}`, 'info');
+
+      const result = await whisperAsync(whisperParams);
+      console.log(result, 'result');
+      
+      // 格式化字幕内容
+      const formattedSrt = formatSrtContent(result);
+      
+      // 写入格式化后的内容
+      await fs.promises.writeFile(srtFile + '.srt', formattedSrt);
+      
+      event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
+      logMessage(`generate subtitle done!`, 'info');
+      
+      return `${srtFile}.srt`;
+    } catch (error) {
+      logMessage(`generate subtitle error: ${error}`, 'error');
+      throw error;
+    }
+  }
 }
 
 async function translateSubtitle(
@@ -194,7 +256,7 @@ export async function processFile(
         if (err) console.log(err);
       });
     }
-    logMessage(`process file done ${fileName}`, 'info');
+        logMessage(`process file done ${fileName}`, 'info');
   } catch (error) {
     createMessageSender(event.sender).send('message', {
       type: 'error',

@@ -3,8 +3,9 @@ import { ISystemInfo } from 'types';
 
 export default function useSystemInfo() {
   const [systemInfo, setSystemInfo] = useState<ISystemInfo>({
-    whisperInstalled: true,
     modelsInstalled: [],
+    modelsPath: '',
+    downloadingModels: [],
   });
 
   const updateSystemInfo = async () => {

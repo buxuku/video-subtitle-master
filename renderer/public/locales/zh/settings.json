@@ -37,5 +37,13 @@
   "batchSize": "批量翻译条数",
   "batchSizeTip": "受不同模型的 token 限制，你可以控制对全文进行拆分，控制每次最多翻译多少条字幕",
   "apiTranslationBatchSize": "API 翻译批量条数",
-  "apiTranslationBatchSizeTip": "受不同 API 的限制，你可以控制每次翻译多少条字幕"
+  "apiTranslationBatchSizeTip": "受不同 API 的限制，你可以控制每次翻译多少条字幕",
+  "useCuda": "启用 CUDA",
+  "useCudaTip": "请确保你电脑支持 CUDA，如果启用，将使用 CUDA 加速翻译，否则将使用 CPU 进行翻译",
+  "modelsPath": "模型存储路径",
+  "modelsPathTip": "Whisper 模型文件的存储目录",
+  "modelsPathPlaceholder": "选择模型存储路径",
+  "selectPath": "浏览",
+  "modelPathSaved": "模型路径保存成功",
+  "saveFailed": "设置保存失败"
 }

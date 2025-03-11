@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, SetStateAction } from 'react';
+import React, { useEffect, useState, SetStateAction } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import {
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
-import { Globe, Trash2, CloudDownload, Cog, HelpCircle } from 'lucide-react';
+import { Globe, Trash2, Cog, HelpCircle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
@@ -72,11 +72,11 @@ const CommandInput = ({
 const Settings = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation('settings');
-  const [isReinstalling, setIsReinstalling] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(router.locale);
   const [useLocalWhisper, setUseLocalWhisper] = useState(false);
   const [whisperCommand, setWhisperCommand] = useState('');
-  const [builtinWhisperCommand, setBuiltinWhisperCommand] = useState('');
+  const [useCuda, setUseCuda] = useState(false);
+  const [modelsPath, setModelsPath] = useState('');
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -91,7 +91,8 @@ const Settings = () => {
         setCurrentLanguage(settings.language || router.locale);
         setUseLocalWhisper(settings.useLocalWhisper || false);
         setWhisperCommand(settings.whisperCommand || '');
-        setBuiltinWhisperCommand(settings.builtinWhisperCommand || '');
+        setUseCuda(settings.useCuda || false);
+        setModelsPath(settings.modelsPath || '');
       }
     };
     loadSettings();
@@ -108,22 +109,6 @@ const Settings = () => {
     }
   };
 
-  const handleReinstallWhisper = async () => {
-    setIsReinstalling(true);
-    try {
-      const result = await window?.ipc?.invoke('reinstallWhisper');
-      if (result) {
-        toast.success(t('whisperDeleted'));
-        router.push(`/${i18n.language}/home`);
-      } else {
-        toast.error(t('whisperDeleteFailed'));
-      }
-    } catch (error) {
-      toast.error(t('whisperDeleteFailed'));
-    } finally {
-      setIsReinstalling(false);
-    }
-  };
 
   const handleClearConfig = async () => {
     const result = await window?.ipc?.invoke('clearConfig');
@@ -143,6 +128,28 @@ const Settings = () => {
     setUseLocalWhisper(checked);
   };
 
+  const handleCudaChange = async (checked: boolean) => {
+    await window?.ipc?.invoke('setSettings', {
+      useCuda: checked,
+    });
+    setUseCuda(checked);
+  };
+
+  const handleSelectModelsPath = async () => {
+    const result = await window?.ipc?.invoke('selectDirectory');
+    if (result.canceled) return;
+    
+    const selectedPath = result.filePaths[0];
+    setModelsPath(selectedPath);
+    
+    try {
+      await window?.ipc?.invoke('setSettings', { modelsPath: selectedPath });
+      toast.success(t('modelPathSaved'));
+    } catch (error) {
+      toast.error(t('saveFailed'));
+    }
+  };
+
   // 统一的设置保存函数
   const saveSettings = async (settings: Partial<any>) => {
     try {
@@ -160,13 +167,6 @@ const Settings = () => {
     });
   };
 
-  const handleBuiltinCommandSave = () => {
-    saveSettings({
-      useLocalWhisper,
-      whisperCommand,
-      builtinWhisperCommand,
-    });
-  };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -207,19 +207,6 @@ const Settings = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span>{t('reinstallWhisper')}</span>
-            <Button
-              onClick={handleReinstallWhisper}
-              disabled={isReinstalling}
-              className="flex items-center"
-            >
-              <CloudDownload className="mr-2 h-4 w-4" />
-              {isReinstalling
-                ? t('reinstallingWhisper')
-                : t('reinstallWhisper')}
-            </Button>
-          </div>
-          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span>{t('useLocalWhisper')}</span>
               <TooltipProvider>
@@ -249,13 +236,53 @@ const Settings = () => {
             />
           )}
 
-          <CommandInput
-            label={t('builtinWhisperCommand')}
-            tooltip={t('builtinWhisperCommandTip')}
-            value={builtinWhisperCommand}
-            onChange={setBuiltinWhisperCommand}
-            onSave={handleBuiltinCommandSave}
-          />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span>{t('useCuda')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('useCudaTip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Switch
+              checked={useCuda}
+              onCheckedChange={handleCudaChange}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span>{t('modelsPath')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('modelsPathTip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={modelsPath}
+                readOnly
+                className="font-mono text-sm flex-1"
+                placeholder={t('modelsPathPlaceholder')}
+              />
+              <Button onClick={handleSelectModelsPath} size="sm" className="flex-shrink-0">
+                {t('selectPath')}
+              </Button>
+            </div>
+          </div>
+
         </CardContent>
       </Card>
 

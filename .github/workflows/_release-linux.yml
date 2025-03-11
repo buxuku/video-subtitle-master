@@ -1,0 +1,36 @@
+name: Build/release linux
+disabled: true
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-24.04]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build/release Electron app
+        uses: therealartti/electron-builder-action@v1.0.0
+        with:
+          github_token: ${{ secrets.TOKEN }}
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./dist/*
