@@ -42,9 +42,9 @@ const ModelsControl = () => {
   const { t } = useTranslation('modelsControl');
   const { t: tCommon } = useTranslation('common');
   const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
-    whisperInstalled: true,
     modelsInstalled: [],
     downloadingModels: [],
+    modelsPath: '',
   });
   const [downSource, setDownSource] = useState('huggingface');
   useEffect(() => {

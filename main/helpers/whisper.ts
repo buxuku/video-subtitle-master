@@ -1,22 +1,22 @@
-import { exec, spawn } from "child_process";
+import { spawn } from "child_process";
 import { app } from "electron";
 import path from "path";
-import git from "isomorphic-git";
-import http from "isomorphic-git/http/node";
 import { isAppleSilicon, isWin32 } from "./utils";
 import { BrowserWindow, DownloadItem } from 'electron';
 import decompress from 'decompress';
 import fs from 'fs-extra';
+import { store } from './storeManager';
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
-  const whisperPath = path.join(userDataPath, "whisper.cpp");
-  const mainPath = path.join(userDataPath, "whisper.cpp/main");
-  const modelsPath = path.join(userDataPath, "whisper.cpp/models");
+  const settings = store.get('settings') || { modelsPath: path.join(userDataPath, "whisper-models") };
+  // 使用用户自定义的模型路径或默认路径
+  const modelsPath = settings.modelsPath || path.join(userDataPath, "whisper-models");
+  if (!fs.existsSync(modelsPath)) {
+    fs.mkdirSync(modelsPath, { recursive: true });
+  }
   const res = {
     userDataPath,
-    whisperPath,
-    mainPath,
     modelsPath,
   };
   if (key) return res[key];
@@ -35,106 +35,6 @@ export const getModelsInstalled = () => {
   } catch (e) {
     return [];
   }
-};
-
-export const checkWhisperInstalled = () => {
-  const whisperPath = getPath("modelsPath");
-  return fs.existsSync(whisperPath);
-};
-
-const whisperRepos = {
-  github: "https://github.com/ggerganov/whisper.cpp",
-  gitee: "https://gitee.com/mirrors/whisper.cpp.git",
-};
-
-export const install = (event, source) => {
-  const repoUrl = whisperRepos[source] || whisperRepos.github;
-  const whisperPath = getPath("whisperPath");
-  if (checkWhisperInstalled()) {
-    event.sender.send("installWhisperComplete", true);
-    return;
-  }
-  git
-    .clone({
-      fs,
-      http,
-      dir: whisperPath,
-      url: repoUrl,
-      singleBranch: true,
-      depth: 1,
-      ref: 'v1.7.2',
-      onProgress: (res) => {
-        if (res.total) {
-          event.sender.send("installWhisperProgress", res.phase, res.loaded / res.total);
-        }
-      },
-    })
-    .then((res) => {
-      if (checkWhisperInstalled()) {
-        console.log(`仓库已经被克隆到: ${whisperPath}`);
-        event.sender.send("installWhisperComplete", true);
-      } else {
-        install(event, source);
-      }
-    })
-    .catch((err) => {
-      console.error(`克隆仓库时出错: ${err}`);
-      exec(`rm -rf "${whisperPath}"`, (err, stdout) => {
-        console.log(err);
-      });
-      event.sender.send("message", err);
-      event.sender.send("installWhisperComplete", false);
-    });
-};
-
-export const makeWhisper = (event) => {
-  const { whisperPath, mainPath } = getPath();
-  if (fs.existsSync(mainPath) || isWin32()) {
-    event.sender.send("makeWhisperComplete", true);
-    return;
-  }
-  if (!checkWhisperInstalled()) {
-    event.sender.send("message", "whisper.cpp 未下载，请先下载 whisper.cpp");
-  }
-  event.sender.send("beginMakeWhisper", true);
-  
-  // 修改编译命令以支持 GPU
-  const makeCommand = isAppleSilicon() 
-    ? `WHISPER_COREML=1 make -j -C "${whisperPath}"`  // Apple Silicon 继续使用 CoreML
-    : `WHISPER_CUBLAS=1 make -j -C "${whisperPath}"`; // 其他平台启用 CUDA 支持
-
-  exec(makeCommand, (err, stdout) => {
-    if (err) {
-      // 如果 CUDA 编译失败，尝试回退到 CPU 版本
-      if (err.message?.includes('cublas')) {
-        console.log('CUDA 编译失败，回退到 CPU 版本');
-        const cpuCommand = `make -j -C "${whisperPath}"`;
-        exec(cpuCommand, (cpuErr, cpuStdout) => {
-          if (cpuErr) {
-            event.sender.send("message", cpuErr);
-            event.sender.send("makeWhisperComplete", false);
-          } else {
-            event.sender.send("getSystemComplete", {
-              whisperInstalled: checkWhisperInstalled(),
-              modelsInstalled: getModelsInstalled(),
-            });
-            event.sender.send("message", "编译完成 (CPU 版本)");
-            event.sender.send("makeWhisperComplete", true);
-          }
-        });
-      } else {
-        event.sender.send("message", err);
-        event.sender.send("makeWhisperComplete", false);
-      }
-    } else {
-      event.sender.send("getSystemComplete", {
-        whisperInstalled: checkWhisperInstalled(),
-        modelsInstalled: getModelsInstalled(),
-      });
-      event.sender.send("message", "编译完成 (GPU 加速版本)");
-      event.sender.send("makeWhisperComplete", !err);
-    }
-  });
 };
 
 export const deleteModel = async (model) => {
@@ -166,14 +66,10 @@ export const downloadModelSync = async (model: string, source: string, onProcess
   if (fs.existsSync(modelPath) && (!isAppleSilicon() || fs.existsSync(coreMLModelPath))) {
     return;
   }
-  if (!checkWhisperInstalled()) {
-    throw Error("whisper.cpp 未安装，请先安装 whisper.cpp");
-  }
 
   const baseUrl = `https://${source === 'huggingface' ? 'huggingface.co' : 'hf-mirror.com'}/ggerganov/whisper.cpp/resolve/main`;
   const url = `${baseUrl}/ggml-${model}.bin`;
   const coreMLUrl = `${baseUrl}/ggml-${model}-encoder.mlmodelc.zip`;
-  
   return new Promise((resolve, reject) => {
     const win = new BrowserWindow({ show: false });
     let downloadCount = 0;

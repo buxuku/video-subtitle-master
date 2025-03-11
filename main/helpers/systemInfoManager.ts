@@ -1,13 +1,9 @@
 import { ipcMain, BrowserWindow, dialog } from 'electron';
 import {
-  checkWhisperInstalled,
   getModelsInstalled,
   getPath,
   deleteModel,
   downloadModelSync,
-  install,
-  makeWhisper,
-  reinstallWhisper,
 } from './whisper';
 import fs from 'fs';
 import path from 'path';
@@ -17,7 +13,6 @@ let downloadingModels = new Set<string>();
 export function setupSystemInfoManager(mainWindow: BrowserWindow) {
   ipcMain.handle('getSystemInfo', async () => {
     return {
-      whisperInstalled: checkWhisperInstalled(),
       modelsInstalled: getModelsInstalled(),
       modelsPath: getPath('modelsPath'),
       downloadingModels: Array.from(downloadingModels),
@@ -55,14 +50,6 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     }
   });
 
-  ipcMain.on('installWhisper', (event, source) => {
-    install(event, source);
-  });
-
-  ipcMain.on('makeWhisper', (event) => {
-    makeWhisper(event);
-  });
-
   ipcMain.handle('importModel', async (event) => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
@@ -85,16 +72,4 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
 
     return false;
   });
-
-  ipcMain.handle('reinstallWhisper', async (event) => {
-    try {
-      await reinstallWhisper();
-      return true;
-    } catch (error) {
-      console.error('删除 whisper.cpp 目录失败:', error);
-      event.sender.send('message', `删除 whisper.cpp 目录失败: ${error.message}`);
-      return false;
-    }
-  });
-
 }

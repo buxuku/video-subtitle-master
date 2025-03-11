@@ -13,31 +13,6 @@ console.log(app.getVersion(), 'version');
 export function setupStoreHandlers() {
   // 启动时初始化服务商配置
   getAndInitializeProviders().then(async () => {
-    const appPath = app.getAppPath();
-    console.log('appPath', appPath);
-    const appaddon = path.join(appPath, 'main/addons/addon.node');
-    console.log('文件存在:', fs.existsSync(appaddon));
-    const { whisper } = await require('../addons/addon.node');
-    const whisperParams = {
-      language: 'en',
-      model:
-        '/Users/wukong/Library/Application Support/video-subtitle-master/whisper.cpp/models/ggml-tiny.bin',
-      fname_inp:
-        '/Users/wukong/Documents/code/VideoSubtitleGenerator/examples/demo1.wav',
-      use_gpu: false,
-      flash_attn: false,
-      no_prints: true,
-      comma_in_time: false,
-      translate: true,
-      no_timestamps: false,
-      audio_ctx: 0,
-      max_len: 0,
-    };
-    const whisperAsync = promisify(whisper);
-    whisperAsync(whisperParams).then((res) => {
-      console.log(res);
-    });
-    console.log(whisper, 'dd');
     logMessage('Translation providers initialized', 'info');
   });
 

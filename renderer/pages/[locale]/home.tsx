@@ -3,7 +3,6 @@ import { cn } from "lib/utils";
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import Guide from '@/components/Guide';
 
 import useSystemInfo from 'hooks/useStystemInfo';
 import useFormConfig from 'hooks/useFormConfig';
@@ -95,7 +94,7 @@ export default function Component() {
         <div className="flex-1" />
         <TaskControls formData={formData} files={files} />
       </div>
-      <Guide systemInfo={systemInfo} updateSystemInfo={updateSystemInfo} />
+      {/* <Guide systemInfo={systemInfo} updateSystemInfo={updateSystemInfo} /> */}
     </div>
   );
 }

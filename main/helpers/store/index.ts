@@ -1,6 +1,8 @@
 import Store from 'electron-store';
 import { StoreType } from './types';
 import { defaultUserConfig, isAppleSilicon } from '../utils';
+import path from 'path';
+import { app } from 'electron';
 
 const defaultWhisperCommand = isAppleSilicon()
   ? 'whisper "${audioFile}" --model ${whisperModel} --output_format srt --output_dir "${outputDir}" --language ${sourceLanguage}'
@@ -14,8 +16,9 @@ export const store = new Store<StoreType>({
       language: 'zh',
       useLocalWhisper: false,
       whisperCommand: defaultWhisperCommand,
-      builtinWhisperCommand:
-        '"${mainPath}" -m "${modelPath}" -f "${audioFile}" -osrt -of "${srtFile}" -l ${sourceLanguage}',
+      builtinWhisperCommand: defaultWhisperCommand,
+      useCuda: true,
+      modelsPath: path.join(app.getPath('userData'), 'whisper-models'),
     },
     logs: [],
   },

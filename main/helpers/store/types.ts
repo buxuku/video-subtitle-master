@@ -14,6 +14,8 @@ export type StoreType = {
     language: string;
     useLocalWhisper: boolean;
     builtinWhisperCommand: string;
+    useCuda: boolean;
+    modelsPath: string;
   };
   providerVersion?: number;
   logs: LogEntry[];

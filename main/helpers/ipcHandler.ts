@@ -57,4 +57,10 @@ export function setupIpcHandlers(mainWindow: BrowserWindow) {
 
     return validPaths.filter(Boolean);
   });
+
+  ipcMain.handle('selectDirectory', async () => {
+    return dialog.showOpenDialog({
+      properties: ['openDirectory']
+    });
+  });
 }
