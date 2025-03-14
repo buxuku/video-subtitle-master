@@ -9,7 +9,9 @@ files:
     filter:
       - package.json
       - app
-publish: ['github']
+publish:
+  provider: github
+  publishAutoUpdate: false
 mac:
   target:
     - zip
@@ -59,3 +61,6 @@ asarUnpack:
   - "node_modules/ffmpeg-static/ffmpeg.macos"
   - "node_modules/ffmpeg-static/ffmpeg.linux"
   - "node_modules/ffmpeg-static/ffmpeg.win32"
+
+# 禁用 blockmap
+generateUpdatesFilesForAllChannels: false
