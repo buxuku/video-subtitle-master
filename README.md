@@ -6,8 +6,14 @@
 
 ![preview](./resources/preview.png)
 
-> [!NOTE]
-> 当前 release 包在 mac 环境下测试通过， window 仅在虚拟机测试通过，如果大家在运行过程中遇到问题，欢迎提 Issue 反馈。
+## 关于 CUDA 的支持
+
+因为本人使用的是苹果芯片，缺少 window CUDA 的开发环境，对于 CUDA 的支持，开发测试都存在较多场景无法兼顾的情况。
+
+- 目前提供了 CUDA 11.8.0 和 12.8.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
+- 要启用 CUDA，需要确定自己的电脑支持 CUDA, 并安装了 CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
+- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的 11.8.0 或者 12.8.1 版本
+
 
 ## 💥特性
 

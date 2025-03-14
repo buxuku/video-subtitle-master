@@ -6,8 +6,13 @@ Video Subtitle Master is a powerful desktop application for batch generating sub
 
 ![preview](./resources/preview-en.png)
 
-> [!NOTE]
-> The current release has been tested on macOS. Windows testing was done in a virtual environment. If you encounter any issues, please feel free to open an Issue for feedback.
+## About CUDA support
+
+Because I use an Apple Silicon chip, I lack a Windows CUDA development environment. For CUDA support, there are many scenarios that are difficult to cover both in development and testing.
+
+- Currently, CUDA 11.8.0 and 12.8.1 versions are provided through GitHub Actions, which may have compatibility issues with the environment
+- To enable CUDA, you need to determine if your computer supports CUDA and has installed the CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
+- The version of the CUDA toolkit theoretically supports backward compatibility. Please choose the appropriate 11.8.0 or 12.8.1 version based on your graphics card support
 
 ## 💥 Features
 
