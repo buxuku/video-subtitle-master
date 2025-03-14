@@ -36,8 +36,8 @@ jobs:
       - name: Prepare CUDA files
         if: matrix.os == 'windows-latest'
         run: |
-          Remove-Item -Path "extraResources/addons/win-x64-cuda/addon.node" -Force
           if ('${{ matrix.cuda_version }}' -eq '11.8.0') {
+            Remove-Item -Path "extraResources/addons/win-x64-cuda/addon.node" -Force
             Copy-Item -Path "extraResources/addons/win-x64-cuda11.8/addon.node" -Destination "extraResources/addons/win-x64-cuda/addon.node"
           }
           Remove-Item -Path "extraResources/addons/win-x64-cuda11.8" -Recurse -Force
