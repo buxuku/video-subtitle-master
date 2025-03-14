@@ -9,11 +9,39 @@ import { logMessage, store } from './storeManager';
 import { createMessageSender } from './messageHandler';
 import { promisify } from 'util';
 import { getPath } from './whisper';
+import { execSync } from 'child_process';
 
 async function extractAudioFromVideo(event, file, filePath, audioFile) {
   event.sender.send('taskStatusChange', file, 'extractAudio', 'loading');
   await extractAudio(filePath, audioFile);
   event.sender.send('taskStatusChange', file, 'extractAudio', 'done');
+}
+
+function checkCudaSupport() {
+  if (process.platform !== 'win32') return false;
+  
+  try {
+    // 检查 nvcc 是否存在（CUDA Toolkit 的编译器）
+    execSync('nvcc --version', { encoding: 'utf8' });
+    
+    // 检查 nvidia-smi 是否存在（NVIDIA 驱动程序）
+    const nsmiResult = execSync('nvidia-smi', { encoding: 'utf8' });
+    
+    // 从 nvidia-smi 输出中提取 CUDA 版本
+    const cudaVersionMatch = nsmiResult.match(/CUDA Version: (\d+\.\d+)/);
+    if (cudaVersionMatch) {
+      const cudaVersion = parseFloat(cudaVersionMatch[1]);
+      // 根据 CUDA 版本选择合适的 addon
+      if (cudaVersion >= 12.0) {
+        return '12.8.1';
+      } else if (cudaVersion >= 11.8) {
+        return '11.8.0';
+      }
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
 }
 
 function loadWhisperAddon() {
@@ -30,8 +58,18 @@ function loadWhisperAddon() {
       addonPath = path.join(getExtraResourcesPath(), 'addons/darwin-x64/addon.node');
     }
   } else if (platform === 'win32') {
+    // 只有当用户设置启用 CUDA 且系统支持时才使用 CUDA 版本
     if (useCuda) {
-      addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64-cuda/addon.node');
+      const cudaSupport = checkCudaSupport();
+      if (cudaSupport) {
+        // 根据检测到的 CUDA 版本选择对应的 addon
+        addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64-cuda/addon.node');
+        logMessage(`Using CUDA ${cudaSupport} addon`, 'info');
+      } else {
+        // 如果不支持 CUDA，回退到 CPU 版本
+        addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64/addon.node');
+        logMessage('CUDA not supported or not properly installed, falling back to CPU version', 'warning');
+      }
     } else {
       addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64/addon.node');
     }

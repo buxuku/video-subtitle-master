@@ -37,7 +37,7 @@ win:
     filter:
       - "**/*"
   requestedExecutionLevel: asInvoker
-  artifactName: "${productName}_Windows_${version}_${arch}.${ext}"
+  artifactName: "${productName}_Windows_${version}_${arch}_cuda${env.CUDA_VERSION}.${ext}"
 linux:
   target:
     - AppImage
