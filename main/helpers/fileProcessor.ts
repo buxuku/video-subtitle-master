@@ -26,11 +26,13 @@ function checkCudaSupport() {
     
     // 检查 nvidia-smi 是否存在（NVIDIA 驱动程序）
     const nsmiResult = execSync('nvidia-smi', { encoding: 'utf8' });
-    
+    logMessage(`nsmiResult: ${nsmiResult}`, 'info');
     // 从 nvidia-smi 输出中提取 CUDA 版本
     const cudaVersionMatch = nsmiResult.match(/CUDA Version: (\d+\.\d+)/);
+    logMessage(`cudaVersionMatch: ${JSON.stringify(cudaVersionMatch, null, 2)}`, 'info');
     if (cudaVersionMatch) {
       const cudaVersion = parseFloat(cudaVersionMatch[1]);
+      logMessage(`cudaVersion: ${cudaVersion}`, 'info');
       // 根据 CUDA 版本选择合适的 addon
       if (cudaVersion >= 12.0) {
         return '12.8.1';
@@ -61,6 +63,7 @@ function loadWhisperAddon() {
     // 只有当用户设置启用 CUDA 且系统支持时才使用 CUDA 版本
     if (useCuda) {
       const cudaSupport = checkCudaSupport();
+      logMessage(`cudaSupport: ${cudaSupport}`, 'info');
       if (cudaSupport) {
         // 根据检测到的 CUDA 版本选择对应的 addon
         addonPath = path.join(getExtraResourcesPath(), 'addons/win-x64-cuda/addon.node');
