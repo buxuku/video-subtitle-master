@@ -15,12 +15,14 @@ jobs:
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14(macos-latest) is apple silicon
-        os: [macos-latest, windows-latest, macos-13]
+        os: [macos-latest, macos-13]
         include:
           - os: windows-latest
             cuda_version: '12.8.1'
+            cuda_path: 'extraResources/addons/win-x64-cuda'
           - os: windows-latest
             cuda_version: '11.8.0'
+            cuda_path: 'extraResources/addons/win-x64-cuda11.8'
 
     steps:
       - name: Check out Git repository
@@ -31,11 +33,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Prepare CUDA 11.8 files
-        if: matrix.os == 'windows-latest' && matrix.cuda_version == '11.8.0'
+      - name: Prepare CUDA files
+        if: matrix.os == 'windows-latest'
         run: |
           Remove-Item -Path "extraResources/addons/win-x64-cuda/addon.node" -Force
-          Copy-Item -Path "extraResources/addons/win-x64-cuda11.8/addon.node" -Destination "extraResources/addons/win-x64-cuda/addon.node"
+          if ('${{ matrix.cuda_version }}' -eq '11.8.0') {
+            Copy-Item -Path "extraResources/addons/win-x64-cuda11.8/addon.node" -Destination "extraResources/addons/win-x64-cuda/addon.node"
+          }
           Remove-Item -Path "extraResources/addons/win-x64-cuda11.8" -Recurse -Force
 
       - name: Build/release Electron app - Windows CUDA
