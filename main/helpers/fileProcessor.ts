@@ -35,7 +35,7 @@ function checkCudaSupport() {
       logMessage(`cudaVersion: ${cudaVersion}`, 'info');
       // 根据 CUDA 版本选择合适的 addon
       if (cudaVersion >= 12.0) {
-        return '12.8.1';
+        return '12.4.1';
       } else if (cudaVersion >= 11.8) {
         return '11.8.0';
       }
