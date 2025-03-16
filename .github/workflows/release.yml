@@ -17,10 +17,10 @@ jobs:
         # macos-13 is an intel runner, macos-14(macos-latest) is apple silicon
         os: [macos-latest, macos-13]
         include:
-          - os: windows-latest
-            cuda_version: '12.8.1'
+          - os: windows-2019
+            cuda_version: '12.4.1'
             cuda_path: 'extraResources/addons/win-x64-cuda'
-          - os: windows-latest
+          - os: windows-2019
             cuda_version: '11.8.0'
             cuda_path: 'extraResources/addons/win-x64-cuda11.8'
 
@@ -31,10 +31,10 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 20.14.0
 
       - name: Prepare CUDA files
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         run: |
           if ('${{ matrix.cuda_version }}' -eq '11.8.0') {
             Remove-Item -Path "extraResources/addons/win-x64-cuda/addon.node" -Force
@@ -44,7 +44,7 @@ jobs:
 
       - name: Build/release Electron app - Windows CUDA
         uses: samuelmeuli/action-electron-builder@v1.6.0
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2019'
         env:
           CUDA_VERSION: ${{ matrix.cuda_version }}
         with:
