@@ -5,7 +5,7 @@ import {
   deleteModel,
   downloadModelSync,
 } from './whisper';
-import fs from 'fs';
+import fse from 'fs-extra';
 import path from 'path';
 
 let downloadingModels = new Set<string>();
@@ -53,7 +53,7 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
   ipcMain.handle('importModel', async (event) => {
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
-      filters: [{ name: 'Model Files', extensions: ['bin'] }],
+      filters: [{ name: 'Model Files', extensions: ['bin', 'mlmodelc'] }],
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
@@ -62,7 +62,7 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
       const destPath = path.join(getPath('modelsPath'), fileName);
 
       try {
-        await fs.promises.copyFile(sourcePath, destPath);
+        await fse.copy(sourcePath, destPath);
         return true;
       } catch (error) {
         console.error('导入模型失败:', error);

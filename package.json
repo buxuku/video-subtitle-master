@@ -36,7 +36,7 @@
     "electron-store": "^8.2.0",
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.2",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.0",
     "i18next": "^23.15.2",
     "isomorphic-git": "^1.25.10",
     "lodash": "^4.17.21",
