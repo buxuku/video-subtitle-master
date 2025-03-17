@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { BotIcon, FileVideo2, Github, MonitorPlay, Languages, Settings } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 import { openUrl } from 'lib/utils';
 import { useRouter } from 'next/router';
 import { toast } from 'sonner';
@@ -119,6 +120,7 @@ const Layout = ({ children }) => {
           </TooltipProvider>
         </nav>
         <nav className="mt-auto grid gap-1 p-2">
+          <ThemeToggle />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild className="w-10">
