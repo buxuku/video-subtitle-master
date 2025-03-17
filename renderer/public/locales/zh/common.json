@@ -102,5 +102,6 @@
   "Error: missingKeyOrSecret": "请先配置 API KEY 和 API SECRET",
   "viewLogs": "查看日志",
   "logs": "日志",
-  "clearLogs": "清空日志"
+  "clearLogs": "清空日志",
+  "toggleTheme": "切换主题"
 }
