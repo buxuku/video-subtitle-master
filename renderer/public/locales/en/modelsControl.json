@@ -8,6 +8,7 @@
 	"domesticMirror": "Domestic Mirror (Faster)",
 	"officialSource": "HuggingFace Official Source (Slower)",
 	"importModel": "Import Model",
+	"importModelSuccess": "Model imported successfully",
 	"modelName": "Model Name",
 	"description": "Description",
 	"operation": "Operation",

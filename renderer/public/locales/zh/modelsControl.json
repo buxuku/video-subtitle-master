@@ -8,6 +8,7 @@
 	"domesticMirror": "国内加速源（更快）",
 	"officialSource": "HuggingFace官方源(较慢)",
 	"importModel": "导入模型",
+	"importModelSuccess": "模型导入成功",
 	"modelName": "模型名",
 	"description": "描述",
 	"operation": "操作",

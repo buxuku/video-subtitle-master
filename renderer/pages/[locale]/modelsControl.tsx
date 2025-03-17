@@ -63,6 +63,9 @@ const ModelsControl = () => {
     try {
       const result = await window?.ipc?.invoke('importModel');
       if (result) {
+        toast.success(t('importModelSuccess'), {
+          duration: 2000,
+        });
         updateSystemInfo();
       }
     } catch (error) {
