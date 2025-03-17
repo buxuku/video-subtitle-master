@@ -102,5 +102,6 @@
 	"Error: missingKeyOrSecret": "Please configure API KEY and API SECRET",
   "viewLogs": "View Logs",
   "logs": "Logs",
-  "clearLogs": "Clear Logs"
+  "clearLogs": "Clear Logs",
+  "toggleTheme": "Toggle Theme"
 }
