@@ -10,9 +10,13 @@ Video Subtitle Master is a powerful desktop application for batch generating sub
 
 Because I use an Apple Silicon chip, I lack a Windows CUDA development environment. For CUDA support, there are many scenarios that are difficult to cover both in development and testing.
 
-- Currently, CUDA 11.8.0 and 12.8.1 versions are provided through GitHub Actions, which may have compatibility issues with the environment
+- Currently, CUDA 11.8.0 and 12.4.1 versions are provided through GitHub Actions, which may have compatibility issues with the environment
 - To enable CUDA, you need to determine if your computer supports CUDA and has installed the CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
-- The version of the CUDA toolkit theoretically supports backward compatibility. Please choose the appropriate 11.8.0 or 12.8.1 version based on your graphics card support
+- The version of the CUDA toolkit theoretically supports backward compatibility. Please choose the appropriate 11.8.0 or 12.4.1 version based on your graphics card support
+
+## Core ML support
+
+Starting from version 1.20.0, Core ML is supported on Apple Silicon, providing faster speech recognition. If you are using an Apple Silicon chip, please download the mac arm64 version of the release package. It will automatically enable Core ML acceleration.
 
 ## 💥 Features
 
@@ -37,9 +41,6 @@ This application retains all the features of the original [VideoSubtitleGenerato
 - Option to choose model download source (domestic mirror or official source)
 - Customizable number of concurrent tasks
 
-## Core ML support
-
-Starting from version 1.20.0, Core ML is supported on Apple Silicon, providing faster speech recognition. For users who have previously installed older versions, please uninstall the old version first and then reinstall the new version. Additionally, select "Reinstall Whisper" in the settings interface to enable Core ML acceleration.
 
 ## Translation Services
 
@@ -48,6 +49,16 @@ This project supports various translation services, including Baidu Translation,
 For information on obtaining API keys for services like Baidu Translation and Volcano Engine, please refer to https://bobtranslate.com/service/. We appreciate the information provided by [Bob](https://bobtranslate.com/), an excellent software tool.
 
 ## 🔦 Usage (For End Users)
+
+Please download the appropriate package based on your computer's system, chip, and graphics card.
+
+| System | Chip | Graphics Card | Download Package |
+| ---- | ---- | ---- | ---- |
+| Windows | x64 | CUDA >= 11.8.0 < 12.0.0 | windows-x64_cuda11.8.0 |
+| Windows | x64 | CUDA >= 12.0.0 | windows-x64_cuda12.4.1 |
+| Windows | x64 | no CUDA | both versions above |
+| Mac | Apple | support CoreML | mac-arm64 |
+| Mac | Intel | no support CoreML | mac-x64 |
 
 1. Go to the [releases](https://github.com/buxuku/video-subtitle-master/releases) page and download the appropriate package for your operating system
 2. Install and run the program
@@ -87,7 +98,9 @@ Due to the large size of model files, downloading them through the software may 
 2. Hugging Face official source:
    https://huggingface.co/ggerganov/whisper.cpp/tree/main
 
-After downloading, you can import the model files into the application using the "Import Model" feature on the "Model Management" page.
+If you are using an Apple Silicon chip, you need to download the corresponding encoder.mlmodelc file. After downloading, you can import the model files into the application using the "Import Model" feature on the "Model Management" page.
+
+After downloading, you can import the model files into the application using the "Import Model" feature on the "Model Management" page. Or you can directly copy the model files to the model directory.
 
 Import steps:
 1. On the "Model Management" page, click the "Import Model" button.
@@ -106,7 +119,11 @@ Then try running the application again.
 
 ## Contributing
 
-Issues and Pull Requests are welcome to help improve this project!
+👏🏻 Issues and Pull Requests are welcome to help improve this project!
+
+👨‍👨‍👦‍👦 If you have any usage questions, welcome to join the WeChat group for discussion:
+
+![wechat](./resources/WechatIMG428.jpg)
 
 ## License
 

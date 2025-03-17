@@ -10,10 +10,13 @@
 
 因为本人使用的是苹果芯片，缺少 window CUDA 的开发环境，对于 CUDA 的支持，开发测试都存在较多场景无法兼顾的情况。
 
-- 目前提供了 CUDA 11.8.0 和 12.8.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
+- 目前提供了 CUDA 11.8.0 和 12.4.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
 - 要启用 CUDA，需要确定自己的电脑支持 CUDA, 并安装了 CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
-- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的 11.8.0 或者 12.8.1 版本
+- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的 11.8.0 或者 12.4.1 版本
 
+## 关于 Core ML 的支持
+
+从 1.20.0 版本开始，在苹果芯片上，支持使用 Core ML 加速语音识别。如果是苹果芯片，请下载 mac arm64 版本的 release 包。将会自动启动 Core ML 加速。
 
 ## 💥特性
 
@@ -38,9 +41,7 @@
 - 支持选择模型下载源（国内镜像源或官方源）
 - 支持自定义并发任务数量
 
-## Core ML 支持
 
-从 1.20.0 版本开始，在苹果芯片上，支持使用 Core ML 加速语音识别。对于之前安装过老版本的朋友，请先卸载老版本，然后重新安装新版本。并在设置界面里面，选择重新安装 `whisper.cpp`。即可正常使用 Core ML 加速。
 
 ## 翻译服务
 
@@ -49,6 +50,16 @@
 对于百度翻译、火山引擎等服务的 API 申请方法，可以参考 https://bobtranslate.com/service/ ，感谢 [Bob](https://bobtranslate.com/) 这款优秀的软件提供的信息。
 
 ## 🔦使用 (普通用户)
+
+请根据自己的电脑系统，芯片，显卡，选择下载对应安装包。
+
+| 系统 | 芯片 | 显卡 | 下载安装包 |
+| ---- | ---- | ---- | ---- |
+| Windows | x64 | CUDA >= 11.8.0 < 12.0.0 | windows-x64_cuda11.8.0 |
+| Windows | x64 | CUDA >= 12.4.1 | windows-x64_cuda12.4.1 |
+| Windows | x64 | 无 CUDA | 以上两个版本均可 |
+| Mac | Apple | 支持 CoreML | mac-arm64 |
+| Mac | Intel | 不支持 CoreML | mac-x64 |
 
 1. 前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面根据自己的操作系统下载安装包
 2. 安装并运行程序
@@ -88,7 +99,9 @@ yarn dev
 2. Hugging Face 官方源：
    https://huggingface.co/ggerganov/whisper.cpp/tree/main
 
-下载完成后，您可以通过应用的"模型管理"页面中的"导入模型"功能将下载的模型文件导入到应用中。
+如果是苹果芯片，需要同时下载模型对应的 encoder.mlmodelc 文件。并解压出来放在模型相同目录下。
+
+下载完成后，您可以通过应用的"模型管理"页面中的"导入模型"功能将下载的模型文件导入到应用中。或者直接复制到模型目录里面即可。
 
 导入步骤：
 1. 在"模型管理"页面中，点击"导入模型"按钮。
@@ -107,7 +120,11 @@ sudo xattr -dr com.apple.quarantine /Applications/Video\ Subtitle\ Master.app
 
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request 来帮助改进这个项目！
+👏🏻 欢迎提交 Issue 和 Pull Request 来帮助改进这个项目！
+
+👨‍👨‍👦‍👦 如果有任何使用问题，也欢迎来这里交流:
+
+![wechat](./resources/WechatIMG428.jpg)
 
 ## 许可证
 
