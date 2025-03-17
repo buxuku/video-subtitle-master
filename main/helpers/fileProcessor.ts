@@ -146,6 +146,8 @@ async function generateSubtitle(
           logMessage(`generate subtitle stdout: ${stdout}`, 'info');
         }
         logMessage(`generate subtitle done!`, 'info');
+        // 对于内嵌的 whisper, 无法自定义输出的字幕文件名，比如音频为 demo_temp.wav, 输出的字幕文件为 demo_temp.srt, 所以需要重命名为 demo.srt
+        fs.renameSync(srtFile + '_temp.srt', srtFile + '.srt');
         event.sender.send('taskStatusChange', file, 'extractSubtitle', 'done');
         resolve(1);
       });
@@ -251,7 +253,7 @@ export async function processFile(
         customSourceSrtFileName,
         templateData
       );
-      const audioFile = path.join(directory, `${sourceSrtFileName}.wav`);
+      const audioFile = path.join(directory, `${sourceSrtFileName}_temp.wav`);
 
       srtFile = path.join(directory, `${sourceSrtFileName}`);
 
