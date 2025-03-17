@@ -1,18 +1,27 @@
 import { app, ipcMain } from 'electron';
-import path from 'path';
-import fs from 'fs-extra';
+import os from 'os';
 import { store } from './store';
 import { defaultUserConfig } from './utils';
 import { getAndInitializeProviders } from './providerManager';
 import { logMessage } from './logger';
 import { LogEntry } from './store/types';
 
-import { promisify } from 'util';
-
 console.log(app.getVersion(), 'version');
 export function setupStoreHandlers() {
   // 启动时初始化服务商配置
   getAndInitializeProviders().then(async () => {
+    const osInfo = {
+      platform: os.platform(),
+      arch: os.arch(),
+      version: os.version(),
+      model: os.machine(),
+      cpuModel: os?.cpus()?.[0]?.model,
+      release: os.release(),
+      totalmem: os.totalmem(),
+      freemem: os.freemem(),
+      type: os.type(),
+    }
+    logMessage(`osInfo: ${JSON.stringify(osInfo, null, 2)}`, 'info');
     logMessage('Translation providers initialized', 'info');
   });
 
