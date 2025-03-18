@@ -1,5 +1,4 @@
-import React, { FC } from 'react';
-import { models } from 'lib/utils';
+import React, { FC, useState } from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import {
   Select,
@@ -13,34 +12,30 @@ import { useTranslation } from 'next-i18next';
 interface IProps {
   modelsInstalled?: string[];
 }
+
 const Models: FC<SelectPrimitive.SelectProps & IProps> = (props) => {
   const { t } = useTranslation('common');
+
   return (
     <Select {...props}>
       <SelectTrigger
-        className="items-start [&_[data-description]]:hidden"
+        className="items-start"
         id="model"
       >
         <SelectValue placeholder={t('pleaseSelect')} />
       </SelectTrigger>
       <SelectContent>
-        {models.map((item) => (
-          <SelectItem value={item.name?.toLowerCase()} key={item.name}>
-            <div className="flex items-start gap-3 text-muted-foreground">
-              <div className="grid gap-0.5">
-                <p>
-                  {item.name}
-                  {!props?.modelsInstalled?.includes(
-                    item.name?.toLowerCase()
-                  ) && `(${t('modelNotDownloaded')})`}
-                </p>
-                <p className="text-xs" data-description>
-                  {t(item.desc.key)} {item.desc.size}
-                </p>
-              </div>
-            </div>
+        {props?.modelsInstalled?.length > 0 ? (
+          props?.modelsInstalled.map((model) => (
+            <SelectItem value={model.toLowerCase()} key={model}>
+              {model}
+            </SelectItem>
+          ))
+        ) : (
+          <SelectItem value="no-models" disabled>
+            {t('noModelsInstalled')}
           </SelectItem>
-        ))}
+        )}
       </SelectContent>
     </Select>
   );

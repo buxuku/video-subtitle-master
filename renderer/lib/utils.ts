@@ -1,96 +1,60 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import modelsData from './models.json';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const models = [
-  {
-    name: 'Tiny',
-    desc: {
-      key: 'modelDesc.tiny',
-      size: '77.7 MB'
-    },
-  },
-  {
-    name: 'Base',
-    desc: {
-      key: 'modelDesc.base',
-      size: '148 MB'
-    },
-  },
-  {
-    name: 'Small',
-    desc: {
-      key: 'modelDesc.small',
-      size: '488 MB'
-    },
-  },
-  {
-    name: 'Medium',
-    desc: {
-      key: 'modelDesc.medium',
-      size: '1.53 GB'
-    },
-  },
-  {
-    name: 'Large-v1',
-    desc: {
-      key: 'modelDesc.large',
-      size: '3.09 GB'
-    },
-  },
-  {
-    name: 'Large-v2',
-    desc: {
-      key: 'modelDesc.large',
-      size: '3.09 GB'
-    },
-  },
-  {
-    name: 'Large-v3',
-    desc: {
-      key: 'modelDesc.large',
-      size: '3.09 GB'
-    },
-  },
-  {
-    name: 'Large-v3-turbo',
-    desc: {
-      key: 'modelDesc.largeTurbo',
-      size: '1.62 GB'
-    }
-  },
-  {
-    name: 'Tiny.en',
-    desc: {
-      key: 'modelDesc.tinyEn',
-      size: '77.7 MB'
-    },
-  },
-  {
-    name: 'Base.en',
-    desc: {
-      key: 'modelDesc.baseEn',
-      size: '148 MB'
-    },
-  },
-  {
-    name: 'Small.en',
-    desc: {
-      key: 'modelDesc.smallEn',
-      size: '488 MB'
-    },
-  },
-  {
-    name: 'Medium.en',
-    desc: {
-      key: 'modelDesc.mediumEn',
-      size: '1.53 GB'
-    },
-  },
-];
+// 从模型文件名中提取模型名称
+export const extractModelName = (filename: string): string => {
+  if (!filename.startsWith('ggml-') || !filename.endsWith('.bin')) return '';
+  
+  // 移除前缀和后缀
+  let name = filename.replace('ggml-', '').replace('.bin', '');
+  
+  return name;
+};
+
+// 获取模型列表
+export const fetchModels = async (): Promise<any[]> => {
+  try {
+    const response = await fetch('https://huggingface.co/api/models/ggerganov/whisper.cpp/revision/main?expand[]=siblings');
+    if (!response.ok) throw new Error('Failed to fetch models');
+    
+    const data = await response.json();
+    return data.siblings || [];
+  } catch (error) {
+    console.error('Error fetching models:', error);
+    // 使用本地数据作为备份
+    return modelsData.siblings || [];
+  }
+};
+
+// 从文件列表中提取模型信息
+export const getModelsFromFiles = (files: any[]): any[] => {
+  const modelMap = [];
+  
+  // 筛选出.bin文件
+  const binFiles = files.filter(file => 
+    file.rfilename && 
+    file.rfilename.endsWith('.bin') && 
+    file.rfilename.startsWith('ggml-')
+  );
+  
+  // 处理每个bin文件
+  binFiles.forEach(file => {
+    const modelName = extractModelName(file.rfilename);
+    if (!modelName) return;
+    const needsCoreML = files.some(file => file.rfilename.includes(`${modelName}-encoder.mlmodelc`));
+    modelMap.push({
+      name: modelName,
+      needsCoreML: needsCoreML
+    });
+  });
+  
+  return modelMap;
+};
 
 export const supportedLanguage = [
   // 最常用语言

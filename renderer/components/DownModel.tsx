@@ -1,40 +1,54 @@
-import React, { useEffect, FC, PropsWithChildren } from "react";
+import React, { useEffect, FC, ReactNode } from "react";
 
-interface IProps extends PropsWithChildren {
+interface IProps {
   modelName: string;
-  callBack?: () => void;
-  downSource?: string;
+  callBack: () => void;
+  downSource: string;
+  children: ReactNode;
+  needsCoreML?: boolean;
 }
 
-const DownModel: FC<IProps> = (props) => {
-  const { modelName, callBack, downSource = "huggingface", children } = props;
+const DownModel: FC<IProps> = ({ modelName, callBack, downSource, children, needsCoreML = true }) => {
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
+
   useEffect(() => {
-    window?.ipc?.on("downloadProgress", (model: string, progress: number) => {
+    // 监听下载进度事件
+    const handleProgress = (model: string, progressValue: number) => {
       if (model?.toLowerCase() === modelName?.toLowerCase()) {
-        setProgress(progress);
-        setLoading(progress < 100);
-        if (progress >= 100) {
-          callBack && callBack();
+        setProgress(progressValue);
+        setLoading(progressValue < 100);
+        if (progressValue >= 100) {
+          callBack();
         }
       }
-    });
-  }, []);
-  const handleDownModel = async (source = downSource) => {
-    setLoading(true);
-    await window?.ipc?.invoke("downloadModel", {
-      model: modelName,
-      source,
-    });
-    setLoading(false);
+    };
+
+    window?.ipc?.on("downloadProgress", handleProgress);
+
+  }, [modelName, callBack]);
+
+  const handleDownModel = async () => {
+    try {
+      setLoading(true);
+      console.log(needsCoreML, modelName, 'needsCoreML2');
+      await window?.ipc?.invoke("downloadModel", {
+        model: modelName,
+        source: downSource,
+        needsCoreML
+      });
+    } catch (error) {
+      console.error('下载模型失败:', error);
+      setLoading(false);
+    }
   };
+
   return (
     <span className="inline-block">
       {React.isValidElement<{
         loading?: boolean;
         progress?: number;
-        handleDownModel?: (source?: string) => void;
+        handleDownModel?: () => void;
       }>(children)
         ? React.cloneElement(children, {
             loading,

@@ -14,5 +14,8 @@
 	"operation": "操作",
 	"manualDownloadAddress": "手动下载地址",
 	"copyLink": "复制链接",
-	"delete": "删除"
+	"delete": "删除",
+	"refreshModels": "刷新模型",
+	"loadingModels": "加载模型",
+	"downloadLink": "下载链接"
 }

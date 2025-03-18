@@ -59,22 +59,30 @@ export const deleteModel = async (model) => {
   });
 };
 
-export const downloadModelSync = async (model: string, source: string, onProcess: (message: string) => void) => {
+export const downloadModelSync = async (model: string, source: string, onProcess: (message: string) => void, needsCoreML = true) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
   const coreMLModelPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc`);
   
-  if (fs.existsSync(modelPath) && (!isAppleSilicon() || fs.existsSync(coreMLModelPath))) {
-    return;
+  // 检查模型文件是否已存在
+  if (fs.existsSync(modelPath)) {
+    // 如果不需要CoreML支持，或者不是Apple Silicon，或者CoreML文件已存在，则直接返回
+    if (!needsCoreML || !isAppleSilicon() || fs.existsSync(coreMLModelPath)) {
+      return;
+    }
   }
 
   const baseUrl = `https://${source === 'huggingface' ? 'huggingface.co' : 'hf-mirror.com'}/ggerganov/whisper.cpp/resolve/main`;
   const url = `${baseUrl}/ggml-${model}.bin`;
-  const coreMLUrl = `${baseUrl}/ggml-${model}-encoder.mlmodelc.zip`;
+  
+  // 只有在需要CoreML支持且是Apple Silicon时才下载CoreML模型
+  const needDownloadCoreML = needsCoreML && isAppleSilicon();
+  const coreMLUrl = needDownloadCoreML ? `${baseUrl}/ggml-${model}-encoder.mlmodelc.zip` : '';
+  
   return new Promise((resolve, reject) => {
     const win = new BrowserWindow({ show: false });
     let downloadCount = 0;
-    const totalDownloads = isAppleSilicon() ? 2 : 1;
+    const totalDownloads = needDownloadCoreML ? 2 : 1;
     let totalBytes = { normal: 0, coreML: 0 };
     let receivedBytes = { normal: 0, coreML: 0 };
     
@@ -86,10 +94,12 @@ export const downloadModelSync = async (model: string, source: string, onProcess
         return; // 忽略不匹配的下载项
       }
 
-      if (isCoreML && !isAppleSilicon()) {
+      // 如果是CoreML文件但不需要下载CoreML，则取消下载
+      if (isCoreML && !needDownloadCoreML) {
         item.cancel();
         return;
       }
+      
       const savePath = isCoreML ? path.join(modelsPath, `ggml-${model}-encoder.mlmodelc.zip`) : modelPath;
       item.setSavePath(savePath);
 
@@ -101,7 +111,7 @@ export const downloadModelSync = async (model: string, source: string, onProcess
           receivedBytes[type] = item.getReceivedBytes();
           const totalProgress = (receivedBytes.normal + receivedBytes.coreML) / (totalBytes.normal + totalBytes.coreML);
           const percent = totalProgress * 100;
-          onProcess(`${model}: ${percent.toFixed(2)}%`);
+          onProcess(`${percent.toFixed(2)}%`);
         }
       });
 
@@ -140,7 +150,9 @@ export const downloadModelSync = async (model: string, source: string, onProcess
 
     win.webContents.session.on('will-download', willDownloadHandler);
     win.webContents.downloadURL(url);
-    if (isAppleSilicon()) {
+    
+    // 只有在需要时才下载CoreML模型
+    if (needDownloadCoreML) {
       win.webContents.downloadURL(coreMLUrl);
     }
   });

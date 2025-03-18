@@ -14,5 +14,8 @@
 	"operation": "Operation",
 	"manualDownloadAddress": "Manual Download Address",
 	"copyLink": "Copy Link",
-	"delete": "Delete"
+	"delete": "Delete",
+	"refreshModels": "Refresh Models",
+	"loadingModels": "Loading Models",
+	"downloadLink": "Download Link"
 }

@@ -18,13 +18,10 @@ import { filterSupportedFiles } from 'lib/utils';
 
 export default function Component() {
   const [files, setFiles] = useState([]);
-  const { systemInfo, updateSystemInfo } = useSystemInfo();
+  const { systemInfo } = useSystemInfo();
   const { form, formData } = useFormConfig();
   useIpcCommunication(setFiles);
 
-  const isInstalledModel = systemInfo?.modelsInstalled?.includes(
-    formData.model?.toLowerCase()
-  );
   useEffect(() => {
     const loadTasks = async () => {
       const tasks = await window.ipc.invoke('getTasks');
@@ -74,8 +71,6 @@ export default function Component() {
           form={form}
           formData={formData}
           systemInfo={systemInfo}
-          updateSystemInfo={updateSystemInfo}
-          isInstalledModel={isInstalledModel}
         />
       </div>
       <div 
