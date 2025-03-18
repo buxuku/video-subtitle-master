@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
-import { Globe, Trash2, Cog, HelpCircle } from 'lucide-react';
+import { Globe, Trash2, Cog, HelpCircle, Eraser } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
@@ -77,6 +77,7 @@ const Settings = () => {
   const [whisperCommand, setWhisperCommand] = useState('');
   const [useCuda, setUseCuda] = useState(false);
   const [modelsPath, setModelsPath] = useState('');
+  const [tempDir, setTempDir] = useState('');
   const form = useForm({
     defaultValues: {
       language: router.locale,
@@ -94,6 +95,10 @@ const Settings = () => {
         setUseCuda(settings.useCuda || false);
         setModelsPath(settings.modelsPath || '');
       }
+      
+      // 获取临时目录路径
+      const tempDirPath = await window?.ipc?.invoke('getTempDir');
+      setTempDir(tempDirPath || '');
     };
     loadSettings();
   }, []);
@@ -167,6 +172,19 @@ const Settings = () => {
     });
   };
 
+  // 添加清除缓存函数
+  const handleClearCache = async () => {
+    try {
+      const result = await window?.ipc?.invoke('clearCache');
+      if (result) {
+        toast.success(t('cacheClearedSuccess'));
+      } else {
+        toast.error(t('cacheClearedFailed'));
+      }
+    } catch (error) {
+      toast.error(t('cacheClearedFailed'));
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -279,6 +297,34 @@ const Settings = () => {
               />
               <Button onClick={handleSelectModelsPath} size="sm" className="flex-shrink-0">
                 {t('selectPath')}
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span>{t('tempDir')}</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('tempDirTip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={tempDir}
+                readOnly
+                className="font-mono text-sm flex-1"
+                placeholder={t('tempDirPlaceholder')}
+              />
+              <Button onClick={handleClearCache} size="sm" className="flex-shrink-0">
+                <Eraser className="mr-2 h-4 w-4" />
+                {t('clearCache')}
               </Button>
             </div>
           </div>
