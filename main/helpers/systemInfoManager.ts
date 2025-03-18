@@ -7,6 +7,8 @@ import {
 } from './whisper';
 import fse from 'fs-extra';
 import path from 'path';
+import { getTempDir } from './fileUtils';
+import { logMessage } from './storeManager';
 
 let downloadingModels = new Set<string>();
 
@@ -71,5 +73,32 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     }
 
     return false;
+  });
+
+  // 获取临时目录路径
+  ipcMain.handle('getTempDir', async () => {
+    return getTempDir();
+  });
+
+  // 清除缓存
+  ipcMain.handle('clearCache', async () => {
+    try {
+      const tempDir = getTempDir();
+      const files = await fs.promises.readdir(tempDir);
+      
+      // 只删除 .wav 文件，保留目录结构
+      for (const file of files) {
+        if (file.endsWith('.wav')) {
+          const filePath = path.join(tempDir, file);
+          await fs.promises.unlink(filePath);
+          logMessage(`Deleted cache file: ${filePath}`, 'info');
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      logMessage(`Failed to clear cache: ${error}`, 'error');
+      return false;
+    }
   });
 }

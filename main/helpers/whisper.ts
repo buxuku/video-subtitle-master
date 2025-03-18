@@ -1,11 +1,12 @@
 import { spawn } from "child_process";
 import { app } from "electron";
 import path from "path";
-import { isAppleSilicon, isWin32 } from "./utils";
+import { isAppleSilicon, isWin32, getExtraResourcesPath } from "./utils";
 import { BrowserWindow, DownloadItem } from 'electron';
 import decompress from 'decompress';
 import fs from 'fs-extra';
-import { store } from './storeManager';
+import { store, logMessage } from './storeManager';
+import { checkCudaSupport } from './cudaUtils';
 
 export const getPath = (key?: string) => {
   const userDataPath = app.getPath("userData");
@@ -182,3 +183,68 @@ export const reinstallWhisper = async () => {
     throw new Error('删除 whisper.cpp 目录失败');
   }
 };
+
+/**
+ * 加载适合当前系统的Whisper Addon
+ */
+export function loadWhisperAddon() {
+  const platform = process.platform;
+  const arch = process.arch;
+  const settings = store.get('settings') || { useCuda: false };
+  const useCuda = settings.useCuda || false;
+  let addonPath;
+
+  if (platform === 'darwin') {
+    if (arch === 'arm64') {
+      addonPath = path.join(
+        getExtraResourcesPath(),
+        'addons/darwin-arm64/addon.node'
+      );
+    } else {
+      addonPath = path.join(
+        getExtraResourcesPath(),
+        'addons/darwin-x64/addon.node'
+      );
+    }
+  } else if (platform === 'win32') {
+    // 只有当用户设置启用CUDA且系统支持时才使用CUDA版本
+    if (useCuda) {
+      const cudaSupport = checkCudaSupport();
+      logMessage(`cudaSupport: ${cudaSupport}`, 'info');
+      if (cudaSupport) {
+        // 根据检测到的CUDA版本选择对应的addon
+        addonPath = path.join(
+          getExtraResourcesPath(),
+          'addons/win-x64-cuda/addon.node'
+        );
+        logMessage(`Using CUDA ${cudaSupport} addon`, 'info');
+      } else {
+        // 如果不支持CUDA，回退到CPU版本
+        addonPath = path.join(
+          getExtraResourcesPath(),
+          'addons/win-x64/addon.node'
+        );
+        logMessage(
+          'CUDA not supported or not properly installed, falling back to CPU version',
+          'warning'
+        );
+      }
+    } else {
+      addonPath = path.join(
+        getExtraResourcesPath(),
+        'addons/win-x64/addon.node'
+      );
+    }
+  }
+
+  if (!addonPath) {
+    throw new Error('Unsupported platform or architecture');
+  }
+
+  const module = { exports: { whisper: null } };
+  process.dlopen(module, addonPath);
+  return module.exports.whisper as (
+    params: any,
+    callback: (error: Error | null, result?: any) => void
+  ) => void;
+}

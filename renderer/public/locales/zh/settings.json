@@ -45,5 +45,11 @@
   "modelsPathPlaceholder": "选择模型存储路径",
   "selectPath": "浏览",
   "modelPathSaved": "模型路径保存成功",
-  "saveFailed": "设置保存失败"
+  "saveFailed": "设置保存失败",
+  "tempDir": "临时文件目录",
+  "tempDirTip": "处理过程中临时音频文件的存储目录",
+  "tempDirPlaceholder": "临时目录路径",
+  "clearCache": "清除缓存",
+  "cacheClearedSuccess": "缓存清除成功",
+  "cacheClearedFailed": "缓存清除失败"
 }

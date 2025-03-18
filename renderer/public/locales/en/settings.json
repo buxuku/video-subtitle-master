@@ -45,5 +45,11 @@
   "modelsPathPlaceholder": "Select models storage path",
   "selectPath": "Browse",
   "modelPathSaved": "Models path saved successfully",
-  "saveFailed": "Failed to save settings"
+  "saveFailed": "Failed to save settings",
+  "tempDir": "Temporary Directory",
+  "tempDirTip": "The directory where temporary audio files are stored during processing",
+  "tempDirPlaceholder": "Temporary directory path",
+  "clearCache": "Clear Cache",
+  "cacheClearedSuccess": "Cache cleared successfully",
+  "cacheClearedFailed": "Failed to clear cache"
 }
