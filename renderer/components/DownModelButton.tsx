@@ -16,10 +16,15 @@ const DownModelButton: FC<IProps> = ({
 }) => {
   const { t } = useTranslation('common');
   return (
-    <Button disabled={loading} onClick={() => handleDownModel()}>
+    <Button 
+      onClick={handleDownModel} 
+      variant="outline" 
+      disabled={loading}
+    >
       {loading ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {progress} %
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          {progress ? `${progress.toFixed(1)}%` : t('downloading')}
         </>
       ) : (
         t('download')

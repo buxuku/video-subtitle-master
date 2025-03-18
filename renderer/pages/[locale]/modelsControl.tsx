@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -21,14 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { models, getModelDownloadUrl } from 'lib/utils';
+import { fetchModels, getModelsFromFiles, getModelDownloadUrl, needsCoreML } from 'lib/utils';
 import { Button } from '@/components/ui/button';
 import { ISystemInfo } from '../../types';
 import DeleteModel from '@/components/DeleteModel';
 import DownModel from '@/components/DownModel';
 import DownModelButton from '@/components/DownModelButton';
-import { Upload } from 'lucide-react'; // 导入上传图标
-import { Copy } from 'lucide-react';
+import { Upload, Copy, Loader2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -38,27 +37,48 @@ import {
 import { toast } from 'sonner';
 import { useTranslation } from 'next-i18next';
 import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
+
 const ModelsControl = () => {
   const { t } = useTranslation('modelsControl');
-  const { t: tCommon } = useTranslation('common');
-  const [systemInfo, setSystemInfo] = React.useState<ISystemInfo>({
+  const [systemInfo, setSystemInfo] = useState<ISystemInfo>({
     modelsInstalled: [],
     downloadingModels: [],
     modelsPath: '',
   });
   const [downSource, setDownSource] = useState('huggingface');
+  const [dynamicModels, setDynamicModels] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     updateSystemInfo();
+    loadModels();
   }, []);
+
+  const loadModels = async () => {
+    setLoading(true);
+    try {
+      const files = await fetchModels();
+      const models = getModelsFromFiles(files);
+      setDynamicModels(models);
+    } catch (error) {
+      console.error('Failed to load models:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateSystemInfo = async () => {
     const systemInfoRes = await window?.ipc?.invoke('getSystemInfo', null);
     setSystemInfo(systemInfoRes);
   };
+
   const isInstalledModel = (name) =>
     systemInfo?.modelsInstalled?.includes(name.toLowerCase());
+
   const handleDownSource = (value: string) => {
     setDownSource(value);
   };
+
   const handleImportModel = async () => {
     try {
       const result = await window?.ipc?.invoke('importModel');
@@ -70,7 +90,6 @@ const ModelsControl = () => {
       }
     } catch (error) {
       console.error('导入模型失败:', error);
-      // 这里可以添加一个错误提示
     }
   };
 
@@ -82,12 +101,13 @@ const ModelsControl = () => {
           duration: 2000,
         });
       })
-      .catch((err) => {
+      .catch(() => {
         toast.error(t('copyError'), {
           duration: 2000,
         });
       });
   };
+
 
   return (
     <Card>
@@ -114,80 +134,88 @@ const ModelsControl = () => {
             <Button onClick={handleImportModel} className="ml-4">
               <Upload className="mr-2 h-4 w-4" /> {t('importModel')}
             </Button>
+            <Button onClick={loadModels} className="ml-2" variant="outline">
+              <Loader2 className="mr-2 h-4 w-4" /> {t('refreshModels')}
+            </Button>
           </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[150px]">{t('modelName')}</TableHead>
-              <TableHead>{t('description')}</TableHead>
-              <TableHead>{t('operation')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="max-h-[80vh]">
-            {models.map((model) => (
-              <TableRow key={model?.name}>
-                <TableCell className="font-medium">{model?.name}</TableCell>
-                <TableCell>
-                  {tCommon(model.desc.key)} {model.desc.size}
-                  <br />
-                  {t('manualDownloadAddress')}:<br />
-                  {['hf-mirror', 'huggingface'].map((source) => (
-                    <div key={source} className="flex items-center mb-1">
-                      <span className="mr-2 text-sm">
-                        {getModelDownloadUrl(
-                          model.name,
-                          source as 'hf-mirror' | 'huggingface'
-                        )}
-                      </span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Copy
-                              className="h-4 w-4 cursor-pointer"
-                              onClick={() =>
-                                copyToClipboard(
-                                  getModelDownloadUrl(
-                                    model.name,
-                                    source as 'hf-mirror' | 'huggingface'
-                                  )
-                                )
-                              }
-                            />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{t('copyLink')}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  ))}
-                </TableCell>
-                <TableCell>
-                  {isInstalledModel(model.name) &&
-                  !systemInfo?.downloadingModels.includes(model.name) ? (
-                    <DeleteModel
-                      modelName={model.name}
-                      callBack={updateSystemInfo}
-                    >
-                      <Button variant="destructive">{t('delete')}</Button>
-                    </DeleteModel>
-                  ) : (
-                    <DownModel
-                      modelName={model.name}
-                      callBack={updateSystemInfo}
-                      downSource={downSource}
-                    >
-                      <DownModelButton />
-                    </DownModel>
-                  )}
-                </TableCell>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">{t('loadingModels')}</span>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[150px]">{t('modelName')}</TableHead>
+                <TableHead>{t('downloadLink')}</TableHead>
+                <TableHead>{t('operation')}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody className="max-h-[80vh]">
+              {dynamicModels.map((model) => (
+                    <TableRow key={model.name}>
+                      <TableCell className="font-medium">{model.name}</TableCell>
+                      <TableCell>
+                        {['hf-mirror', 'huggingface'].map((source) => (
+                          <div key={source} className="flex items-center mb-1">
+                            <span className="mr-2 text-sm">
+                              {getModelDownloadUrl(
+                                model.name,
+                                source as 'hf-mirror' | 'huggingface'
+                              )}
+                            </span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Copy
+                                    className="h-4 w-4 cursor-pointer"
+                                    onClick={() =>
+                                      copyToClipboard(
+                                        getModelDownloadUrl(
+                                          model.name,
+                                          source as 'hf-mirror' | 'huggingface'
+                                        )
+                                      )
+                                    }
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{t('copyLink')}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        ))}
+                      </TableCell>
+                      <TableCell>
+                        {isInstalledModel(model.name) &&
+                        !systemInfo?.downloadingModels.includes(model.name) ? (
+                          <DeleteModel
+                            modelName={model.name}
+                            callBack={updateSystemInfo}
+                          >
+                            <Button variant="destructive">{t('delete')}</Button>
+                          </DeleteModel>
+                        ) : (
+                          <DownModel
+                            modelName={model.name}
+                            callBack={updateSystemInfo}
+                            downSource={downSource}
+                            needsCoreML={model.needsCoreML}
+                          >
+                            <DownModelButton />
+                          </DownModel>
+                        )}
+                      </TableCell>
+                    </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

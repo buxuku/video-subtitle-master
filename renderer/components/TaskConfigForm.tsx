@@ -8,14 +8,11 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { supportedLanguage } from 'lib/utils';
-import DownModel from './DownModel';
-import DownModelLink from './DownModelLink';
 import Models from './Models';
 import SavePathNotice from './SavePathNotice';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,8 +30,6 @@ const TaskConfigForm = ({
   form,
   formData,
   systemInfo,
-  updateSystemInfo,
-  isInstalledModel,
 }) => {
   const [providers, setProviders] = useState<Provider[]>([]);
   const { t } = useTranslation('home');
@@ -48,7 +43,7 @@ const TaskConfigForm = ({
     const storedProviders = await window.ipc.invoke('getTranslationProviders');
     setProviders(storedProviders);
   };
-  if(!providers.length) return null;
+  if(!providers.length || !systemInfo.modelsPath) return null;
   return (
     <Form {...form}>
       <form className="grid w-full items-start gap-6">
@@ -68,17 +63,6 @@ const TaskConfigForm = ({
                       modelsInstalled={systemInfo.modelsInstalled}
                     />
                   </FormControl>
-                  {!isInstalledModel && field.value && (
-                    <FormDescription>
-                      <DownModel
-                        modelName={field.value}
-                        callBack={updateSystemInfo}
-                        key={field.value}
-                      >
-                        <DownModelLink />
-                      </DownModel>
-                    </FormDescription>
-                  )}
                 </FormItem>
               )}
             />

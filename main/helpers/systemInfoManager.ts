@@ -26,7 +26,7 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     return true;
   });
 
-  ipcMain.handle('downloadModel', async (event, { model, source }) => {
+  ipcMain.handle('downloadModel', async (event, { model, source, needsCoreML }) => {
     if (downloadingModels.has(model)) {
       return false; // 如果模型已经在下载中，则返回 false
     }
@@ -42,7 +42,7 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
       }
     };
     try {
-      await downloadModelSync(model?.toLowerCase(), source, onProcess);
+      await downloadModelSync(model?.toLowerCase(), source, onProcess, needsCoreML);
       downloadingModels.delete(model);
       return true;
     } catch (error) {
