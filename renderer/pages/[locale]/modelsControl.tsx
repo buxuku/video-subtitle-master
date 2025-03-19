@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { fetchModels, getModelsFromFiles, getModelDownloadUrl, needsCoreML } from 'lib/utils';
+import { fetchModels, getModelsFromFiles, getModelDownloadUrl } from 'lib/utils';
 import { Button } from '@/components/ui/button';
 import { ISystemInfo } from '../../types';
 import DeleteModel from '@/components/DeleteModel';
