@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       ELECTRON_BUILDER_HTTP_TIMEOUT: 6000000
-      ELECTRON_MIRROR: "https://npmmirror.com/mirrors/electron/"
+      ELECTRON_MIRROR: 'https://npmmirror.com/mirrors/electron/'
       GH_TOKEN: ${{ secrets.TOKEN }}
     strategy:
       matrix:
@@ -19,61 +19,61 @@ jobs:
           - os: macos-latest
             arch: arm64
             addon_name: addon-macos-arm64.node
-            build_args: "--arm64"
-          
+            build_args: '--arm64'
+
           # macOS Intel
           - os: macos-13
             arch: x64
             addon_name: addon-macos-x64.node
-            build_args: "--x64"
-          
+            build_args: '--x64'
+
           # Windows no-cuda
           - os: windows-2019
             arch: x64
             addon_name: addon-windows-no-cuda.node
             cuda_version: no-cuda
-          
+
           # Windows CUDA 11.8.0 optimized
           - os: windows-2019
             arch: x64
-            addon_name: addon-windows-cuda-122.node
+            addon_name: addon-windows-cuda-118-optimized.node
+            cuda_version: 11.8.0
+            cuda_opt: optimized
+
+          # Windows CUDA 11.8.0 generic
+          - os: windows-2019
+            arch: x64
+            addon_name: addon-windows-cuda-118-generic.node
+            cuda_version: 11.8.0
+            cuda_opt: generic
+
+          # Windows CUDA 12.2.0 optimized
+          - os: windows-2019
+            arch: x64
+            addon_name: addon-windows-cuda-122-optimized.node
+            cuda_version: 12.2.0
+            cuda_opt: optimized
+
+          # Windows CUDA 12.2.0 generic
+          - os: windows-2019
+            arch: x64
+            addon_name: addon-windows-cuda-122-generic.node
             cuda_version: 12.2.0
             cuda_opt: generic
-          
-          # # Windows CUDA 11.8.0 generic
-          # - os: windows-2019
-          #   arch: x64
-          #   addon_name: addon-windows-cuda-118-generic.node
-          #   cuda_version: 11.8.0
-          #   cuda_opt: generic
-          
-          # # Windows CUDA 12.2.0 optimized
-          # - os: windows-2019
-          #   arch: x64
-          #   addon_name: addon-windows-cuda-1220-optimized.node
-          #   cuda_version: 12.2.0
-          #   cuda_opt: optimized
-          
-          # # Windows CUDA 12.2.0 generic
-          # - os: windows-2019
-          #   arch: x64
-          #   addon_name: addon-windows-cuda-1220-generic.node
-          #   cuda_version: 12.2.0
-          #   cuda_opt: generic
-          
-          # # Windows CUDA 12.4.1 optimized
-          # - os: windows-2019
-          #   arch: x64
-          #   addon_name: addon-windows-cuda-1241-optimized.node
-          #   cuda_version: 12.4.1
-          #   cuda_opt: optimized
-          
-          # # Windows CUDA 12.4.1 generic
-          # - os: windows-2019
-          #   arch: x64
-          #   addon_name: addon-windows-cuda-1241-generic.node
-          #   cuda_version: 12.4.1
-          #   cuda_opt: generic
+
+          # Windows CUDA 12.4.1 optimized
+          - os: windows-2019
+            arch: x64
+            addon_name: addon-windows-cuda-1241-optimized.node
+            cuda_version: 12.4.1
+            cuda_opt: optimized
+
+          # Windows CUDA 12.4.1 generic
+          - os: windows-2019
+            arch: x64
+            addon_name: addon-windows-cuda-1241-generic.node
+            cuda_version: 12.4.1
+            cuda_opt: generic
 
     steps:
       - name: Check out Git repository
@@ -86,11 +86,13 @@ jobs:
 
       # 下载对应的 addon
       - name: Download addon from whisper.cpp repo
-        shell: bash  # 指定使用 bash shell
+        shell: bash # 指定使用 bash shell
         run: |
           mkdir -p temp-artifacts
           curl -L -o "temp-artifacts/${{ matrix.addon_name }}" \
             "https://github.com/buxuku/whisper.cpp/releases/download/latest/${{ matrix.addon_name }}"
+          curl -L -o "temp-artifacts/addon-windows-no-cuda.node" \
+            "https://github.com/buxuku/whisper.cpp/releases/download/latest/addon-windows-no-cuda.node"
 
       # 准备 macOS 构建
       - name: Prepare macOS addon
@@ -103,6 +105,7 @@ jobs:
         if: matrix.os == 'windows-2019'
         run: |
           Copy-Item -Path "temp-artifacts/${{ matrix.addon_name }}" -Destination "extraResources/addons/addon.node"
+          Copy-Item -Path "temp-artifacts/addon-windows-no-cuda.node" -Destination "extraResources/addons/addon-no-cuda.node"
 
       # 构建应用程序
       - name: Build/release Electron app - macOS

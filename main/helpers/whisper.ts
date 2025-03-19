@@ -5,7 +5,7 @@ import { isAppleSilicon, isWin32, getExtraResourcesPath } from "./utils";
 import { BrowserWindow, DownloadItem } from 'electron';
 import decompress from 'decompress';
 import fs from 'fs-extra';
-import { store, logMessage } from './storeManager';
+import { store } from './storeManager';
 import { checkCudaSupport } from './cudaUtils';
 
 export const getPath = (key?: string) => {
@@ -199,12 +199,28 @@ export const reinstallWhisper = async () => {
 /**
  * 加载适合当前系统的Whisper Addon
  */
-export function loadWhisperAddon() {
+export async function loadWhisperAddon() {
   const platform = process.platform;
   const arch = process.arch;
   const settings = store.get('settings') || { useCuda: false };
   const useCuda = settings.useCuda || false;
-  let addonPath = path.join(getExtraResourcesPath(), 'addons', `addon.node`);
+  
+  let addonPath;
+  
+  if (platform === 'win32' && useCuda) {
+    // 检查 CUDA 支持
+    const hasCudaSupport = await checkCudaSupport();
+    
+    if (hasCudaSupport) {
+      addonPath = path.join(getExtraResourcesPath(), 'addons', 'addon.node');
+    } else {
+      // 如果不支持 CUDA，使用 no-cuda 版本
+      addonPath = path.join(getExtraResourcesPath(), 'addons', 'addon-no-cuda.node');
+    }
+  } else {
+    // 其他平台或不使用 CUDA 的情况
+    addonPath = path.join(getExtraResourcesPath(), 'addons', 'addon.node');
+  }
 
   if (!addonPath) {
     throw new Error('Unsupported platform or architecture');
