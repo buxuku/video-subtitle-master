@@ -88,10 +88,11 @@ jobs:
 
       # 下载对应的 addon
       - name: Download addon from whisper.cpp repo
+        shell: bash  # 指定使用 bash shell
         run: |
           mkdir -p temp-artifacts
-          curl -L -o temp-artifacts/${{ matrix.addon_name }} \
-            https://github.com/buxuku/whisper.cpp/releases/download/latest/${{ matrix.addon_name }}
+          curl -L -o "temp-artifacts/${{ matrix.addon_name }}" \
+            "https://github.com/buxuku/whisper.cpp/releases/download/latest/${{ matrix.addon_name }}"
 
       # 准备 macOS 构建
       - name: Prepare macOS addon
