@@ -6,8 +6,6 @@ on:
       - 'v*'
 
 jobs:
-
-  # 应用程序构建和发布
   release:
     runs-on: ${{ matrix.os }}
     env:
