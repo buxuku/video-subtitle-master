@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
 import { getPath, loadWhisperAddon } from './whisper';
+import { checkCudaSupport } from './cudaUtils';
 import { logMessage, store } from './storeManager';
 import { formatSrtContent } from './fileUtils';
 
@@ -74,26 +75,30 @@ export async function generateSubtitleWithBuiltinWhisper(event, file, audioFile,
   event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
 
   try {
-    const whisper = loadWhisperAddon();
+    const whisper = await loadWhisperAddon();
     const whisperAsync = promisify(whisper);
     const settings = store.get('settings') || { useCuda: false };
     const useCuda = settings.useCuda || false;
     const platform = process.platform;
     const arch = process.arch;
+
+    // 修改 GPU 判断逻辑
+    let shouldUseGpu = false;
+    if (platform === 'darwin' && arch === 'arm64') {
+      shouldUseGpu = true;
+    } else if (platform === 'win32' && useCuda) {
+      shouldUseGpu = !!await checkCudaSupport();
+    }
+
     const { model, sourceLanguage } = formData;
     const whisperModel = model?.toLowerCase();
     const modelPath = `${getPath('modelsPath')}/ggml-${whisperModel}.bin`;
-
-    // 确定是否使用GPU
-    const shouldUseGpu =
-      (platform === 'darwin' && arch === 'arm64') ||
-      (platform === 'win32' && useCuda);
 
     const whisperParams = {
       language: sourceLanguage || 'auto',
       model: modelPath,
       fname_inp: audioFile,
-      use_gpu: shouldUseGpu,
+      use_gpu: !!shouldUseGpu,
       flash_attn: false,
       no_prints: true,
       comma_in_time: false,
