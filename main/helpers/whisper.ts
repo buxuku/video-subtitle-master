@@ -204,50 +204,7 @@ export function loadWhisperAddon() {
   const arch = process.arch;
   const settings = store.get('settings') || { useCuda: false };
   const useCuda = settings.useCuda || false;
-  let addonPath;
-
-  if (platform === 'darwin') {
-    if (arch === 'arm64') {
-      addonPath = path.join(
-        getExtraResourcesPath(),
-        'addons/darwin-arm64/addon.node'
-      );
-    } else {
-      addonPath = path.join(
-        getExtraResourcesPath(),
-        'addons/darwin-x64/addon.node'
-      );
-    }
-  } else if (platform === 'win32') {
-    // 只有当用户设置启用CUDA且系统支持时才使用CUDA版本
-    if (useCuda) {
-      const cudaSupport = checkCudaSupport();
-      logMessage(`cudaSupport: ${cudaSupport}`, 'info');
-      if (cudaSupport) {
-        // 根据检测到的CUDA版本选择对应的addon
-        addonPath = path.join(
-          getExtraResourcesPath(),
-          'addons/win-x64-cuda/addon.node'
-        );
-        logMessage(`Using CUDA ${cudaSupport} addon`, 'info');
-      } else {
-        // 如果不支持CUDA，回退到CPU版本
-        addonPath = path.join(
-          getExtraResourcesPath(),
-          'addons/win-x64/addon.node'
-        );
-        logMessage(
-          'CUDA not supported or not properly installed, falling back to CPU version',
-          'warning'
-        );
-      }
-    } else {
-      addonPath = path.join(
-        getExtraResourcesPath(),
-        'addons/win-x64/addon.node'
-      );
-    }
-  }
+  let addonPath = path.join(getExtraResourcesPath(), 'addons', `addon.node`);
 
   if (!addonPath) {
     throw new Error('Unsupported platform or architecture');

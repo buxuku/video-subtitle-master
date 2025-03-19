@@ -16,28 +16,20 @@ mac:
     - dmg
   artifactName: "${productName}_Mac_${version}_${arch}.${ext}"
   extraResources:
-  - from: ./extraResources/addons/darwin-x64/
-    to: ./extraResources/addons/darwin-x64/
-    filter:
-      - "**/*"
-  - from: ./extraResources/addons/darwin-arm64/
-    to: ./extraResources/addons/darwin-arm64/
+  - from: ./extraResources/addons/
+    to: ./extraResources/addons/
     filter:
       - "**/*"
 win:
   target: 
     - nsis
   extraResources:
-  - from: ./extraResources/addons/win-x64/
-    to: ./extraResources/addons/win-x64/
-    filter:
-      - "**/*"
-  - from: ./extraResources/addons/win-x64-cuda/
-    to: ./extraResources/addons/win-x64-cuda/
+  - from: ./extraResources/addons/
+    to: ./extraResources/addons/
     filter:
       - "**/*"
   requestedExecutionLevel: asInvoker
-  artifactName: "${productName}_Windows_${version}_${arch}_cuda${env.CUDA_VERSION}.${ext}"
+  artifactName: "${productName}_Windows_${version}_${arch}_${env.CUDA_VERSION}_${env.CUDA_OPT}.${ext}"
 linux:
   target:
     - AppImage

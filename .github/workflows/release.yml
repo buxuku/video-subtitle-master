@@ -6,7 +6,10 @@ on:
       - 'v*'
 
 jobs:
-  release:
+
+  # 应用程序构建和发布
+  app-release:
+    needs: [build-addons]  # 依赖于 builder 工作流完成
     runs-on: ${{ matrix.os }}
     env:
       ELECTRON_BUILDER_HTTP_TIMEOUT: 6000000
@@ -14,15 +17,66 @@ jobs:
       GH_TOKEN: ${{ secrets.TOKEN }}
     strategy:
       matrix:
-        # macos-13 is an intel runner, macos-14(macos-latest) is apple silicon
-        os: [macos-latest, macos-13]
         include:
+          # macOS ARM64
+          - os: macos-latest
+            arch: arm64
+            addon_name: addon-macos-arm64.node
+            build_args: "--arm64"
+          
+          # macOS Intel
+          - os: macos-13
+            arch: x64
+            addon_name: addon-macos-x64.node
+            build_args: "--x64"
+          
+          # Windows no-cuda
           - os: windows-2019
-            cuda_version: '12.4.1'
-            cuda_path: 'extraResources/addons/win-x64-cuda'
+            arch: x64
+            addon_name: addon-windows-no-cuda.node
+            cuda_version: no-cuda
+          
+          # Windows CUDA 11.8.0 optimized
           - os: windows-2019
-            cuda_version: '11.8.0'
-            cuda_path: 'extraResources/addons/win-x64-cuda11.8'
+            arch: x64
+            addon_name: addon-windows-cuda-122.node
+            cuda_version: 12.2.0
+            cuda_opt: generic
+          
+          # # Windows CUDA 11.8.0 generic
+          # - os: windows-2019
+          #   arch: x64
+          #   addon_name: addon-windows-cuda-118-generic.node
+          #   cuda_version: 11.8.0
+          #   cuda_opt: generic
+          
+          # # Windows CUDA 12.2.0 optimized
+          # - os: windows-2019
+          #   arch: x64
+          #   addon_name: addon-windows-cuda-1220-optimized.node
+          #   cuda_version: 12.2.0
+          #   cuda_opt: optimized
+          
+          # # Windows CUDA 12.2.0 generic
+          # - os: windows-2019
+          #   arch: x64
+          #   addon_name: addon-windows-cuda-1220-generic.node
+          #   cuda_version: 12.2.0
+          #   cuda_opt: generic
+          
+          # # Windows CUDA 12.4.1 optimized
+          # - os: windows-2019
+          #   arch: x64
+          #   addon_name: addon-windows-cuda-1241-optimized.node
+          #   cuda_version: 12.4.1
+          #   cuda_opt: optimized
+          
+          # # Windows CUDA 12.4.1 generic
+          # - os: windows-2019
+          #   arch: x64
+          #   addon_name: addon-windows-cuda-1241-generic.node
+          #   cuda_version: 12.4.1
+          #   cuda_opt: generic
 
     steps:
       - name: Check out Git repository
@@ -33,37 +87,41 @@ jobs:
         with:
           node-version: 20.14.0
 
-      - name: Prepare CUDA files
+      # 下载对应的 addon
+      - name: Download addon from whisper.cpp repo
+        run: |
+          mkdir -p temp-artifacts
+          curl -L -o temp-artifacts/${{ matrix.addon_name }} \
+            https://github.com/buxuku/whisper.cpp/releases/download/latest/${{ matrix.addon_name }}
+
+      # 准备 macOS 构建
+      - name: Prepare macOS addon
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          cp temp-artifacts/${{ matrix.addon_name }} extraResources/addons/addon.node
+
+      # 准备 Windows 构建
+      - name: Prepare Windows addon
         if: matrix.os == 'windows-2019'
         run: |
-          if ('${{ matrix.cuda_version }}' -eq '11.8.0') {
-            Remove-Item -Path "extraResources/addons/win-x64-cuda/addon.node" -Force
-            Copy-Item -Path "extraResources/addons/win-x64-cuda11.8/addon.node" -Destination "extraResources/addons/win-x64-cuda/addon.node"
-          }
-          Remove-Item -Path "extraResources/addons/win-x64-cuda11.8" -Recurse -Force
+          Copy-Item -Path "temp-artifacts/${{ matrix.addon_name }}" -Destination "extraResources/addons/addon.node"
 
-      - name: Build/release Electron app - Windows CUDA
+      # 构建应用程序
+      - name: Build/release Electron app - macOS
+        uses: samuelmeuli/action-electron-builder@v1.6.0
+        if: startsWith(matrix.os, 'macos')
+        with:
+          args: ${{ matrix.build_args }}
+          github_token: ${{ secrets.TOKEN }}
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build/release Electron app - Windows
         uses: samuelmeuli/action-electron-builder@v1.6.0
         if: matrix.os == 'windows-2019'
         env:
           CUDA_VERSION: ${{ matrix.cuda_version }}
+          CUDA_OPT: ${{ matrix.cuda_opt }}
         with:
           github_token: ${{ secrets.TOKEN }}
           release: ${{ startsWith(github.ref, 'refs/tags/v') }}
           max_attempts: 5
-
-      - name: Build/release Electron app - MacOS Intel
-        uses: samuelmeuli/action-electron-builder@v1.6.0
-        if: matrix.os == 'macos-13'
-        with:
-          args: "--x64"
-          github_token: ${{ secrets.TOKEN }}
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-
-      - name: Build/release Electron app - MacOS Arm
-        uses: samuelmeuli/action-electron-builder@v1.6.0
-        if: matrix.os == 'macos-latest'
-        with:
-          args: "--arm64"
-          github_token: ${{ secrets.TOKEN }}
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
