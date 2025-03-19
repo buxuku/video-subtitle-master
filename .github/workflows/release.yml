@@ -9,7 +9,6 @@ jobs:
 
   # 应用程序构建和发布
   app-release:
-    needs: [build-addons]  # 依赖于 builder 工作流完成
     runs-on: ${{ matrix.os }}
     env:
       ELECTRON_BUILDER_HTTP_TIMEOUT: 6000000
