@@ -8,7 +8,7 @@ on:
 jobs:
 
   # 应用程序构建和发布
-  app-release:
+  release:
     runs-on: ${{ matrix.os }}
     env:
       ELECTRON_BUILDER_HTTP_TIMEOUT: 6000000
