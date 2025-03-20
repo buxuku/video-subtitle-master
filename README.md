@@ -10,9 +10,9 @@
 
 因为本人使用的是苹果芯片，缺少 window CUDA 的开发环境，对于 CUDA 的支持，开发测试都存在较多场景无法兼顾的情况。
 
-- 目前提供了 CUDA 11.8.0 和 12.4.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
+- 目前提供了 CUDA 11.8.0 和 12.2.0 及 12.4.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
 - 要启用 CUDA，需要确定自己的电脑支持 CUDA, 并安装了 CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
-- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的 11.8.0 或者 12.4.1 版本
+- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的版本
 
 ## 关于 Core ML 的支持
 
@@ -53,11 +53,15 @@
 
 请根据自己的电脑系统，芯片，显卡，选择下载对应安装包。
 
+- 带 *generic* 的版本，是通用的版本，理论上支持常见的显卡
+- 带 *optimized* 的版本，是优化版本，提供了针对各个系列显卡的优化，理论上兼容性更强
+
 | 系统 | 芯片 | 显卡 | 下载安装包 |
 | ---- | ---- | ---- | ---- |
 | Windows | x64 | CUDA >= 11.8.0 < 12.0.0 | windows-x64_cuda11.8.0 |
 | Windows | x64 | CUDA >= 12.4.1 | windows-x64_cuda12.4.1 |
-| Windows | x64 | 无 CUDA | 以上两个版本均可 |
+| Windows | x64 | CUDA >= 12.2.0 | windows-x64_cuda12.2.0 |
+| Windows | x64 | 无 CUDA | windows-x64_no_cuda |
 | Mac | Apple | 支持 CoreML | mac-arm64 |
 | Mac | Intel | 不支持 CoreML | mac-x64 |
 

@@ -52,11 +52,15 @@ For information on obtaining API keys for services like Baidu Translation and Vo
 
 Please download the appropriate package based on your computer's system, chip, and graphics card.
 
+- The *generic* version is a universal version that theoretically supports most graphics cards
+- The *optimized* version provides optimizations for various graphics card series, providing better compatibility
+
 | System | Chip | Graphics Card | Download Package |
 | ---- | ---- | ---- | ---- |
 | Windows | x64 | CUDA >= 11.8.0 < 12.0.0 | windows-x64_cuda11.8.0 |
 | Windows | x64 | CUDA >= 12.0.0 | windows-x64_cuda12.4.1 |
-| Windows | x64 | no CUDA | both versions above |
+| Windows | x64 | CUDA >= 12.2.0 | windows-x64_cuda12.2.0 |
+| Windows | x64 | no CUDA | windows-x64_no_cuda |
 | Mac | Apple | support CoreML | mac-arm64 |
 | Mac | Intel | no support CoreML | mac-x64 |
 
