@@ -32,13 +32,12 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     }
     
     downloadingModels.add(model);
-    const onProcess = (data) => {
-      const match = data?.match?.(/(\d+)/);
-      if (match) {
-        event.sender.send('downloadProgress', model, +match[1]);
+    const onProcess = (progress: number, message: string) => {
+      if (progress > 0.0) {
+        event.sender.send('downloadProgress', model, progress);
       }
-      if (data?.includes?.('Done') || data?.includes?.('main')) {
-        event.sender.send('downloadProgress', model, 100);
+      if (message?.includes?.('Done') || message?.includes?.('main')) {
+        event.sender.send('downloadProgress', model, 1);
       }
     };
     try {

@@ -34,7 +34,7 @@ const DownModelDropdown: FC<IProps> = ({
           className="w-24"
         >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {loading ? `${progress}%` : t("download")}
+          {loading ? `${(progress * 100).toFixed(2)}%` : t("download")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[225px]">

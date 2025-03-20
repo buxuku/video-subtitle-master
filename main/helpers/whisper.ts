@@ -59,7 +59,7 @@ export const deleteModel = async (model) => {
   });
 };
 
-export const downloadModelSync = async (model: string, source: string, onProcess: (message: string) => void, needsCoreML = true) => {
+export const downloadModelSync = async (model: string, source: string, onProcess: (progress: number, message: string) => void, needsCoreML = true) => {
   const modelsPath = getPath("modelsPath");
   const modelPath = path.join(modelsPath, `ggml-${model}.bin`);
   const coreMLModelPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc`);
@@ -111,7 +111,7 @@ export const downloadModelSync = async (model: string, source: string, onProcess
           receivedBytes[type] = item.getReceivedBytes();
           const totalProgress = (receivedBytes.normal + receivedBytes.coreML) / (totalBytes.normal + totalBytes.coreML);
           const percent = totalProgress * 100;
-          onProcess(`${percent.toFixed(2)}%`);
+          onProcess(totalProgress, `${percent.toFixed(2)}%`);
         }
       });
 
@@ -124,7 +124,7 @@ export const downloadModelSync = async (model: string, source: string, onProcess
               const zipPath = path.join(modelsPath, `ggml-${model}-encoder.mlmodelc.zip`);
               await decompress(zipPath, modelsPath);
               fs.unlinkSync(zipPath); // 删除zip文件
-              onProcess(`Core ML ${model} 解压完成`);
+              onProcess(1, `Core ML ${model} 解压完成`);
             } catch (error) {
               console.error('解压Core ML模型失败:', error);
               reject(new Error(`解压Core ML模型失败: ${error.message}`));
@@ -132,7 +132,7 @@ export const downloadModelSync = async (model: string, source: string, onProcess
           }
           
           if (downloadCount === totalDownloads) {
-            onProcess(`${model} 下载完成`);
+            onProcess(1, `${model} 下载完成`);
             cleanup();
             resolve(1);
           }
