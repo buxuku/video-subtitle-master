@@ -11,7 +11,7 @@ const DownModelLink: FC<IProps> = ({ loading, progress, handleDownModel }) => {
   return (
     <span className="inline-block">
       {loading ? (
-        `${t('downloading')} ${progress}%...`
+        `${t('downloading')} ${(progress * 100).toFixed(2)}%...`
       ) : (
         <>
           {t('modelNotDownloaded')}

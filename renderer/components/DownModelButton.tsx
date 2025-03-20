@@ -24,7 +24,7 @@ const DownModelButton: FC<IProps> = ({
       {loading ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          {progress ? `${progress.toFixed(1)}%` : t('downloading')}
+          {progress ? `${(progress * 100).toFixed(2)}%` : t('downloading')}
         </>
       ) : (
         t('download')

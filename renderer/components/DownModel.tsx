@@ -17,8 +17,8 @@ const DownModel: FC<IProps> = ({ modelName, callBack, downSource, children, need
     const handleProgress = (model: string, progressValue: number) => {
       if (model?.toLowerCase() === modelName?.toLowerCase()) {
         setProgress(progressValue);
-        setLoading(progressValue < 100);
-        if (progressValue >= 100) {
+        setLoading(0.0 <= progressValue && progressValue < 1.0);
+        if (progressValue >= 1.0) {
           callBack();
         }
       }
