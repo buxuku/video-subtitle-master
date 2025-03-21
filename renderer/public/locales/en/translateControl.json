@@ -23,5 +23,8 @@
   "ApiUrl": "API Url",
   "API Key": "API Key",
   "systemPrompt": "System Prompt",
-  "userPromptTips": "User prompt, supports variables: <br /> ${sourceLanguage} Source language <br /> ${targetLanguage} Target language <br /> ${content} Source subtitle"
+  "userPromptTips": "User prompt, supports variables: <br /> ${sourceLanguage} Source language <br /> ${targetLanguage} Target language <br /> ${content} Source subtitle",
+  "testTranslation": "Test Translation",
+  "testSuccess": "Test Successful",
+  "testFailed": "Test Failed"
 }

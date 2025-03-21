@@ -9,6 +9,7 @@ import { getStaticPaths, makeStaticProperties } from '../../lib/get-static';
 import { cn } from 'lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { toast } from "sonner";
 
 const TranslateControl: React.FC = () => {
   const { t } = useTranslation('translateControl');
@@ -103,6 +104,27 @@ const TranslateControl: React.FC = () => {
     window?.ipc?.send('setTranslationProviders', updatedProviders);
   };
 
+  const handleTestTranslation = async () => {
+    const currentProvider = getCurrentProvider();
+    if (!currentProvider) return;
+
+    try {
+      const result = await window.ipc.invoke('testTranslation', {
+        provider: currentProvider,
+        sourceLanguage: 'en',  // 默认使用英语作为源语言
+        targetLanguage: 'zh',  // 默认使用中文作为目标语言
+      });
+      
+      toast.success(t('testSuccess'), {
+        description: result
+      });
+    } catch (error) {
+      toast.error(t('testFailed'), {
+        description: error.message
+      });
+    }
+  };
+
   return (
     <div className="flex h-full">
       {/* 左侧服务商列表 */}
@@ -188,6 +210,12 @@ const TranslateControl: React.FC = () => {
                 <span className="text-2xl">{getCurrentProviderType()?.icon}</span>
                 <span>{getCurrentProviderType()?.name}</span>
               </h1>
+              <Button 
+                variant="outline"
+                onClick={handleTestTranslation}
+              >
+                {t('testTranslation')}
+              </Button>
             </div>
 
             <Card>

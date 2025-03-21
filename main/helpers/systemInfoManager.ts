@@ -9,6 +9,7 @@ import fse from 'fs-extra';
 import path from 'path';
 import { getTempDir } from './fileUtils';
 import { logMessage } from './storeManager';
+import { testTranslation } from '../translate';
 
 let downloadingModels = new Set<string>();
 
@@ -26,30 +27,38 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
     return true;
   });
 
-  ipcMain.handle('downloadModel', async (event, { model, source, needsCoreML }) => {
-    if (downloadingModels.has(model)) {
-      return false; // 如果模型已经在下载中，则返回 false
-    }
-    
-    downloadingModels.add(model);
-    const onProcess = (progress: number, message: string) => {
-      if (progress > 0.0) {
-        event.sender.send('downloadProgress', model, progress);
+  ipcMain.handle(
+    'downloadModel',
+    async (event, { model, source, needsCoreML }) => {
+      if (downloadingModels.has(model)) {
+        return false; // 如果模型已经在下载中，则返回 false
       }
-      if (message?.includes?.('Done') || message?.includes?.('main')) {
-        event.sender.send('downloadProgress', model, 1);
+
+      downloadingModels.add(model);
+      const onProcess = (progress: number, message: string) => {
+        if (progress > 0.0) {
+          event.sender.send('downloadProgress', model, progress);
+        }
+        if (message?.includes?.('Done') || message?.includes?.('main')) {
+          event.sender.send('downloadProgress', model, 1);
+        }
+      };
+      try {
+        await downloadModelSync(
+          model?.toLowerCase(),
+          source,
+          onProcess,
+          needsCoreML
+        );
+        downloadingModels.delete(model);
+        return true;
+      } catch (error) {
+        event.sender.send('message', 'download error, please try again');
+        downloadingModels.delete(model);
+        return false;
       }
-    };
-    try {
-      await downloadModelSync(model?.toLowerCase(), source, onProcess, needsCoreML);
-      downloadingModels.delete(model);
-      return true;
-    } catch (error) {
-      event.sender.send('message', 'download error, please try again');
-      downloadingModels.delete(model);
-      return false;
     }
-  });
+  );
 
   ipcMain.handle('importModel', async (event) => {
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -83,21 +92,30 @@ export function setupSystemInfoManager(mainWindow: BrowserWindow) {
   ipcMain.handle('clearCache', async () => {
     try {
       const tempDir = getTempDir();
-      const files = await fs.promises.readdir(tempDir);
-      
+      const files = await fse.readdir(tempDir);
+
       // 只删除 .wav 文件，保留目录结构
       for (const file of files) {
         if (file.endsWith('.wav')) {
           const filePath = path.join(tempDir, file);
-          await fs.promises.unlink(filePath);
+          await fse.unlink(filePath);
           logMessage(`Deleted cache file: ${filePath}`, 'info');
         }
       }
-      
+
       return true;
     } catch (error) {
       logMessage(`Failed to clear cache: ${error}`, 'error');
       return false;
+    }
+  });
+
+  ipcMain.handle('testTranslation', async (_, args) => {
+    const { provider, sourceLanguage, targetLanguage } = args;
+    try {
+      return await testTranslation(provider, sourceLanguage, targetLanguage);
+    } catch (error) {
+      throw error;
     }
   });
 }

@@ -1,3 +1,3 @@
 export { store } from './store';
-export { setupStoreHandlers } from './ipcHandlers';
+export { setupStoreHandlers } from './ipcStoreHandlers';
 export { logMessage } from './logger';
