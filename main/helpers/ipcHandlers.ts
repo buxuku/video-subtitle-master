@@ -1,85 +1,66 @@
-import { app, ipcMain } from 'electron';
-import os from 'os';
-import { store } from './store';
-import { defaultUserConfig } from './utils';
-import { getAndInitializeProviders } from './providerManager';
-import { logMessage } from './logger';
-import { LogEntry } from './store/types';
+import { ipcMain, BrowserWindow, dialog, shell } from 'electron';
+import * as fs from 'fs';
+import { createMessageSender } from './messageHandler';
 
-console.log(app.getVersion(), 'version');
-export function setupStoreHandlers() {
-  // 启动时初始化服务商配置
-  getAndInitializeProviders().then(async () => {
-    const osInfo = {
-      platform: os.platform(),
-      arch: os.arch(),
-      version: os.version(),
-      model: os.machine(),
-      cpuModel: os?.cpus()?.[0]?.model,
-      release: os.release(),
-      totalmem: os.totalmem(),
-      freemem: os.freemem(),
-      type: os.type(),
+export function setupIpcHandlers(mainWindow: BrowserWindow) {
+  ipcMain.on("message", async (event, arg) => {
+    event.reply("message", `${arg} World!`);
+  });
+
+  ipcMain.on("openDialog", async (event) => {
+    const result = await dialog.showOpenDialog({
+      properties: ["openFile", "multiSelections"],
+      filters: [
+        { 
+          name: "音频、视频和字幕文件", 
+          extensions: [
+            // 视频格式
+            "mp4", "avi", "mov", "mkv", "flv", "wmv", "webm",
+            // 音频格式
+            "mp3", "wav", "ogg", "aac", "wma", "flac", "m4a",
+            "aiff", "ape", "opus", "ac3", "amr", "au", "mid",
+            // 其他常见格式
+            "3gp", "asf", "rm", "rmvb", "vob", "ts", "mts", "m2ts",
+            // 字幕格式
+            "srt", "vtt", "ass", "ssa"
+          ]
+        },
+      ],
+    });
+    
+    try {
+      event.sender.send("file-selected", result.filePaths);
+    } catch (error) {
+      createMessageSender(event.sender).send('message', {
+        type: 'error',
+        message: error.message
+      });
     }
-    logMessage(`osInfo: ${JSON.stringify(osInfo, null, 2)}`, 'info');
-    logMessage('Translation providers initialized', 'info');
   });
 
-  // Provider 相关处理
-  ipcMain.on('setTranslationProviders', async (event, providers) => {
-    store.set('translationProviders', providers);
+  ipcMain.on("openUrl", (event, url) => {
+    shell.openExternal(url);
   });
 
-  ipcMain.handle('getTranslationProviders', async () => {
-    return getAndInitializeProviders();
+  ipcMain.handle('getDroppedFiles', async (event, files) => {
+    // 验证文件是否存在和可访问
+    const validPaths = await Promise.all(
+      files.map(async (filePath) => {
+        try {
+          await fs.promises.access(filePath);
+          return filePath;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    return validPaths.filter(Boolean);
   });
 
-  // 用户配置相关处理
-  ipcMain.on('setUserConfig', async (event, config) => {
-    store.set('userConfig', config);
-  });
-
-  ipcMain.handle('getUserConfig', async () => {
-    const storedConfig = store.get('userConfig');
-    return { ...defaultUserConfig, ...storedConfig };
-  });
-
-  // 设置相关处理
-  ipcMain.handle('setSettings', async (event, settings) => {
-    const preSettings = store.get('settings');
-    store.set('settings', { ...preSettings, ...settings });
-  });
-
-  ipcMain.handle('getSettings', async () => {
-    return store.get('settings');
-  });
-
-  // 日志相关处理
-  ipcMain.handle(
-    'addLog',
-    async (event, logEntry: Omit<LogEntry, 'timestamp'>) => {
-      const logs = store.get('logs');
-      const newLog = {
-        ...logEntry,
-        timestamp: Date.now(),
-      };
-      store.set('logs', [...logs, newLog]);
-      event.sender.send('newLog', newLog);
-    }
-  );
-
-  ipcMain.handle('getLogs', async () => {
-    return store.get('logs');
-  });
-
-  ipcMain.handle('clearLogs', async () => {
-    store.set('logs', []);
-    return true;
-  });
-
-  // 清理配置
-  ipcMain.handle('clearConfig', async () => {
-    store.clear();
-    return true;
+  ipcMain.handle('selectDirectory', async () => {
+    return dialog.showOpenDialog({
+      properties: ['openDirectory']
+    });
   });
 }

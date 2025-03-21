@@ -2,7 +2,7 @@ import path from "path";
 import { app } from "electron";
 import serve from "electron-serve";
 import { createWindow } from "./helpers/create-window";
-import { setupIpcHandlers } from './helpers/ipcHandler';
+import { setupIpcHandlers } from './helpers/ipcHandlers';
 import { setupTaskProcessor } from './helpers/taskProcessor';
 import { setupSystemInfoManager } from './helpers/systemInfoManager';
 import { setupStoreHandlers, store } from './helpers/storeManager';

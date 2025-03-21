@@ -80,4 +80,39 @@ export default async function translate(
     event.sender.send('message', error.message || error);
     throw error;
   }
+}
+
+export async function testTranslation(
+  provider: Provider,
+  sourceLanguage: string,
+  targetLanguage: string
+): Promise<string> {
+  const testSubtitle = {
+    id: '1',
+    startEndTime: '00:00:01,000 --> 00:00:04,000',
+    content: ['Hello China']
+  };
+
+  try {
+    const translator = TRANSLATOR_MAP[provider.type];
+    if (!translator) {
+      throw new Error(`Unknown translation provider: ${provider.type}`);
+    }
+
+    const results = await translateWithProvider(
+      provider,
+      [testSubtitle],
+      sourceLanguage,
+      targetLanguage,
+      translator
+    );
+
+    if (provider.isAi && provider.useBatchTranslation) {
+      return (results as string[])[0];
+    } else {
+      return (results as TranslationResult[])[0].targetContent;
+    }
+  } catch (error) {
+    throw error;
+  }
 } 
