@@ -1,8 +1,9 @@
-# video-subtitle-master
+# 妙幕 / SmartSub
 
 [English](./README_EN.md) | 中文
 
-批量为视频生成字幕，并可将字幕翻译成其它语言。这是在之前的一个开源项目 [VideoSubtitleGenerator](https://github.com/buxuku/VideoSubtitleGenerator) 的基础上，制作成的一个客户端工具，以方便更多朋友们的使用。
+*让每一帧画面都能美妙地表达*
+智能音视频字幕生成与多语言翻译批量化解决方案
 
 ![preview](./resources/preview.png)
 
@@ -13,6 +14,7 @@
 - 目前提供了 CUDA 11.8.0 和 12.2.0 及 12.4.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
 - 要启用 CUDA，需要确定自己的电脑支持 CUDA, 并安装了 CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
 - CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的版本
+- 如果下载 generic 使用有问题，可以下载 optimized 版本，这个版本是针对各个系列显卡的优化版本，兼容性更强
 
 ## 关于 Core ML 的支持
 
@@ -22,25 +24,23 @@
 
 它保留了之前 [VideoSubtitleGenerator](https://github.com/buxuku/VideoSubtitleGenerator) 这个命令行工具的全部特性，并新增了以下功能:
 
-- 图形用户界面，操作更加便捷
-- 源语言字幕文件和目标语言字幕文件放在视频同目录下，方便播放时任意挂载字幕文件
-- 批量处理视频/音频/字幕文件
-- 支持视频/音频生成字幕
+
+- 支持多种视频/音频格式生成字幕
 - 支持对生成的字幕，或者导入的字幕进行翻译
 - 支持多种翻译服务:
   - 火山引擎翻译
   - 百度翻译
+  - 微软翻译器
   - DeepLX 翻译 （批量翻译容易存在被限流的情况）
   - 本地模型 Ollama 翻译
   - 支持 OpenAI 风格 API 翻译，如 [deepseek](https://www.deepseek.com/), [azure](https://azure.microsoft.com) 等
 - 自定义字幕文件名，方便兼容不同的播放器挂载字幕识别
 - 自定义翻译后的字幕文件内容，支持纯翻译结果或原字幕+翻译结果
-- 项目集成 `whisper.cpp`，对 Apple Silicon 进行了优化，有较快的生成速度
-- 项目集成了 `fluent-ffmpeg`，无须单独安装 `ffmpeg`
+- 支持硬件加速
+   - NVIDIA CUDA（Windows/Linux）
+   - Apple Core ML（macOS M系列芯片）
 - 支持运行本地安装的 `whisper` 命令
-- 支持选择模型下载源（国内镜像源或官方源）
 - 支持自定义并发任务数量
-
 
 
 ## 翻译服务
@@ -49,12 +49,23 @@
 
 对于百度翻译、火山引擎等服务的 API 申请方法，可以参考 https://bobtranslate.com/service/ ，感谢 [Bob](https://bobtranslate.com/) 这款优秀的软件提供的信息。
 
+## 模型的选择
+
+从视频或者音频里面，生成字幕文件，需要使用到 whisper 的模型。 whisper 的模型有多种，不同的模型，生成字幕的准确性不同，处理速度也不同。
+
+- 模型越大，准确性越高，对显卡要求也高，处理速度越慢
+- 低端设备或者显卡，推荐 `tiny` 或者 `base` 系列的模型，准确性虽然不如 `large` 系列，但是处理速度快，占用显存小
+- 普通电脑设备，建议从 `small` 或者 `base` 开始，平衡精度与资源消耗
+- 对于高性能显卡/工作站，推荐使用 `large` 系列的模型，准确性高
+- 如果原始音视频是英文，推荐使用带 `en` 的模型，专为英语优化，减少多语言干扰
+- 如果在乎模型大小，可以考虑使用 `q5` 或者 `q8` 系列的模型，相对于非量化版本，牺牲少量精度换取更小体积
+
 ## 🔦使用 (普通用户)
 
 请根据自己的电脑系统，芯片，显卡，选择下载对应安装包。
 
 - 带 *generic* 的版本，是通用的版本，理论上支持常见的显卡
-- 带 *optimized* 的版本，是优化版本，提供了针对各个系列显卡的优化，理论上兼容性更强
+- 带 *optimized* 的版本，是优化版本，提供了针对各个系列显卡的优化，兼容性更强
 
 | 系统 | 芯片 | 显卡 | 下载安装包 |
 | ---- | ---- | ---- | ---- |
@@ -67,10 +78,11 @@
 
 1. 前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面根据自己的操作系统下载安装包
 2. 安装并运行程序
-3. 在程序中配置所需的翻译服务
-4. 选择要处理的视频文件或字幕文件
-5. 设置相关参数（如源语言、目标语言、模型等）
-6. 开始处理任务
+3. 下载模型
+4. 在程序中配置所需的翻译服务
+5. 选择要处理的音视频文件或字幕文件
+6. 设置相关参数（如源语言、目标语言、模型等）
+7. 开始处理任务
 
 ## 🔦使用 (开发用户)
 
@@ -103,7 +115,7 @@ yarn dev
 2. Hugging Face 官方源：
    https://huggingface.co/ggerganov/whisper.cpp/tree/main
 
-如果是苹果芯片，需要同时下载模型对应的 encoder.mlmodelc 文件。并解压出来放在模型相同目录下。
+如果是苹果芯片，需要同时下载模型对应的 encoder.mlmodelc 文件。并解压出来放在模型相同目录下。（如果是 q5 或者 q8 系列的模型，无须下载该文件）
 
 下载完成后，您可以通过应用的"模型管理"页面中的"导入模型"功能将下载的模型文件导入到应用中。或者直接复制到模型目录里面即可。
 
@@ -128,7 +140,7 @@ sudo xattr -dr com.apple.quarantine /Applications/Video\ Subtitle\ Master.app
 
 👨‍👨‍👦‍👦 如果有任何使用问题，也欢迎来这里交流:
 
-![wechat](./resources/WechatIMG428.jpg)
+![wechat](./resources/WechatIMG428.png)
 
 ## 许可证
 
