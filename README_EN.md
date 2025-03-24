@@ -2,7 +2,7 @@
 
 English | [中文](./README.md)
 
-*Make every frame speak beautifully*
+**Make every frame speak beautifully**
 
 Smart subtitle generation and multilingual translation solution for video/audio files. 
 
