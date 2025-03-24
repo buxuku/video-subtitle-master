@@ -3,23 +3,12 @@
 English | [中文](./README.md)
 
 *Make every frame speak beautifully*
+
 Smart subtitle generation and multilingual translation solution for video/audio files. 
 
 
 ![preview](./resources/preview-en.png)
 
-## About CUDA support
-
-Because I use an Apple Silicon chip, I lack a Windows CUDA development environment. For CUDA support, there are many scenarios that are difficult to cover both in development and testing.
-
-- Currently, CUDA 11.8.0 and 12.4.1 versions are provided through GitHub Actions, which may have compatibility issues with the environment
-- To enable CUDA, you need to determine if your computer supports CUDA and has installed the CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
-- The version of the CUDA toolkit theoretically supports backward compatibility. Please choose the appropriate 11.8.0 or 12.4.1 version based on your graphics card support
-- If you have problems downloading generic usage, you can download optimized Version, which is optimized for better compatibility across a variety of graphics card families
-
-## Core ML support
-
-Starting from version 1.20.0, Core ML is supported on Apple Silicon, providing faster speech recognition. If you are using an Apple Silicon chip, please download the mac arm64 version of the release package. It will automatically enable Core ML acceleration.
 
 ## 💥 Features
 
@@ -27,6 +16,7 @@ This application retains all the features of the original [VideoSubtitleGenerato
 
 - Batch processing of video/audio/subtitle files
 - Ability to translate generated or imported subtitles
+- Localized processing, no need to upload videos, protecting privacy while also having faster processing speeds
 - Multiple translation services supported:
   - Volcano Engine Translation
   - Baidu Translation
@@ -42,6 +32,18 @@ This application retains all the features of the original [VideoSubtitleGenerato
 - Support for running locally installed `whisper` command
 - Customizable number of concurrent tasks
 
+## About CUDA support
+
+Because I use an Apple Silicon chip, I lack a Windows CUDA development environment. For CUDA support, there are many scenarios that are difficult to cover both in development and testing.
+
+- Currently, CUDA 11.8.0 and 12.4.1 versions are provided through GitHub Actions, which may have compatibility issues with the environment
+- To enable CUDA, you need to determine if your computer supports CUDA and has installed the CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
+- The version of the CUDA toolkit theoretically supports backward compatibility. Please choose the appropriate 11.8.0 or 12.4.1 version based on your graphics card support
+- If you have problems downloading generic usage, you can download optimized Version, which is optimized for better compatibility across a variety of graphics card families
+
+## Core ML support
+
+Starting from version 1.20.0, Core ML is supported on Apple Silicon, providing faster speech recognition. If you are using an Apple Silicon chip, please download the mac arm64 version of the release package. It will automatically enable Core ML acceleration.
 
 ## Translation Services
 

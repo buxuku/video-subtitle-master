@@ -3,30 +3,19 @@
 [English](./README_EN.md) | 中文
 
 *让每一帧画面都能美妙地表达*
+
 智能音视频字幕生成与多语言翻译批量化解决方案
 
 ![preview](./resources/preview.png)
 
-## 关于 CUDA 的支持
-
-因为本人使用的是苹果芯片，缺少 window CUDA 的开发环境，对于 CUDA 的支持，开发测试都存在较多场景无法兼顾的情况。
-
-- 目前提供了 CUDA 11.8.0 和 12.2.0 及 12.4.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
-- 要启用 CUDA，需要确定自己的电脑支持 CUDA, 并安装了 CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
-- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的版本
-- 如果下载 generic 使用有问题，可以下载 optimized 版本，这个版本是针对各个系列显卡的优化版本，兼容性更强
-
-## 关于 Core ML 的支持
-
-从 1.20.0 版本开始，在苹果芯片上，支持使用 Core ML 加速语音识别。如果是苹果芯片，请下载 mac arm64 版本的 release 包。将会自动启动 Core ML 加速。
 
 ## 💥特性
 
 它保留了之前 [VideoSubtitleGenerator](https://github.com/buxuku/VideoSubtitleGenerator) 这个命令行工具的全部特性，并新增了以下功能:
 
-
 - 支持多种视频/音频格式生成字幕
 - 支持对生成的字幕，或者导入的字幕进行翻译
+- 本地化处理，无须上传视频，保护隐私的同时也拥有更快的处理速度
 - 支持多种翻译服务:
   - 火山引擎翻译
   - 百度翻译
@@ -42,6 +31,18 @@
 - 支持运行本地安装的 `whisper` 命令
 - 支持自定义并发任务数量
 
+## 关于 CUDA 的支持
+
+因为本人使用的是苹果芯片，缺少 window CUDA 的开发环境，对于 CUDA 的支持，开发测试都存在较多场景无法兼顾的情况。
+
+- 目前提供了 CUDA 11.8.0 和 12.2.0 及 12.4.1 版本的编译，是通过 github action 自动编译的，可能存在环境的兼容问题
+- 要启用 CUDA，需要确定自己的电脑支持 CUDA, 并安装了 CUDA toolkit. [CUDA download](https://developer.nvidia.com/cuda-downloads)
+- CUDA toolkit 的版本理论上是向后兼容，请根据你显卡支持的版本，选择合适的版本
+- 如果下载 generic 使用有问题，可以下载 optimized 版本，这个版本是针对各个系列显卡的优化版本，兼容性更强
+
+## 关于 Core ML 的支持
+
+从 1.20.0 版本开始，在苹果芯片上，支持使用 Core ML 加速语音识别。如果是苹果芯片，请下载 mac arm64 版本的 release 包。将会自动启动 Core ML 加速。
 
 ## 翻译服务
 
