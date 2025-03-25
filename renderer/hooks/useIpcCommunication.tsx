@@ -40,10 +40,26 @@ export default function useIpcCommunication(setFiles) {
       });
     };
 
+    const handleTaskErrorChange = (
+      res: IFiles,
+      key: string,
+      errorMsg: string
+    ) => {
+      setFiles((prevFiles) => {
+        const errorKey = `${key}Error`;
+        const updatedFiles = prevFiles.map((file) =>
+          file.uuid === res?.uuid ? { ...file, [errorKey]: errorMsg } : file
+        );
+        return updatedFiles;
+      });
+    };
+
     window?.ipc?.on('taskStatusChange', handleTaskStatusChange);
     window?.ipc?.on('taskProgressChange', handleTaskProgressChange);
+    window?.ipc?.on('taskErrorChange', handleTaskErrorChange);
 
     return () => {
+
     };
   }, []);
 }
