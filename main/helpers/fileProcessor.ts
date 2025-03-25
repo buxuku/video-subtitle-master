@@ -45,6 +45,7 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
     sourceSrtSaveOption,
     customSourceSrtFileName,
     translateProvider,
+    saveAudio,
   } = formData || {};
   
   try {
@@ -74,6 +75,14 @@ export async function processFile(event, file, formData, hasOpenAiWhisper, provi
       // 提取音频
       logMessage(`extract audio for ${fileName}`, 'info');
       const tempAudioFile = await extractAudioFromVideo(event, file, filePath);
+      
+      // 如果开启了保存音频选项，则复制一份到视频同目录
+      if (saveAudio) {
+        const audioFileName = `${fileName}.wav`;
+        const targetAudioPath = path.join(directory, audioFileName);
+        logMessage(`Saving audio file to: ${targetAudioPath}`, 'info');
+        fs.copyFileSync(tempAudioFile, targetAudioPath);
+      }
 
       // 生成字幕
       logMessage(`generate subtitle ${srtFile}`, 'info');

@@ -289,6 +289,27 @@ const TaskConfigForm = ({
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="saveAudio"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-2">
+                <FormControl>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={field.value || false}
+                      onChange={field.onChange}
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <FormLabel className="font-normal">
+                      {t('saveAudio')}
+                    </FormLabel>
+                  </div>
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </fieldset>
       </form>
     </Form>
