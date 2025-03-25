@@ -36,28 +36,28 @@ jobs:
           # Windows CUDA 11.8.0 optimized
           - os: windows-2019
             arch: x64
-            addon_name: addon-windows-cuda-118-optimized.node
+            addon_name: addon-windows-cuda-1180-optimized.node
             cuda_version: 11.8.0
             cuda_opt: optimized
 
           # Windows CUDA 11.8.0 generic
           - os: windows-2019
             arch: x64
-            addon_name: addon-windows-cuda-118-generic.node
+            addon_name: addon-windows-cuda-1180-generic.node
             cuda_version: 11.8.0
             cuda_opt: generic
 
           # Windows CUDA 12.2.0 optimized
           - os: windows-2019
             arch: x64
-            addon_name: addon-windows-cuda-122-optimized.node
+            addon_name: addon-windows-cuda-1220-optimized.node
             cuda_version: 12.2.0
             cuda_opt: optimized
 
           # Windows CUDA 12.2.0 generic
           - os: windows-2019
             arch: x64
-            addon_name: addon-windows-cuda-122-generic.node
+            addon_name: addon-windows-cuda-1220-generic.node
             cuda_version: 12.2.0
             cuda_opt: generic
 
