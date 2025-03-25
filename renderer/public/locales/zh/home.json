@@ -54,5 +54,6 @@
 	"resumeTask": "继续任务",
 	"cancelTask": "取消任务",
 	"clearList": "清空列表",
-	"importFiles": "导入视频/音频/字幕"
+	"importFiles": "导入视频/音频/字幕",
+	"saveAudio": "保存音频"
 }
