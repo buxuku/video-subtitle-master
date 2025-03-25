@@ -13,7 +13,8 @@ export default async function translate(
   fileName: string,
   absolutePath: string,
   formData: any,
-  provider: Provider
+  provider: Provider,
+  onProgress?: (progress: number) => void
 ): Promise<boolean> {
   const {
     translateContent,
@@ -53,7 +54,8 @@ export default async function translate(
       subtitles,
       sourceLanguage,
       targetLanguage,
-      translator
+      translator,
+      onProgress
     );
 
     if (provider.isAi && provider.useBatchTranslation) {
@@ -70,7 +72,7 @@ export default async function translate(
           targetContent: result.targetContent
         }
       )}`;
-      logMessage(`append to file ${fileSave}`)
+      logMessage(`append to file ${fileSave}`);
       await appendToFile(fileSave, content);
     }
 
@@ -115,4 +117,4 @@ export async function testTranslation(
   } catch (error) {
     throw error;
   }
-} 
+}

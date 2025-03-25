@@ -26,10 +26,25 @@ export default function useIpcCommunication(setFiles) {
       });
     };
 
+    const handleTaskProgressChange = (
+      res: IFiles,
+      key: string,
+      progress: number
+    ) => {
+      setFiles((prevFiles) => {
+        const progressKey = `${key}Progress`;
+        const updatedFiles = prevFiles.map((file) =>
+          file.uuid === res?.uuid ? { ...file, [progressKey]: progress } : file
+        );
+        return updatedFiles;
+      });
+    };
+
     window?.ipc?.on('taskStatusChange', handleTaskStatusChange);
+    window?.ipc?.on('taskProgressChange', handleTaskProgressChange);
 
     return () => {
-      // 清理监听器
     };
   }, []);
 }
+

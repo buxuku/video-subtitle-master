@@ -34,7 +34,8 @@ export async function translateWithProvider(
   subtitles: Subtitle[],
   sourceLanguage: string,
   targetLanguage: string,
-  translator: TranslatorFunction
+  translator: TranslatorFunction,
+  onProgress?: (progress: number) => void
 ): Promise<TranslationResult[] | string[]> {
   const config = {
     provider,
@@ -53,14 +54,18 @@ export async function translateWithProvider(
       return handleAIBatchTranslation(
         subtitles,
         config,
-        +provider.batchSize || DEFAULT_BATCH_SIZE.AI
+        +provider.batchSize || DEFAULT_BATCH_SIZE.AI,
+        onProgress
       );
     } else {
       const results: TranslationResult[] = [];
-      for (const subtitle of subtitles) {
+      const totalSubtitles = subtitles.length;
+      for (let i = 0; i < totalSubtitles; i++) {
+        const subtitle = subtitles[i];
         try {
           logMessage(`handleAISingleTranslation subtitle ${subtitle.id}`);
           const result = await handleAISingleTranslation(subtitle, config);
+          onProgress && onProgress(i / totalSubtitles);
           results.push(result);
         } catch (error) {
           logMessage(
@@ -74,5 +79,5 @@ export async function translateWithProvider(
     }
   }
 
-  return handleAPIBatchTranslation(subtitles, config, +provider.batchSize);
+  return handleAPIBatchTranslation(subtitles, config, +provider.batchSize, onProgress);
 }
