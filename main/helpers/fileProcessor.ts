@@ -26,7 +26,12 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
  */
 async function translateSubtitle(event, file, directory, fileName, srtFile, formData, provider) {
   event.sender.send('taskStatusChange', file, 'translateSubtitle', 'loading');
-  await translate(event, directory, fileName, srtFile, formData, provider);
+  
+  const onProgress = (progress) => {
+    event.sender.send('taskProgressChange', file, 'translateSubtitle', Math.min(progress, 100));
+  };
+  
+  await translate(event, directory, fileName, srtFile, formData, provider, onProgress);
   event.sender.send('taskStatusChange', file, 'translateSubtitle', 'done');
 }
 

@@ -10,7 +10,13 @@ import { formatSrtContent } from './fileUtils';
 /**
  * 使用本地Whisper命令行工具生成字幕
  */
-export async function generateSubtitleWithLocalWhisper(event, file, audioFile, srtFile, formData) {
+export async function generateSubtitleWithLocalWhisper(
+  event,
+  file,
+  audioFile,
+  srtFile,
+  formData
+) {
   const { model, sourceLanguage } = formData;
   const whisperModel = model?.toLowerCase();
   const settings = store.get('settings');
@@ -23,17 +29,14 @@ export async function generateSubtitleWithLocalWhisper(event, file, audioFile, s
     .replace(/\${sourceLanguage}/g, sourceLanguage || 'auto')
     .replace(/\${outputDir}/g, path.dirname(srtFile));
 
-  runShell = runShell.replace(
-    /("[^"]*")|(\S+)/g,
-    (match, quoted, unquoted) => {
-      if (quoted) return quoted;
-      if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
-        return `"${unquoted}"`;
-      }
-      return unquoted || match;
+  runShell = runShell.replace(/("[^"]*")|(\S+)/g, (match, quoted, unquoted) => {
+    if (quoted) return quoted;
+    if (unquoted && (unquoted.includes('/') || unquoted.includes('\\'))) {
+      return `"${unquoted}"`;
     }
-  );
-  
+    return unquoted || match;
+  });
+
   console.log(runShell, 'runShell');
   logMessage(`run shell ${runShell}`, 'info');
   event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
@@ -71,7 +74,13 @@ export async function generateSubtitleWithLocalWhisper(event, file, audioFile, s
 /**
  * 使用内置Whisper库生成字幕
  */
-export async function generateSubtitleWithBuiltinWhisper(event, file, audioFile, srtFile, formData) {
+export async function generateSubtitleWithBuiltinWhisper(
+  event,
+  file,
+  audioFile,
+  srtFile,
+  formData
+) {
   event.sender.send('taskStatusChange', file, 'extractSubtitle', 'loading');
 
   try {
@@ -87,7 +96,7 @@ export async function generateSubtitleWithBuiltinWhisper(event, file, audioFile,
     if (platform === 'darwin' && arch === 'arm64') {
       shouldUseGpu = true;
     } else if (platform === 'win32' && useCuda) {
-      shouldUseGpu = !!await checkCudaSupport();
+      shouldUseGpu = !!(await checkCudaSupport());
     }
 
     const { model, sourceLanguage } = formData;
@@ -106,8 +115,14 @@ export async function generateSubtitleWithBuiltinWhisper(event, file, audioFile,
       no_timestamps: false,
       audio_ctx: 0,
       max_len: 0,
+      print_progress: false,
+      progress_callback: (progress) => {
+        console.log(`处理进度: ${progress}%`);
+        // 更新UI显示进度
+        event.sender.send('taskProgressChange', file, 'extractSubtitle', progress);
+      },
     };
-    
+
     logMessage(
       `whisperParams: ${JSON.stringify(whisperParams, null, 2)}`,
       'info'
@@ -130,4 +145,4 @@ export async function generateSubtitleWithBuiltinWhisper(event, file, audioFile,
     logMessage(`generate subtitle error: ${error}`, 'error');
     throw error;
   }
-} 
+}

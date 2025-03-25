@@ -50,7 +50,8 @@ export async function handleAISingleTranslation(
 export async function handleAIBatchTranslation(
   subtitles: Subtitle[],
   config: TranslationConfig,
-  batchSize: number = DEFAULT_BATCH_SIZE.AI
+  batchSize: number = DEFAULT_BATCH_SIZE.AI,
+  onProgress?: (progress: number) => void,
 ): Promise<string[]> {
   const { provider, sourceLanguage, targetLanguage, translator } = config;
   const results: string[] = [];
@@ -88,6 +89,12 @@ export async function handleAIBatchTranslation(
       
       logMessage(`AI response: ${responseOrigin}`, 'info');
       results.push(match?.[1].trim() || response);
+      
+      // 更新翻译进度
+      const progress = Math.min(((i + batchSize) / subtitles.length) * 100, 100);
+      if (onProgress) {
+        onProgress(progress);
+      }
     } catch (error) {
       logMessage(`AI batch translation error: ${error.message}`, 'error');
       throw error;
@@ -95,4 +102,4 @@ export async function handleAIBatchTranslation(
   }
 
   return results;
-} 
+}

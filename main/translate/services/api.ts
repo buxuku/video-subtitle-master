@@ -5,7 +5,8 @@ import { logMessage } from '../../helpers/storeManager';
 export async function handleAPIBatchTranslation(
   subtitles: Subtitle[],
   config: TranslationConfig,
-  batchSize: number = DEFAULT_BATCH_SIZE.API
+  batchSize: number = DEFAULT_BATCH_SIZE.API,
+  onProgress?: (progress: number) => void
 ): Promise<TranslationResult[]> {
   const { provider, sourceLanguage, targetLanguage, translator } = config;
   const results: TranslationResult[] = [];
@@ -39,6 +40,12 @@ export async function handleAPIBatchTranslation(
       }));
 
       results.push(...batchResults);
+      
+      // 更新翻译进度
+      const progress = Math.min(((i + batchSize) / subtitles.length) * 100, 100);
+      if (onProgress) {
+        onProgress(progress);
+      }
     } catch (error) {
       logMessage(`API batch translation error: ${error.message}`, 'error');
       throw error;
