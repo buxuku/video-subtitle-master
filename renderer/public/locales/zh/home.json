@@ -9,6 +9,7 @@
 	"save": "保存",
 	"pleaseSelect": "请选择",
 	"pleaseInputCustomSourceSrtFileName": "请输入自定义原始字幕文件名",
+	"pleaseInput": "请输入",
 	"translationSettings": "翻译设置",
 	"translationService": "翻译服务",
 	"Untranslate": "不翻译",
@@ -56,5 +57,6 @@
 	"clearList": "清空列表",
 	"importFiles": "导入视频/音频/字幕",
 	"saveAudio": "保存音频",
-	"missingEncoderMlmodelc": "该模型需要对应的 encoder.mlmodelc 文件, 请下载并导入它"
+	"missingEncoderMlmodelc": "该模型需要对应的 encoder.mlmodelc 文件, 请下载并导入它",
+	"translateRetryTimes": "翻译失败重试次数"
 }

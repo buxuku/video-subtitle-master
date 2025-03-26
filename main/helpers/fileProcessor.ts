@@ -45,18 +45,22 @@ async function generateSubtitle(event, file, audioFile, srtFile, formData, hasOp
 /**
  * 翻译字幕
  */
-async function translateSubtitle(event, file, directory, fileName, srtFile, formData, provider) {
+async function translateSubtitle(event, file, directory, fileName, srtFile, formData, provider, retry = 0) {
   event.sender.send('taskStatusChange', file, 'translateSubtitle', 'loading');
   
   const onProgress = (progress) => {
     event.sender.send('taskProgressChange', file, 'translateSubtitle', Math.min(progress, 100));
   };
-  
   try {
     await translate(event, directory, fileName, srtFile, formData, provider, onProgress);
     event.sender.send('taskStatusChange', file, 'translateSubtitle', 'done');
   } catch (error) {
-    onError(event, file, 'translateSubtitle', error);
+    if (retry >= +(formData?.translateRetryTimes || 0)) {
+      onError(event, file, 'translateSubtitle', error);
+      return;
+    }
+    logMessage(`translateSubtitle error: ${error.message}, retry ${retry + 1}`, 'error');
+    await translateSubtitle(event, file, directory, fileName, srtFile, formData, provider, retry + 1);
   }
 }
 

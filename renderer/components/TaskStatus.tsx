@@ -30,7 +30,7 @@ const TaskStatus = ({ file, checkKey, skip = false }) => {
     return (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <AlertCircle className="size-4 text-red-500" />
           </TooltipTrigger>
           <TooltipContent>
