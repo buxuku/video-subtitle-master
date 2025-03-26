@@ -1,6 +1,15 @@
-# SmartSub
+# 🚀 妙幕 / SmartSub
 
-English | [中文](./README.md)
+<div align="center">
+
+[![Release](https://img.shields.io/github/v/release/buxuku/SmartSub?style=flat-square&logo=github&color=blue)](https://github.com/buxuku/SmartSub/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&logo=bookstack)](https://github.com/buxuku/SmartSub/blob/master/LICENSE)
+[![Stars](https://img.shields.io/github/stars/buxuku/SmartSub?style=flat-square&logo=github)](https://github.com/buxuku/SmartSub/stargazers)
+
+[ 🇨🇳 中文](README.md) | [ 🌏 English](README_EN.md) 
+
+
+</div>
 
 **Make every frame speak beautifully**
 
@@ -142,9 +151,15 @@ Then try running the application again.
 
 👏🏻 Issues and Pull Requests are welcome to help improve this project!
 
-👨‍👨‍👦‍👦 If you have any usage questions, welcome to join the WeChat group for discussion:
+## Support
 
-![wechat](./resources/WechatIMG428.png)
+⭐ If you find this project helpful, feel free to give me a star, or buy me a cup of coffee (please note your GitHub account).
+
+👨‍👨‍👦‍👦 If you have any use problems, welcome to join the wechat communication group, exchange and learn together.
+
+| Alipay donation code                              | WeChat donation code                             | WeChat communication group                                |
+|-------------------------------------|------------------------------------|--------------------------------------|
+| ![支付宝收款码](./resources/donate_alipay.jpg) | ![微信赞赏码](./resources/donate_wechat.jpg) | ![微信交流群](./resources/WechatIMG428.png)  |
 
 ## License
 

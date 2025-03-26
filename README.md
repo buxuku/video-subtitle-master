@@ -1,6 +1,15 @@
-# 妙幕 / SmartSub
+# 🚀 妙幕 / SmartSub
 
-[English](./README_EN.md) | 中文
+<div align="center">
+
+[![Release](https://img.shields.io/github/v/release/buxuku/SmartSub?style=flat-square&logo=github&color=blue)](https://github.com/buxuku/SmartSub/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&logo=bookstack)](https://github.com/buxuku/SmartSub/blob/master/LICENSE)
+[![Stars](https://img.shields.io/github/stars/buxuku/SmartSub?style=flat-square&logo=github)](https://github.com/buxuku/SmartSub/stargazers)
+
+[ 🇨🇳 中文](README.md) | [ 🌏 English](README_EN.md) 
+
+
+</div>
 
 **让每一帧画面都能美妙地表达**
 
@@ -141,9 +150,16 @@ sudo xattr -dr com.apple.quarantine /Applications/Video\ Subtitle\ Master.app
 
 👏🏻 欢迎提交 Issue 和 Pull Request 来帮助改进这个项目！
 
-👨‍👨‍👦‍👦 如果有任何使用问题，也欢迎来这里交流:
+## 支持
 
-![wechat](./resources/WechatIMG428.png)
+⭐ 如果您觉得这个项目对您有帮助，欢迎给我一个 star，或者请我喝一杯咖啡（请备注你的 github 账号）。
+
+👨‍👨‍👦‍👦 如果您有任何使用问题，欢迎加入微信交流群，一起交流学习。
+
+| 支付宝收款码                              | 微信赞赏码                              | 微信交流群                                |
+|-------------------------------------|------------------------------------|--------------------------------------|
+| ![支付宝收款码](./resources/donate_alipay.jpg) | ![微信赞赏码](./resources/donate_wechat.jpg) | ![微信交流群](./resources/WechatIMG428.png)  |
+
 
 ## 许可证
 
