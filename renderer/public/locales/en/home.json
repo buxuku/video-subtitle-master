@@ -9,6 +9,7 @@
 	"save": "Save",
 	"pleaseSelect": "Please Select",
 	"pleaseInputCustomSourceSrtFileName": "Enter Custom Source SRT Filename",
+	"pleaseInput": "Please Input",
 	"translationSettings": "Translation Settings",
 	"translationService": "Service",
 	"Untranslate": "Untranslate",
@@ -50,5 +51,6 @@
 	"clearList": "Clear List",
 	"importFiles": "Import Video/Audio/Subtitle",
 	"saveAudio": "Save Audio",
-	"missingEncoderMlmodelc": "Missing encoder.mlmodelc file, please download it and import it."
+	"missingEncoderMlmodelc": "Missing encoder.mlmodelc file, please download it and import it.",
+	"translateRetryTimes": "Translate retry times"
 }

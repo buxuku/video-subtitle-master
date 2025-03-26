@@ -26,11 +26,7 @@ type Provider = {
   type: 'api' | 'local' | 'openai';
 };
 
-const TaskConfigForm = ({
-  form,
-  formData,
-  systemInfo,
-}) => {
+const TaskConfigForm = ({ form, formData, systemInfo }) => {
   const [providers, setProviders] = useState<Provider[]>([]);
   const { t } = useTranslation('home');
   const { t: tCommon } = useTranslation('common');
@@ -43,12 +39,14 @@ const TaskConfigForm = ({
     const storedProviders = await window.ipc.invoke('getTranslationProviders');
     setProviders(storedProviders);
   };
-  if(!providers.length || !systemInfo.modelsPath) return null;
+  if (!providers.length || !systemInfo.modelsPath) return null;
   return (
     <Form {...form}>
       <form className="grid w-full items-start gap-6">
         <fieldset className="grid gap-4 rounded-lg border p-4">
-          <legend className="-ml-1 px-1 text-sm font-medium">{t('sourceSubtitleSettings')}</legend>
+          <legend className="-ml-1 px-1 text-sm font-medium">
+            {t('sourceSubtitleSettings')}
+          </legend>
           <div className="grid gap-3">
             <FormField
               control={form.control}
@@ -80,7 +78,9 @@ const TaskConfigForm = ({
                         <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={'auto'}>{t('autoRecognition')}</SelectItem>
+                        <SelectItem value={'auto'}>
+                          {t('autoRecognition')}
+                        </SelectItem>
                         {supportedLanguage.map((item) => (
                           <SelectItem key={item.value} value={item.value}>
                             {tCommon(`language.${item.value}`)}
@@ -99,20 +99,29 @@ const TaskConfigForm = ({
               name="sourceSrtSaveOption"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className='flex items-center'>
+                  <FormLabel className="flex items-center">
                     {t('sourceSubtitleSaveSettings')}
                     <SavePathNotice />
                   </FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value || 'noSave'}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || 'noSave'}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="noSave">{t('noSave')}</SelectItem>
-                        <SelectItem value="fileName">{t('fileName')}</SelectItem>
-                        <SelectItem value="fileNameWithLang">{t('fileNameWithLang')}</SelectItem>
-                        <SelectItem value="custom">{t('customSettings')}</SelectItem>
+                        <SelectItem value="fileName">
+                          {t('fileName')}
+                        </SelectItem>
+                        <SelectItem value="fileNameWithLang">
+                          {t('fileNameWithLang')}
+                        </SelectItem>
+                        <SelectItem value="custom">
+                          {t('customSettings')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -126,7 +135,11 @@ const TaskConfigForm = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder={t('pleaseInputCustomSourceSrtFileName')} {...field} value={field.value || '${fileName}.${sourceLanguage}'} />
+                      <Input
+                        placeholder={t('pleaseInputCustomSourceSrtFileName')}
+                        {...field}
+                        value={field.value || '${fileName}.${sourceLanguage}'}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -135,7 +148,9 @@ const TaskConfigForm = ({
           </div>
         </fieldset>
         <fieldset className="grid gap-4 rounded-lg border p-4">
-          <legend className="-ml-1 px-1 text-sm font-medium">{t('translationSettings')}</legend>
+          <legend className="-ml-1 px-1 text-sm font-medium">
+            {t('translationSettings')}
+          </legend>
           <div className="grid gap-3">
             <FormField
               control={form.control}
@@ -157,7 +172,9 @@ const TaskConfigForm = ({
                         <SelectItem value={'-1'}>{t('Untranslate')}</SelectItem>
                         {providers.map((provider) => (
                           <SelectItem key={provider.id} value={provider.id}>
-                            {tCommon(`provider.${provider.name}`, { defaultValue: provider.name })}
+                            {tCommon(`provider.${provider.name}`, {
+                              defaultValue: provider.name,
+                            })}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -203,7 +220,9 @@ const TaskConfigForm = ({
               name="translateContent"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('translationOutputSubtitleSettings')}</FormLabel>
+                  <FormLabel>
+                    {t('translationOutputSubtitleSettings')}
+                  </FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
@@ -237,14 +256,23 @@ const TaskConfigForm = ({
                     <SavePathNotice />
                   </FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value || 'fileNameWithLang'}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || 'fileNameWithLang'}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder={t('pleaseSelect')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fileName">{t('fileName')}</SelectItem>
-                        <SelectItem value="fileNameWithLang">{t('fileNameWithLang')}</SelectItem>
-                        <SelectItem value="custom">{t('customSettings')}</SelectItem>
+                        <SelectItem value="fileName">
+                          {t('fileName')}
+                        </SelectItem>
+                        <SelectItem value="fileNameWithLang">
+                          {t('fileNameWithLang')}
+                        </SelectItem>
+                        <SelectItem value="custom">
+                          {t('customSettings')}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -258,12 +286,35 @@ const TaskConfigForm = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder={t('pleaseInputCustomTargetSrtFileName')} {...field} value={field.value || '${fileName}.${targetLanguage}'} />
+                      <Input
+                        placeholder={t('pleaseInputCustomTargetSrtFileName')}
+                        {...field}
+                        value={field.value || '${fileName}.${targetLanguage}'}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
               />
             )}
+            <div className="grid gap-3">
+              <FormField
+                control={form.control}
+                name="translateRetryTimes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('translateRetryTimes')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder={t('pleaseInput')}
+                        {...field}
+                        value={field.value || 0}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </fieldset>
         <fieldset className="grid gap-4 rounded-lg border p-4">
