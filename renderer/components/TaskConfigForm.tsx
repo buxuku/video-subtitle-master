@@ -301,8 +301,8 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
                 control={form.control}
                 name="translateRetryTimes"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('translateRetryTimes')}</FormLabel>
+                  <FormItem className="flex items-center justify-between space-x-4">
+                    <FormLabel className="flex-shrink-0">{t('translateRetryTimes')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -325,8 +325,8 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
             control={form.control}
             name="maxConcurrentTasks"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('maxConcurrentTasks')}</FormLabel>
+              <FormItem className="flex items-center justify-between space-x-4">
+                <FormLabel className="flex-shrink-0">{t('maxConcurrentTasks')}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
