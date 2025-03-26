@@ -55,5 +55,6 @@
 	"cancelTask": "取消任务",
 	"clearList": "清空列表",
 	"importFiles": "导入视频/音频/字幕",
-	"saveAudio": "保存音频"
+	"saveAudio": "保存音频",
+	"missingEncoderMlmodelc": "该模型需要对应的 encoder.mlmodelc 文件, 请下载并导入它"
 }

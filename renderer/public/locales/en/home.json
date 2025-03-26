@@ -49,5 +49,6 @@
 	"cancelTask": "Cancel Task",
 	"clearList": "Clear List",
 	"importFiles": "Import Video/Audio/Subtitle",
-	"saveAudio": "Save Audio"
+	"saveAudio": "Save Audio",
+	"missingEncoderMlmodelc": "Missing encoder.mlmodelc file, please download it and import it."
 }

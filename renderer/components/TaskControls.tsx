@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import { isSubtitleFile } from 'lib/utils';
+import { isSubtitleFile, needsCoreML } from 'lib/utils';
 import { useTranslation } from 'next-i18next';
 
 const TaskControls = ({ files, formData }) => {
@@ -37,6 +37,15 @@ const TaskControls = ({ files, formData }) => {
         description: t('home:allFilesProcessed'),
       });
       return;
+    }
+    if(needsCoreML(formData.model)){
+      const checkMlmodel = await window.ipc.invoke('checkMlmodel', formData.model);
+      if(!checkMlmodel){
+        toast(t('common:notification'), {
+          description: t('home:missingEncoderMlmodelc'),
+        });
+        return;
+      }
     }
     setTaskStatus('running');
     window?.ipc?.send('handleTask', { files, formData });

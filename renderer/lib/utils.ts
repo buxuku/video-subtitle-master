@@ -1,59 +1,181 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import modelsData from './models.json';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// 从模型文件名中提取模型名称
-export const extractModelName = (filename: string): string => {
-  if (!filename.startsWith('ggml-') || !filename.endsWith('.bin')) return '';
-  
-  // 移除前缀和后缀
-  let name = filename.replace('ggml-', '').replace('.bin', '');
-  
-  return name;
-};
+export const models = [
+  {
+    name: 'tiny',
+    size: '75 MB',
+    needsCoreML: true
+  },
+  {
+    name: 'tiny-q5_1',
+    size: '32.2 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'tiny-q8_0',
+    size: '43.5 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'tiny.en',
+    size: '77.7 MB',
+    needsCoreML: true
+  },
+  {
+    name: 'tiny.en-q5_1',
+    size: '32.2 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'tiny.en-q8_0',
+    size: '43.6 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'base',
+    size: '148 MB',
+    needsCoreML: true
+  },
+  {
+    name: 'base-q5_1',
+    size: '59.7 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'base-q8_0',
+    size: '81.8 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'base.en',
+    size: '148 MB',
+    needsCoreML: true
+  },
+  {
+    name: 'base.en-q5_1',
+    size: '59.7 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'base.en-q8_0',
+    size: '81.8 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'small',
+    size: '488 MB',
+    needsCoreML: true
+  },
+  {
+    name: 'small-q5_1',
+    size: '190 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'small-q8_0',
+    size: '264 MB',
+    needsCoreML: false
+  },
+  {
+    name:'small.en',
+    size: '488 MB',
+    needsCoreML: true
+  },
+  {
+    name: 'small.en-q5_1',
+    size: '190 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'small.en-q8_0',
+    size: '264 MB',
+    needsCoreML: false
+  },
+  {
+    name:'medium',
+    size: '1.53 GB',
+    needsCoreML: true
+  }, 
+  {
+    name: 'medium-q5_0',
+    size: '539 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'medium-q8_0',
+    size: '823 MB',
+    needsCoreML: false
+  },
+  {
+    name:'medium.en',
+    size: '1.53 GB',
+    needsCoreML: true
+  },
+  {
+    name: 'medium.en-q5_0',
+    size: '539 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'medium.en-q8_0',
+    size: '823 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'large-v1',
+    size: '3.09 GB',
+    needsCoreML: true
+  },
+  {
+    name: 'large-v2',
+    size: '3.09 GB',
+    needsCoreML: true
+  },
+  {
+    name: 'large-v2-q5_0',
+    size: '1.08 GB',
+    needsCoreML: false
+  },
+  {
+    name: 'large-v2-q8_0',
+    size: '1.66 GB',
+    needsCoreML: false
+  },
+  {
+    name: 'large-v3',
+    size: '3.1 GB',
+    needsCoreML: true
+  },
+  {
+    name: 'large-v3-q5_0',
+    size: '1.08 GB',
+    needsCoreML: false
+  },
+    {
+    name: 'large-v3-turbo',
+    size: '1.62 GB',
+    needsCoreML: true
+  },
+  {
+    name: 'large-v3-turbo-q5_0',
+    size: '574 MB',
+    needsCoreML: false
+  },
+  {
+    name: 'large-v3-turbo-q8_0',
+    size: '874 MB',
+    needsCoreML: false
+  },
+]
 
-// 获取模型列表
-export const fetchModels = async (): Promise<any[]> => {
-  try {
-    const response = await fetch('https://huggingface.co/api/models/ggerganov/whisper.cpp/revision/main?expand[]=siblings');
-    if (!response.ok) throw new Error('Failed to fetch models');
-    
-    const data = await response.json();
-    return data.siblings || [];
-  } catch (error) {
-    console.error('Error fetching models:', error);
-    // 使用本地数据作为备份
-    return modelsData.siblings || [];
-  }
-};
-
-// 从文件列表中提取模型信息
-export const getModelsFromFiles = (files: any[]): any[] => {
-  const modelMap = [];
-  
-  // 筛选出.bin文件
-  const binFiles = files.filter(file => 
-    file.rfilename && 
-    file.rfilename.endsWith('.bin') && 
-    file.rfilename.startsWith('ggml-')
-  );
-  
-  // 处理每个bin文件
-  binFiles.forEach(file => {
-    const modelName = extractModelName(file.rfilename);
-    if (!modelName) return;
-    const needsCoreML = files.some(file => file.rfilename.includes(`${modelName}-encoder.mlmodelc`));
-    modelMap.push({
-      name: modelName,
-      needsCoreML: needsCoreML
-    });
-  });
-  
-  return modelMap;
+export const needsCoreML = (model: string) => {
+  const modelInfo = models.find((m) => m.name === model);
+  return modelInfo ? modelInfo.needsCoreML : false;
 };
 
 export const supportedLanguage = [

@@ -21,7 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { fetchModels, getModelsFromFiles, getModelDownloadUrl } from 'lib/utils';
+import {
+  getModelDownloadUrl,
+  models,
+} from 'lib/utils';
 import { Button } from '@/components/ui/button';
 import { ISystemInfo } from '../../types';
 import DeleteModel from '@/components/DeleteModel';
@@ -46,26 +49,10 @@ const ModelsControl = () => {
     modelsPath: '',
   });
   const [downSource, setDownSource] = useState('huggingface');
-  const [dynamicModels, setDynamicModels] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     updateSystemInfo();
-    loadModels();
   }, []);
-
-  const loadModels = async () => {
-    setLoading(true);
-    try {
-      const files = await fetchModels();
-      const models = getModelsFromFiles(files);
-      setDynamicModels(models);
-    } catch (error) {
-      console.error('Failed to load models:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateSystemInfo = async () => {
     const systemInfoRes = await window?.ipc?.invoke('getSystemInfo', null);
@@ -108,7 +95,6 @@ const ModelsControl = () => {
       });
   };
 
-
   return (
     <Card>
       <CardHeader>
@@ -134,88 +120,80 @@ const ModelsControl = () => {
             <Button onClick={handleImportModel} className="ml-4">
               <Upload className="mr-2 h-4 w-4" /> {t('importModel')}
             </Button>
-            <Button onClick={loadModels} className="ml-2" variant="outline">
-              <Loader2 className="mr-2 h-4 w-4" /> {t('refreshModels')}
-            </Button>
           </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">{t('loadingModels')}</span>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[150px]">{t('modelName')}</TableHead>
-                <TableHead>{t('downloadLink')}</TableHead>
-                <TableHead>{t('operation')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="max-h-[80vh]">
-              {dynamicModels.map((model) => (
-                    <TableRow key={model.name}>
-                      <TableCell className="font-medium">{model.name}</TableCell>
-                      <TableCell>
-                        {['hf-mirror', 'huggingface'].map((source) => (
-                          <div key={source} className="flex items-center mb-1">
-                            <span className="mr-2 text-sm">
-                              {getModelDownloadUrl(
-                                model.name,
-                                source as 'hf-mirror' | 'huggingface'
-                              )}
-                            </span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Copy
-                                    className="h-4 w-4 cursor-pointer"
-                                    onClick={() =>
-                                      copyToClipboard(
-                                        getModelDownloadUrl(
-                                          model.name,
-                                          source as 'hf-mirror' | 'huggingface'
-                                        )
-                                      )
-                                    }
-                                  />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>{t('copyLink')}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        ))}
-                      </TableCell>
-                      <TableCell>
-                        {isInstalledModel(model.name) &&
-                        !systemInfo?.downloadingModels.includes(model.name) ? (
-                          <DeleteModel
-                            modelName={model.name}
-                            callBack={updateSystemInfo}
-                          >
-                            <Button variant="destructive">{t('delete')}</Button>
-                          </DeleteModel>
-                        ) : (
-                          <DownModel
-                            modelName={model.name}
-                            callBack={updateSystemInfo}
-                            downSource={downSource}
-                            needsCoreML={model.needsCoreML}
-                          >
-                            <DownModelButton />
-                          </DownModel>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[230px]">{t('modelName')}</TableHead>
+              <TableHead>{t('downloadLink')}</TableHead>
+              <TableHead>{t('size')}</TableHead>
+              <TableHead>{t('operation')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="max-h-[80vh]">
+            {models.map((model) => (
+              <TableRow key={model.name}>
+                <TableCell className="font-medium">{model.name}</TableCell>
+                <TableCell>
+                  {['hf-mirror', 'huggingface'].map((source) => (
+                    <div key={source} className="flex items-center mb-1">
+                      <span className="mr-2 text-sm">
+                        {getModelDownloadUrl(
+                          model.name,
+                          source as 'hf-mirror' | 'huggingface'
                         )}
-                      </TableCell>
-                    </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+                      </span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Copy
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() =>
+                                copyToClipboard(
+                                  getModelDownloadUrl(
+                                    model.name,
+                                    source as 'hf-mirror' | 'huggingface'
+                                  )
+                                )
+                              }
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t('copyLink')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  ))}
+                </TableCell>
+                <TableCell>{model.size}</TableCell>
+                <TableCell>
+                  {isInstalledModel(model.name) &&
+                  !systemInfo?.downloadingModels.includes(model.name) ? (
+                    <DeleteModel
+                      modelName={model.name}
+                      callBack={updateSystemInfo}
+                    >
+                      <Button variant="destructive">{t('delete')}</Button>
+                    </DeleteModel>
+                  ) : (
+                    <DownModel
+                      modelName={model.name}
+                      callBack={updateSystemInfo}
+                      downSource={downSource}
+                      needsCoreML={model.needsCoreML}
+                    >
+                      <DownModelButton />
+                    </DownModel>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

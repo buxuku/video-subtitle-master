@@ -100,6 +100,8 @@ cd video-subtitle-master
 yarn install 
 ```
 
+如果是 windows 平台，请前往 https://github.com/buxuku/whisper.cpp/releases/tag/latest 下载对应的 node 文件，并重命名为 `addon.node` , 覆盖放在 `extraResources/addons/` 目录下。
+
 3️⃣ 依赖包安装好之后，执行 `yarn dev` 或者 `npm run dev` 启动项目
 
 ```shell
