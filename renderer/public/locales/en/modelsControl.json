@@ -17,5 +17,6 @@
 	"delete": "Delete",
 	"refreshModels": "Refresh Models",
 	"loadingModels": "Loading Models",
-	"downloadLink": "Download Link"
+	"downloadLink": "Download Link",
+	"size": "Size"
 }

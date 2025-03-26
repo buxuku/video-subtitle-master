@@ -17,5 +17,6 @@
 	"delete": "删除",
 	"refreshModels": "刷新模型",
 	"loadingModels": "加载模型",
-	"downloadLink": "下载链接"
+	"downloadLink": "下载链接",
+	"size": "大小"
 }

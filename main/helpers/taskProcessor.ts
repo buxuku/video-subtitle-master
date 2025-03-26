@@ -1,7 +1,10 @@
+import fse from 'fs-extra';
 import { ipcMain, BrowserWindow } from 'electron';
 import { processFile } from './fileProcessor';
-import { checkOpenAiWhisper } from './whisper';
+import { checkOpenAiWhisper, getPath } from './whisper';
 import { logMessage, store } from './storeManager';
+import path from 'path';
+import { isAppleSilicon } from './utils';
 
 let processingQueue = [];
 let isProcessing = false;
@@ -38,7 +41,19 @@ export function setupTaskProcessor(mainWindow: BrowserWindow) {
     isPaused = false;
     processingQueue = [];
   });
+  ipcMain.handle('checkMlmodel', async (event, modelName) => {
+    // 如果不是苹果芯片，不需要该文件，直接返回true
+    if(!isAppleSilicon()){
+      return true
+    }
+    // 判断模型目录下是否存在 `ggml-${modelName}-encoder.mlmodelc` 文件或者目录
+    const modelsPath = getPath("modelsPath");
+    const modelPath = path.join(modelsPath, `ggml-${modelName}-encoder.mlmodelc`);
+    const exists = await fse.pathExists(modelPath);
+    return exists
+  });
 }
+
 
 async function processNextTasks(event) {
   if (shouldCancel) {
