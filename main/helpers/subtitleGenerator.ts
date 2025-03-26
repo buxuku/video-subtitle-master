@@ -99,7 +99,7 @@ export async function generateSubtitleWithBuiltinWhisper(
       shouldUseGpu = !!(await checkCudaSupport());
     }
 
-    const { model, sourceLanguage } = formData;
+    const { model, sourceLanguage, prompt } = formData;
     const whisperModel = model?.toLowerCase();
     const modelPath = `${getPath('modelsPath')}/ggml-${whisperModel}.bin`;
 
@@ -116,6 +116,7 @@ export async function generateSubtitleWithBuiltinWhisper(
       audio_ctx: 0,
       max_len: 0,
       print_progress: false,
+      prompt,
       progress_callback: (progress) => {
         console.log(`处理进度: ${progress}%`);
         // 更新UI显示进度

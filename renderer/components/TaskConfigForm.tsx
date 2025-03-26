@@ -18,6 +18,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { useTranslation } from 'next-i18next';
+import ToolTips from './ToolTips';
 
 // 定义 Provider 类型
 type Provider = {
@@ -52,8 +53,8 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
               control={form.control}
               name="model"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('modelSelection')}</FormLabel>
+                <FormItem className="flex items-center justify-between space-x-4">
+                  <FormLabel className="flex-shrink-0 mt-2">{t('modelSelection')}</FormLabel>
                   <FormControl>
                     <Models
                       onValueChange={field.onChange}
@@ -70,8 +71,8 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
               control={form.control}
               name="sourceLanguage"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('originalLanguage')}</FormLabel>
+                <FormItem className="flex items-center justify-between space-x-4">
+                  <FormLabel className="flex-shrink-0 mt-2">{t('originalLanguage')}</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
@@ -88,6 +89,24 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
                         ))}
                       </SelectContent>
                     </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid gap-3">
+            <FormField
+              control={form.control}
+              name="prompt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">{t('prompt')} <ToolTips text={t('promptTips')} /></FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('pleaseInput')}
+                      {...field}
+                      value={field.value || ''}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -156,8 +175,8 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
               control={form.control}
               name="translateProvider"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('translationService')}</FormLabel>
+                <FormItem className="flex items-center justify-between space-x-4">
+                  <FormLabel className="flex-shrink-0 mt-2">{t('translationService')}</FormLabel>
                   <FormControl>
                     <Select
                       onValueChange={(value) => {
@@ -190,8 +209,8 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
                 control={form.control}
                 name="targetLanguage"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('translationTargetLanguage')}</FormLabel>
+                  <FormItem className="flex items-center justify-between space-x-4">
+                    <FormLabel className="flex-shrink-0 mt-2">{t('translationTargetLanguage')}</FormLabel>
                     <FormControl>
                       <Select
                         onValueChange={field.onChange}
@@ -302,7 +321,7 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
                 name="translateRetryTimes"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between space-x-4">
-                    <FormLabel className="flex-shrink-0">{t('translateRetryTimes')}</FormLabel>
+                    <FormLabel className="flex-shrink-0 mt-2">{t('translateRetryTimes')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -326,7 +345,7 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
             name="maxConcurrentTasks"
             render={({ field }) => (
               <FormItem className="flex items-center justify-between space-x-4">
-                <FormLabel className="flex-shrink-0">{t('maxConcurrentTasks')}</FormLabel>
+                <FormLabel className="flex-shrink-0 mt-2">{t('maxConcurrentTasks')}</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -347,7 +366,7 @@ const TaskConfigForm = ({ form, formData, systemInfo }) => {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-2">
                 <FormControl>
                   <div className="flex items-center space-x-2">
-                    <input
+                    <Input
                       type="checkbox"
                       checked={field.value || false}
                       onChange={field.onChange}
