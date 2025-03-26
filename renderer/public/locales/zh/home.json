@@ -58,5 +58,7 @@
 	"importFiles": "导入视频/音频/字幕",
 	"saveAudio": "保存音频",
 	"missingEncoderMlmodelc": "该模型需要对应的 encoder.mlmodelc 文件, 请下载并导入它",
-	"translateRetryTimes": "翻译失败重试次数"
+	"translateRetryTimes": "翻译失败重试次数",
+	"prompt": "字幕生成提示词",
+	"promptTips": "你可以在这里通过提示词来优化生成的字幕，<br />比如源语言为中文，希望生成的字幕是简体中文的，<br/>可以在提示词中添加’以下为简体中文‘"
 }

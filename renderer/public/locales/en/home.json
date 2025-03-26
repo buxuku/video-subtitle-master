@@ -52,5 +52,7 @@
 	"importFiles": "Import Video/Audio/Subtitle",
 	"saveAudio": "Save Audio",
 	"missingEncoderMlmodelc": "Missing encoder.mlmodelc file, please download it and import it.",
-	"translateRetryTimes": "Translate retry times"
+	"translateRetryTimes": "Translate retry times",
+	"prompt": "Subtitle generation prompt",
+	"promptTips": "You can optimize the generated subtitles by using prompt words here.<br /> For example, if the source language is Chinese and you want the generated subtitles to be simplified Chinese, <br /> you can add 'the following is Simplified Chinese' to the prompt words."
 }
