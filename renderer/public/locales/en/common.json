@@ -4,7 +4,7 @@
   "modelManagement": "Model Management",
   "translationManagement": "Translation Management",
   "settings": "Settings",
-  "headerTitle": "Batch Subtitle Generation and Translation for Video/Audio",
+  "headerTitle": "妙幕 - SmartSub",
   "provider": {
     "baidu": "Baidu",
     "volc": "Volcano",

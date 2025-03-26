@@ -4,7 +4,7 @@
   "modelManagement": "模型管理",
   "translationManagement": "翻译管理",
   "settings": "设置",
-  "headerTitle": "批量为视频/音频生成字幕并翻译",
+  "headerTitle": "妙幕 - SmartSub",
   "provider": {
     "baidu": "百度翻译",
     "volc": "火山翻译",
