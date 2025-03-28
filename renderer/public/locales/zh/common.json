@@ -103,5 +103,6 @@
   "viewLogs": "查看日志",
   "logs": "日志",
   "clearLogs": "清空日志",
-  "toggleTheme": "切换主题"
+  "toggleTheme": "切换主题",
+  "noModelsInstalled": "没有下载任何模型"
 }

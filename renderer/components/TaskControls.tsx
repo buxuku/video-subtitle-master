@@ -38,7 +38,7 @@ const TaskControls = ({ files, formData }) => {
       });
       return;
     }
-    if(needsCoreML(formData.model)){
+    if(formData.model && needsCoreML(formData.model)){
       const checkMlmodel = await window.ipc.invoke('checkMlmodel', formData.model);
       if(!checkMlmodel){
         toast(t('common:notification'), {

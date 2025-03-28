@@ -1,7 +1,6 @@
 import {
   Provider,
   PROVIDER_TYPES,
-  defaultBatchPrompt,
   defaultSystemPrompt,
 } from '../../types/provider';
 import { store } from './store';
@@ -74,7 +73,6 @@ function migrateProviders(oldProviders: any[]): Provider[] {
         ...(template.isAi && {
           useBatchTranslation: false,
           batchTranslationSize: 10,
-          batchPrompt: defaultBatchPrompt,
           systemPrompt: defaultSystemPrompt,
         }),
       };
@@ -90,7 +88,6 @@ function migrateProviders(oldProviders: any[]): Provider[] {
       isAi: true,
       useBatchTranslation: false,
       batchTranslationSize: 10,
-      batchPrompt: defaultBatchPrompt,
       systemPrompt: defaultSystemPrompt,
     }));
 

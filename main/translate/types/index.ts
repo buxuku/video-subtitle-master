@@ -32,7 +32,6 @@ export interface Provider {
   isAi: boolean;
   prompt?: string;
   systemPrompt?: string;
-  batchPrompt?: string;
   useBatchTranslation?: boolean;
   batchSize?: number;
   [key: string]: any;

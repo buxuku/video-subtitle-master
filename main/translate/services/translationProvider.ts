@@ -48,35 +48,14 @@ export async function translateWithProvider(
     `Translation started with provider: ${JSON.stringify(provider, null, 2)}`,
     'info'
   );
-
+  onProgress && onProgress(0);
   if (provider.isAi) {
-    if (provider.useBatchTranslation) {
-      return handleAIBatchTranslation(
+    return handleAIBatchTranslation(
         subtitles,
         config,
         +provider.batchSize || DEFAULT_BATCH_SIZE.AI,
         onProgress
       );
-    } else {
-      const results: TranslationResult[] = [];
-      const totalSubtitles = subtitles.length;
-      for (let i = 0; i < totalSubtitles; i++) {
-        const subtitle = subtitles[i];
-        try {
-          logMessage(`handleAISingleTranslation subtitle ${subtitle.id}`);
-          const result = await handleAISingleTranslation(subtitle, config);
-          onProgress && onProgress(i / totalSubtitles);
-          results.push(result);
-        } catch (error) {
-          logMessage(
-            `Translation failed for subtitle ${subtitle.id}: ${error.message}`,
-            'error'
-          );
-          throw error;
-        }
-      }
-      return results;
-    }
   }
 
   return handleAPIBatchTranslation(subtitles, config, +provider.batchSize, onProgress);

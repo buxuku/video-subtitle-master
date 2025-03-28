@@ -20,7 +20,8 @@ export async function translateWithOpenAI(
 
     const sysPrompt = provider.systemPrompt || 'You are a professional subtitle translation tool';
     const userPrompt = Array.isArray(text) ? text.join('\n') : text;
-
+    console.log('sysPrompt:', sysPrompt);
+    console.log('userPrompt:', userPrompt);
     const completion = await openai.chat.completions.create({
       model: provider.modelName || "gpt-3.5-turbo",
       messages: [
