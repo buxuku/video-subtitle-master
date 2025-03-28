@@ -13,6 +13,12 @@ ffmpeg.setFfmpegPath(ffmpegPath);
  * 使用ffmpeg提取音频
  */
 export const extractAudio = (videoPath, audioPath, event = null, file = null) => {
+    const onProgress = (percent = 0) => {
+        logMessage(`extract audio progress ${percent}%`, 'info');
+        if (event && file) {
+            event.sender.send('taskProgressChange', file, 'extractAudio', percent);
+        }
+    };
     return new Promise((resolve, reject) => {
         try{
             ffmpeg(`${videoPath}`)
@@ -21,20 +27,16 @@ export const extractAudio = (videoPath, audioPath, event = null, file = null) =>
                 .audioCodec('pcm_s16le')
                 .outputOptions('-y')
                 .on('start', function (str) {
+                    onProgress(0);
                     logMessage(`extract audio start ${str}`, 'info');
                 })
                 .on('progress', function (progress) {
                     const percent = progress.percent || 0;
-                    logMessage(`extract audio progress ${percent}%`, 'info');
-                    if (event && file) {
-                        event.sender.send('taskProgressChange', file, 'extractAudio', percent);
-                    }
+                    onProgress(percent);
                 })
                 .on('end', function (str) {
                     logMessage(`extract audio done!`, 'info');
-                    if (event && file) {
-                        event.sender.send('taskProgressChange', file, 'extractAudio', 100);
-                    }
+                    onProgress(100);
                     resolve(true);
                 })
                 .on('error', function (err) {

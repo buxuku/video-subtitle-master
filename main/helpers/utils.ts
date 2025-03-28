@@ -5,9 +5,12 @@ import { spawn } from "child_process";
 
 // 将字符串转成模板字符串
 export const renderTemplate = (template, data) => {
-  const names = Object.keys(data);
-  const values = Object.values(data);
-  return new Function(...names, `return \`${template}\`;`)(...values);
+  let result = template;
+  for (const [key, value] of Object.entries(data)) {
+    const regex = new RegExp(`\\$\\{${key}\\}`, 'g');
+    result = result.replace(regex, value?.toString() || '');
+  }
+  return result;
 };
 
 export const isDarwin = () => os.platform() === "darwin";

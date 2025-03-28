@@ -26,32 +26,34 @@ export type Provider = {
   [key: string]: any;
 };
 
-export const defaultUserPrompt =
-  'Please translate the following content from ${sourceLanguage} to ${targetLanguage}, only return the translation result can be. \n ${content}';
-export const defaultSystemPrompt = 'You are a helpful assistant.';
+export const defaultUserPrompt  = '${content}';
+export const defaultSystemPrompt = `# Role: 资深翻译专家
+你是一位经验丰富的字幕翻译专家,精通\${targetLanguage}的翻译,擅长将视频字幕译成流畅易懂的\${targetLanguage}。
 
-export const defaultBatchPrompt = `**Characterization**
-You are a professional subtitle translator who specializes in batch translation while maintaining context and consistency.
+# Attention:
+在整个翻译过程中，你需要注意以下几点：
 
-**Task description**
-I will provide you with multiple subtitle lines (wrapped in <source></source> tags) in srt subtitle format, which you will need to:
-1. translate each line while maintaining the context and consistency
-2. output only the translations, separated by newlines
-3. maintain the exact same number of lines as the input
-4. adopt a colloquial language style that is in line with the target language
+1. 保持每条字幕的独立性和完整性，不合并或拆分。
+2. 使用口语化的\${targetLanguage}，避免过于书面化的表达，以符合字幕的特点。
+3. 适当使用标点符号，如逗号、句号，甚至省略号，来增强语气和节奏感。
+4. 确保专业术语的准确性，并且在上下文中保持一致性。
 
-**Format specification**
-- Each line of translation must correspond exactly to the input line
-- Special formatting (e.g., proper nouns) should be retained as is
-- Do not combine or split lines
-- The language of the original subtitle content is \${sourceLanguage}
-- Target translation language is \${targetLanguage}
-- Return only the translations, separated by newlines
-- The returned content should be wrapped in <result></result> tags
+最后，你需要检查整个翻译是否流畅，是否有语法错误，以及是否忠实于原文意思。特别是要注意译文与原文之间的差异，比如英语中常用被动语态，而中文则更多使用主动语态，所以在翻译时可能会做一些调整，以适应\${targetLanguage}的表达习惯。以及是终的翻译结果输出的 json 格式条数和原文是否完整保持一致。
 
-<source>
-\${content}
-</source>`;
+# Examples
+
+Input:
+\`\`\`json
+{\"0\": \"Welcome to China\", \"1\": \"China is a beautiful country\"}
+\`\`\`
+
+Output:
+\`\`\`json
+{\"0\": \"欢迎来到中国\", \"1\": \"中国是一个美丽的国家\"}
+\`\`\`
+`;
+
+
 
 export const PROVIDER_TYPES: ProviderType[] = [
   {
@@ -165,7 +167,13 @@ export const PROVIDER_TYPES: ProviderType[] = [
         placeholder: 'llama2',
         defaultValue: 'llama2',
       },
-
+      {
+        key:'systemPrompt',
+        label:'systemPrompt',
+        type: 'textarea',
+        tips:'systemPromptTips',
+        defaultValue: defaultSystemPrompt,
+      },
       {
         key: 'prompt',
         label: 'prompt',
@@ -174,25 +182,11 @@ export const PROVIDER_TYPES: ProviderType[] = [
         tips: 'userPromptTips',
       },
       {
-        key: 'useBatchTranslation',
-        label: 'useBatchTranslation',
-        type: 'switch',
-        defaultValue: false,
-      },
-      {
         key: 'batchSize',
         label: 'Batch Size',
         type: 'number',
         defaultValue: 10,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
-      },
-      {
-        key: 'batchPrompt',
-        label: 'batchPrompt',
-        type: 'textarea',
-        defaultValue: defaultBatchPrompt,
-        tips: 'batchPromptTips',
         depends: 'useBatchTranslation',
       },
     ],
@@ -225,6 +219,7 @@ export const PROVIDER_TYPES: ProviderType[] = [
         key: 'systemPrompt',
         label: 'systemPrompt',
         type: 'textarea',
+        tips: 'systemPromptTips',
         defaultValue: defaultSystemPrompt,
       },
       {
@@ -234,26 +229,13 @@ export const PROVIDER_TYPES: ProviderType[] = [
         defaultValue: defaultUserPrompt,
         tips: 'userPromptTips',
       },
-      {
-        key: 'useBatchTranslation',
-        label: 'useBatchTranslation',
-        type: 'switch',
-        defaultValue: false,
-      },
+
       {
         key: 'batchSize',
         label: 'Batch Size',
         type: 'number',
-        defaultValue: 10,
+        defaultValue: 1,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
-      },
-      {
-        key: 'batchPrompt',
-        label: 'batchPrompt',
-        type: 'textarea',
-        defaultValue: defaultBatchPrompt,
-        tips: 'batchPromptTips',
         depends: 'useBatchTranslation',
       },
     ],
@@ -278,6 +260,7 @@ export const PROVIDER_TYPES: ProviderType[] = [
         key: 'systemPrompt',
         label: 'systemPrompt',
         type: 'textarea',
+        tips: 'systemPromptTips',
         defaultValue: defaultSystemPrompt,
       },
       {
@@ -288,25 +271,11 @@ export const PROVIDER_TYPES: ProviderType[] = [
         tips: 'userPromptTips',
       },
       {
-        key: 'useBatchTranslation',
-        label: 'useBatchTranslation',
-        type: 'switch',
-        defaultValue: false,
-      },
-      {
         key: 'batchSize',
         label: 'Batch Size',
         type: 'number',
-        defaultValue: 10,
+        defaultValue: 1,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
-      },
-      {
-        key: 'batchPrompt',
-        label: 'batchPrompt',
-        type: 'textarea',
-        defaultValue: defaultBatchPrompt,
-        tips: 'batchPromptTips',
         depends: 'useBatchTranslation',
       },
     ],
@@ -326,6 +295,7 @@ export const CONFIG_TEMPLATES: Record<string, ProviderType> = {
         key: 'systemPrompt',
         label: 'systemPrompt',
         type: 'textarea',
+        tips:'systemPromptTips',
         defaultValue: defaultSystemPrompt,
       },
       {
@@ -336,25 +306,11 @@ export const CONFIG_TEMPLATES: Record<string, ProviderType> = {
         tips: 'userPromptTips',
       },
       {
-        key: 'useBatchTranslation',
-        label: 'useBatchTranslation',
-        type: 'switch',
-        defaultValue: false,
-      },
-      {
         key: 'batchSize',
         label: 'Batch Size',
         type: 'number',
-        defaultValue: 10,
+        defaultValue: 1,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
-      },
-      {
-        key: 'batchPrompt',
-        label: 'batchPrompt',
-        type: 'textarea',
-        defaultValue: defaultBatchPrompt,
-        tips: 'batchPromptTips',
         depends: 'useBatchTranslation',
       },
     ],

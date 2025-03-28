@@ -128,7 +128,7 @@ export async function generateSubtitleWithBuiltinWhisper(
       `whisperParams: ${JSON.stringify(whisperParams, null, 2)}`,
       'info'
     );
-
+    event.sender.send('taskProgressChange', file, 'extractSubtitle', 0);
     const result = await whisperAsync(whisperParams);
     console.log(result, 'result');
 

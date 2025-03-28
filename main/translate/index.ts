@@ -58,11 +58,11 @@ export default async function translate(
       onProgress
     );
 
-    if (provider.isAi && provider.useBatchTranslation) {
-	logMessage(`append to file ${fileSave}`)
-      await appendToFile(fileSave, (results as string[]).join('\n'));
-      return true;
-    }
+  //   if (provider.isAi && provider.useBatchTranslation) {
+	// logMessage(`append to file ${fileSave}`)
+  //     await appendToFile(fileSave, (results as string[]).join('\n'));
+  //     return true;
+  //   }
 
     for (const result of results as TranslationResult[]) {
       const content = `${result.id}\n${result.startEndTime}\n${renderTemplate(

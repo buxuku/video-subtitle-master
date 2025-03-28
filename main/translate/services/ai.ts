@@ -1,9 +1,12 @@
 import { TranslationConfig, TranslationResult, Subtitle } from '../types';
-import { THINK_TAG_REGEX, RESULT_TAG_REGEX, DEFAULT_BATCH_SIZE } from '../constants';
-import { formatSubtitleContent } from '../utils/subtitle';
+import {
+  THINK_TAG_REGEX,
+  DEFAULT_BATCH_SIZE,
+  JSON_CONTENT_REGEX,
+} from '../constants';
 import { renderTemplate } from '../../helpers/utils';
 import { logMessage } from '../../helpers/storeManager';
-import { defaultBatchPrompt } from '../../../types';
+import { defaultSystemPrompt, defaultUserPrompt } from '../../../types';
 
 export async function handleAISingleTranslation(
   subtitle: Subtitle,
@@ -13,7 +16,7 @@ export async function handleAISingleTranslation(
   const sourceContent = subtitle.content.join('\n');
 
   try {
-    const translationContent = provider.prompt 
+    const translationContent = provider.prompt
       ? renderTemplate(provider.prompt, {
           sourceLanguage,
           targetLanguage,
@@ -23,7 +26,7 @@ export async function handleAISingleTranslation(
 
     const translationConfig = {
       ...provider,
-      systemPrompt: provider.systemPrompt
+      systemPrompt: provider.systemPrompt,
     };
     logMessage(`AI translate single: \n ${translationContent}`, 'info');
     let targetContent = await translator(
@@ -39,7 +42,7 @@ export async function handleAISingleTranslation(
       id: subtitle.id,
       startEndTime: subtitle.startEndTime,
       sourceContent,
-      targetContent: targetContent.trim()
+      targetContent: targetContent.trim(),
     };
   } catch (error) {
     logMessage(`Single translation error: ${error.message}`, 'error');
@@ -51,29 +54,45 @@ export async function handleAIBatchTranslation(
   subtitles: Subtitle[],
   config: TranslationConfig,
   batchSize: number = DEFAULT_BATCH_SIZE.AI,
-  onProgress?: (progress: number) => void,
-): Promise<string[]> {
+  onProgress?: (progress: number) => void
+): Promise<TranslationResult[]> {
   const { provider, sourceLanguage, targetLanguage, translator } = config;
-  const results: string[] = [];
+  const results: TranslationResult[] = [];
 
   for (let i = 0; i < subtitles.length; i += batchSize) {
     const batch = subtitles.slice(i, i + batchSize);
-    console.log(batch, 'batch');
 
     try {
-      const fullContent = batch
-        .map(formatSubtitleContent)
-        .join('\n\n');
-
-      const translationContent = renderTemplate(provider.batchPrompt || defaultBatchPrompt, {
-        sourceLanguage,
-        targetLanguage,
-        content: fullContent,
+      let jsonContent = {};
+      batch.forEach((item) => {
+        jsonContent[item.id] = item.content.join('\n');
       });
+      const fullContent = `\`\`\`json\n${JSON.stringify(
+        jsonContent,
+        null,
+        2
+      )}\n\`\`\``;
+      const translationContent = renderTemplate(
+        provider.prompt || defaultUserPrompt,
+        {
+          sourceLanguage,
+          targetLanguage,
+          content: fullContent,
+        }
+      );
+
+      const systemPrompt = renderTemplate(
+        provider.systemPrompt || defaultSystemPrompt,
+        {
+          sourceLanguage,
+          targetLanguage,
+          content: fullContent,
+        }
+      )
 
       const translationConfig = {
         ...provider,
-        systemPrompt: provider.systemPrompt
+        systemPrompt,
       };
 
       logMessage(`AI translate batch ${i}: \n ${translationContent}`, 'info');
@@ -85,13 +104,29 @@ export async function handleAIBatchTranslation(
       );
       logMessage(`AI response: \n ${responseOrigin}`, 'info');
       const response = responseOrigin.replace(THINK_TAG_REGEX, '').trim();
-      const match = response.match(RESULT_TAG_REGEX);
-      
+      // 解析响应, 从结果中提取 json 里面的内容
+      const match = response.match(JSON_CONTENT_REGEX);
+
       logMessage(`AI response: ${responseOrigin}`, 'info');
-      results.push(match?.[1].trim() || response);
-      
+      // 通过 joson 内容，重新组装成字幕格式内容
+      if (match && match[1]) {
+        const jsonContent = match[1];
+        const parsedContent = JSON.parse(jsonContent);
+        const batchResults = batch.map((subtitle) => ({
+          id: subtitle.id,
+          startEndTime: subtitle.startEndTime,
+          sourceContent: subtitle.content.join('\n'),
+          targetContent: parsedContent[subtitle.id],
+        }));
+
+        results.push(...batchResults);
+      }
+
       // 更新翻译进度
-      const progress = Math.min(((i + batchSize) / subtitles.length) * 100, 100);
+      const progress = Math.min(
+        ((i + batchSize) / subtitles.length) * 100,
+        100
+      );
       if (onProgress) {
         onProgress(progress);
       }

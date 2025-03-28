@@ -10,4 +10,7 @@ export const DEFAULT_BATCH_SIZE = {
 } as const;
 
 export const THINK_TAG_REGEX = /<think>[\s\S]*?<\/think>\n/g;
-export const RESULT_TAG_REGEX = /<result[^>]*>([\s\S]*?)<\/result>/; 
+export const RESULT_TAG_REGEX = /<result[^>]*>([\s\S]*?)<\/result>/;
+
+// 获取 ```json\n{content}\n``` 中的 content
+export const JSON_CONTENT_REGEX = /```json\n([\s\S]*?)\n```/;
