@@ -86,7 +86,7 @@
 | Mac | Apple | 支持 CoreML | mac-arm64 |
 | Mac | Intel | 不支持 CoreML | mac-x64 |
 
-1. 前往 [release](https://github.com/buxuku/video-subtitle-master/releases) 页面根据自己的操作系统下载安装包
+1. 前往 [release](https://github.com/buxuku/SmartSub/releases) 页面根据自己的操作系统下载安装包
 2. 安装并运行程序
 3. 下载模型
 4. 在程序中配置所需的翻译服务
@@ -99,17 +99,17 @@
 1️⃣ 克隆本项目在本地
 
 ```shell
-git clone https://github.com/buxuku/video-subtitle-master.git
+git clone https://github.com/buxuku/SmartSub.git
 ```
 
 2️⃣ 在项目中执行 `yarn install` 或者 `npm install`
 
 ```shell
-cd video-subtitle-master
+cd SmartSub
 yarn install 
 ```
 
-如果是 windows 平台，请前往 https://github.com/buxuku/whisper.cpp/releases/tag/latest 下载对应的 node 文件，并重命名为 `addon.node` , 覆盖放在 `extraResources/addons/` 目录下。
+如果是 windows 平台，或者 Mac intel 平台，请前往 https://github.com/buxuku/whisper.cpp/releases/tag/latest 下载对应的 node 文件，并重命名为 `addon.node` , 覆盖放在 `extraResources/addons/` 目录下。
 
 3️⃣ 依赖包安装好之后，执行 `yarn dev` 或者 `npm run dev` 启动项目
 
@@ -167,4 +167,4 @@ sudo xattr -dr com.apple.quarantine /Applications/Video\ Subtitle\ Master.app
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=buxuku/video-subtitle-master&type=Date)](https://star-history.com/#buxuku/video-subtitle-master&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=buxuku/SmartSub&type=Date)](https://star-history.com/#buxuku/SmartSub&Date)

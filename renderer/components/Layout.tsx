@@ -126,7 +126,7 @@ const Layout = ({ children }) => {
               <TooltipTrigger asChild className="w-10">
                 <Github
                   onClick={() =>
-                    openUrl('https://github.com/buxuku/video-subtitle-master')
+                    openUrl('https://github.com/buxuku/SmartSub')
                   }
                   className="inline-block cursor-pointer"
                 />

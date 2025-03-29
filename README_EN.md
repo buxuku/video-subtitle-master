@@ -87,7 +87,7 @@ Please download the appropriate package based on your computer's system, chip, a
 | Mac | Apple | support CoreML | mac-arm64 |
 | Mac | Intel | no support CoreML | mac-x64 |
 
-1. Go to the [releases](https://github.com/buxuku/video-subtitle-master/releases) page and download the appropriate package for your operating system
+1. Go to the [releases](https://github.com/buxuku/SmartSub/releases) page and download the appropriate package for your operating system
 2. Install and run the program
 3. Download the model
 4. Configure the desired translation services within the application
@@ -100,17 +100,17 @@ Please download the appropriate package based on your computer's system, chip, a
 1️⃣ Clone the project locally
 
 ```shell
-git clone https://github.com/buxuku/video-subtitle-master.git
+git clone https://github.com/buxuku/SmartSub.git
 ```
 
 2️⃣ Install dependencies using `yarn install` or `npm install`
 
 ```shell
-cd video-subtitle-master
+cd SmartSub
 yarn install 
 ```
 
-If you are on Windows, please download the node file from https://github.com/buxuku/whisper.cpp/releases/tag/latest and rename it to 'addon.node' and overlay it in the 'extraResources/addons/' directory.
+If you are on Windows, or Mac intel platform,  please download the node file from https://github.com/buxuku/whisper.cpp/releases/tag/latest and rename it to 'addon.node' and overlay it in the 'extraResources/addons/' directory.
 
 3️⃣ After installing dependencies, run `yarn dev` or `npm run dev` to launch the project
 
@@ -167,4 +167,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=buxuku/video-subtitle-master&type=Date)](https://star-history.com/#buxuku/video-subtitle-master&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=buxuku/SmartSub&type=Date)](https://star-history.com/#buxuku/SmartSub&Date)
