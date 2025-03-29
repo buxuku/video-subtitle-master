@@ -27,5 +27,6 @@
   "userPromptTips": "User prompt, supports variables: <br /> ${sourceLanguage} Source language <br /> ${targetLanguage} Target language <br /> ${content} Source subtitle",
   "testTranslation": "Test Translation",
   "testSuccess": "Test Successful",
-  "testFailed": "Test Failed"
+  "testFailed": "Test Failed",
+  "ollamaApiUrlTips": "Local Ollama API address, please use the chat interface, usually http://localhost:11434/api/chat"
 }
