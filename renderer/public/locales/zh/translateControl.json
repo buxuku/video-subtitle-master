@@ -29,5 +29,6 @@
   "batchSizeTip": "每次翻译的字幕数量，建议设置为 5-20 之间",
   "testTranslation": "测试翻译",
   "testSuccess": "测试成功",
-  "testFailed": "测试失败"
+  "testFailed": "测试失败",
+  "ollamaApiUrlTips": "本地Ollama API 地址，请使用 chat 接口， 一般为 http://localhost:11434/api/chat"
 }

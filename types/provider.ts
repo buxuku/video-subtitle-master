@@ -6,7 +6,6 @@ export type ProviderField = {
   required?: boolean;
   defaultValue?: string | number | boolean;
   tips?: string;
-  depends?: string;
 };
 
 export type ProviderType = {
@@ -156,8 +155,9 @@ export const PROVIDER_TYPES: ProviderType[] = [
         label: 'ApiUrl',
         type: 'url',
         required: true,
-        placeholder: 'http://localhost:11434/api/generate',
-        defaultValue: 'http://localhost:11434/api/generate',
+        tips: 'ollamaApiUrlTips',
+        placeholder: 'http://localhost:11434/api/chat',
+        defaultValue: 'http://localhost:11434/api/chat',
       },
       {
         key: 'modelName',
@@ -187,7 +187,6 @@ export const PROVIDER_TYPES: ProviderType[] = [
         type: 'number',
         defaultValue: 10,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
       },
     ],
   },
@@ -236,7 +235,6 @@ export const PROVIDER_TYPES: ProviderType[] = [
         type: 'number',
         defaultValue: 1,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
       },
     ],
   },
@@ -276,7 +274,6 @@ export const PROVIDER_TYPES: ProviderType[] = [
         type: 'number',
         defaultValue: 1,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
       },
     ],
   },
@@ -311,7 +308,6 @@ export const CONFIG_TEMPLATES: Record<string, ProviderType> = {
         type: 'number',
         defaultValue: 1,
         tips: 'batchSizeTip',
-        depends: 'useBatchTranslation',
       },
     ],
   },
