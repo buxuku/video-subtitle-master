@@ -95,11 +95,6 @@ export const ProviderForm: React.FC<ProviderFormProps> = ({
   return (
     <div className="grid gap-4">
       {fields.map((field) => {
-        // 如果字段依赖于其他字段，检查依赖是否满足
-        if (field.depends && !values[field.depends]) {
-          return null;
-        }
-
         return (
           <div key={field.key} className="space-y-2">
             <label className="text-sm font-medium">
